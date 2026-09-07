@@ -10,6 +10,7 @@ const {spawn, spawnSync} = require('node:child_process');
 const {canonical, hash} = require('../../skills/start-task/scripts/model-routing-io.js');
 const {collectCodexModelCatalog} = require('../../skills/start-task/scripts/codex-model-catalog.js');
 const {parseUsage, parseEvents} = require('../behavioral/adapters/provider-usage.cjs');
+const {createTelemetry} = require('../../skills/start-task/scripts/session-telemetry.js');
 const ROOT = path.resolve(__dirname, '../..');
 const ARMS = ['baseline', 'legacy', 'optimized'];
 const MODEL = 'gpt-5.6-terra';
@@ -230,7 +231,9 @@ async function execute(cwd,prompt,fixtureFiles,route) {
   process.removeListener('SIGINT',interrupt);process.removeListener('SIGTERM',interrupt);
   const usage=parseUsage('codex',stream,{invocationFailed:!!reason||completion.exitCode!==0});
   let events=[];try {events=parseEvents(stream);}catch {}
+  const telemetry=createTelemetry();for(const event of events)telemetry.observe(event);
   return {...completion,reason,usage,elapsedMs:Date.now()-started,outputBytes:bytes,stderrBytes,
+    telemetry:telemetry.summary(),promptBytes:Buffer.byteLength(prompt),
     runtimeStreamSha256:hash(stream),rawRuntimeRetained:false,streamTruncated:bytes>LIMITS.stdoutBytes,
     ...(route?{requestedModel:route.model,requestedEffort:route.reasoning_effort,
       dispatchEvidence:{source:'spawn-arguments',binary:'codex',commandSha256:hash(canonical(['codex',...args])),

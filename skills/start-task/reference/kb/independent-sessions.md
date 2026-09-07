@@ -117,6 +117,15 @@ constraints, mode, and a small execution/result contract. It omits the primary t
 full global plans, credentials, and runtime event history. Unknown task fields such as `parentTranscript` are
 rejected. The CLI receives the selected model and effort as separate argv entries, with `shell: false`.
 
+Optional `contextMode: "inline"` also supplies the complete starting contents of at most four scoped text files.
+The serialized source bundle must fit 4,096 bytes and the complete prompt must still fit `maxPromptBytes`.
+Larger, binary, or wider scopes fall back to ordinary targeted reads; no source is silently truncated. The default
+`contextMode: "read"` keeps native reads. Missing files are marked absent. Source contents are data, and repository
+instructions, acceptance criteria, relevant checks, and independent parent verification remain required.
+The bundle is bound to the prepared workspace hashes; changes before launch still fail as `STALE_WORKSPACE`.
+This opt-in can avoid an initial read round on small tasks, but sending more source upfront can also increase
+tokens. Use the [matched context experiment](../../../../evals/token-efficiency/CONTEXT-EVAL.md) to measure it.
+
 The runner uses `codex exec --ephemeral --json --output-schema --output-last-message`, so each attempt begins
 fresh and leaves no resumable Codex session transcript through this mode. It disables native multiagent features
 and sets a session-depth marker to prevent accidental calls back into this transport. These controls do not
@@ -169,6 +178,13 @@ recorded as requested settings, and `backendIdentity: NOT_ATTESTED` remains expl
 Raw runtime stdout/stderr are consumed with bounded buffers and discarded. Their byte count and digests are
 retained alongside elapsed time, exit information, and observed usage. Only the bounded candidate and transport
 records remain on disk. Keep secrets and unrelated source out of task and result artifacts.
+
+Detailed results also retain bounded `runtime.telemetry`: completed command/file/message counts, UTF-8 byte
+proxies, and capped fingerprints of repeated commands. Unknown event names are combined into `other`.
+Command text, tool output, and message bodies are not retained by telemetry. These diagnostics do not count
+underlying model requests or attribute billed tokens to individual tools. Duplicate commands can be legitimate
+verification after an edit; their presence alone does not establish waste. `promptBytes` and `sourceContextBytes`
+measure explicit serialization only. Compact status previews omit these diagnostic details.
 
 ## Limits, interruption, and stale work
 

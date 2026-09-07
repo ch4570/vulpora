@@ -1,0 +1,148 @@
+diff --git a/src/client.js b/src/client.js
+index 3379a1c..c16c09b 100644
+--- a/src/client.js
++++ b/src/client.js
+@@ -1,3 +1,8 @@
+ 'use strict';
++
++const {retry}=require('./retry.js');
++
+ async function fetchOnce(fetcher,url){return fetcher(url);}
+-module.exports={fetchOnce};
++async function fetchWithRetry(fetcher,url,options){return retry(()=>fetcher(url),options);}
++
++module.exports={fetchOnce,fetchWithRetry};
+diff --git a/src/retry.js b/src/retry.js
+index 91d1837..410ae51 100644
+--- a/src/retry.js
++++ b/src/retry.js
+@@ -1,3 +1,21 @@
+ 'use strict';
+-async function retry(operation){return operation(1);}
++
++async function retry(operation,options={}){
++  const {attempts=3,shouldRetry=()=>true,wait=async()=>{}}=options;
++
++  if(typeof attempts!=='number'||!Number.isFinite(attempts)||!Number.isInteger(attempts)||attempts<=0){
++    throw new RangeError('attempts must be a positive finite integer');
++  }
++
++  for(let attempt=1;attempt<=attempts;attempt++){
++    try{
++      return await operation(attempt);
++    }catch(error){
++      if(attempt===attempts)throw error;
++      if(!await shouldRetry(error,attempt))throw error;
++      await wait(attempt,error);
++    }
++  }
++}
++
+ module.exports={retry};
+diff --git a/test/retry.test.js b/test/retry.test.js
+index fc01914..8d55999 100644
+--- a/test/retry.test.js
++++ b/test/retry.test.js
+@@ -2,6 +2,101 @@
+ const test=require('node:test');
+ const assert=require('node:assert/strict');
+ const {retry}=require('../src/retry.js');
+-const {fetchOnce}=require('../src/client.js');
++const {fetchOnce,fetchWithRetry}=require('../src/client.js');
+ test('immediate success',async()=>assert.equal(await retry(()=>7),7));
+ test('fetchOnce',async()=>assert.equal(await fetchOnce(x=>x,'local'), 'local'));
++
++test('retries failures with one-based attempt numbers and returns the successful value',async()=>{
++  const calls=[];
++  const waits=[];
++  const value=await retry(attempt=>{
++    calls.push(attempt);
++    if(attempt<3)throw new Error(`failure ${attempt}`);
++    return {attempt};
++  },{wait:async(attempt,error)=>waits.push([attempt,error.message])});
++
++  assert.deepEqual(calls,[1,2,3]);
++  assert.deepEqual(waits,[[1,'failure 1'],[2,'failure 2']]);
++  assert.deepEqual(value,{attempt:3});
++});
++
++test('attempts defaults to three total calls',async()=>{
++  let calls=0;
++  await assert.rejects(retry(()=>{calls++;throw new Error('nope');}),/nope/);
++  assert.equal(calls,3);
++});
++
++test('rejects invalid attempts before calling the operation',async()=>{
++  for(const attempts of [0,-1,1.5,Infinity,NaN,'3']){
++    let called=false;
++    await assert.rejects(retry(()=>{called=true;},{attempts}),RangeError);
++    assert.equal(called,false);
++  }
++});
++
++test('stops after the final failure without consulting retry hooks',async()=>{
++  const error=new Error('final');
++  let shouldRetryCalled=false;
++  let waitCalled=false;
++  await assert.rejects(retry(()=>{throw error;},{attempts:1,shouldRetry:()=>{shouldRetryCalled=true;},wait:()=>{waitCalled=true;}}),received=>received===error);
++  assert.equal(shouldRetryCalled,false);
++  assert.equal(waitCalled,false);
++});
++
++test('honors shouldRetry and preserves the original error',async()=>{
++  const error=new Error('stop');
++  let calls=0;
++  let waited=false;
++  await assert.rejects(retry(()=>{calls++;throw error;},{shouldRetry:(received,attempt)=>{
++    assert.equal(received,error);
++    assert.equal(attempt,1);
++    return false;
++  },wait:()=>{waited=true;}}),received=>received===error);
++  assert.equal(calls,1);
++  assert.equal(waited,false);
++});
++
++test('propagates retry hook errors and stops',async()=>{
++  const predicateError=new Error('predicate');
++  let calls=0;
++  await assert.rejects(retry(()=>{calls++;throw new Error('operation');},{shouldRetry:()=>{throw predicateError;}}),received=>received===predicateError);
++  assert.equal(calls,1);
++
++  const waitError=new Error('wait');
++  calls=0;
++  await assert.rejects(retry(()=>{calls++;throw new Error('operation');},{wait:async()=>{throw waitError;}}),received=>received===waitError);
++  assert.equal(calls,1);
++});
++
++test('supports synchronous throws and asynchronous rejections',async()=>{
++  const syncCalls=[];
++  assert.equal(await retry(attempt=>{
++    syncCalls.push(attempt);
++    if(attempt===1)throw new Error('sync');
++    return 'sync success';
++  }),'sync success');
++  assert.deepEqual(syncCalls,[1,2]);
++
++  const asyncCalls=[];
++  assert.equal(await retry(async attempt=>{
++    asyncCalls.push(attempt);
++    if(attempt===1)throw new Error('async');
++    return 'async success';
++  }),'async success');
++  assert.deepEqual(asyncCalls,[1,2]);
++});
++
++test('fetchWithRetry retries fetcher(url) and forwards options',async()=>{
++  const urls=[];
++  const waits=[];
++  let calls=0;
++  const result=await fetchWithRetry(url=>{
++    urls.push(url);
++    calls++;
++    if(calls===1)throw new Error('temporary');
++    return 'response';
++  },'local',{attempts:2,wait:attempt=>waits.push(attempt)});
++  assert.equal(result,'response');
++  assert.deepEqual(urls,['local','local']);
++  assert.deepEqual(waits,[1]);
++});

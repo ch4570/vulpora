@@ -1,0 +1,361 @@
+{
+  "schema": "vulpora.economic-cost/v1",
+  "model": "mixed",
+  "models": [
+    "gpt-5.6-luna",
+    "gpt-5.6-terra"
+  ],
+  "pricingAvailable": true,
+  "billingAttested": false,
+  "pricing": null,
+  "pricingByModel": {
+    "gpt-5.6-luna": {
+      "model": "gpt-5.6-luna",
+      "verifiedOn": "2026-09-07",
+      "currency": "USD",
+      "unit": "per 1,000,000 tokens",
+      "sources": [
+        "https://developers.openai.com/api/docs/models/gpt-5.6-luna",
+        "https://developers.openai.com/api/docs/pricing",
+        "https://developers.openai.com/api/docs/guides/prompt-caching"
+      ],
+      "standard": {
+        "input": 0.2,
+        "cachedInput": 0.02,
+        "cacheWrite": 0.25,
+        "output": 1.2
+      },
+      "fast": {
+        "input": 0.4,
+        "cachedInput": 0.04,
+        "cacheWrite": 0.5,
+        "output": 2.4
+      },
+      "assumptions": [
+        "Every underlying request has at most 272,000 input tokens; cumulative turn tokens do not establish request context length.",
+        "Cache-write tokens are a subset of noncached input; their rate replaces the ordinary input rate for those tokens.",
+        "Unknown cache writes range from zero to all noncached input tokens; these are sensitivity bounds under this assumption.",
+        "No region uplift, tool fees, subscription or account-specific pricing is included.",
+        "Recorded model requests do not attest the served model or service tier; standard and Fast are alternative scenarios.",
+        "The Fast scenario assumes an eligible endpoint; GPT-6 Astra Fast is unavailable with EU data residency."
+      ]
+    },
+    "gpt-5.6-terra": {
+      "model": "gpt-5.6-terra",
+      "verifiedOn": "2026-09-07",
+      "currency": "USD",
+      "unit": "per 1,000,000 tokens",
+      "sources": [
+        "https://developers.openai.com/api/docs/models/gpt-5.6-terra",
+        "https://developers.openai.com/api/docs/pricing",
+        "https://developers.openai.com/api/docs/guides/prompt-caching"
+      ],
+      "standard": {
+        "input": 2,
+        "cachedInput": 0.2,
+        "cacheWrite": 2.5,
+        "output": 12
+      },
+      "fast": {
+        "input": 4,
+        "cachedInput": 0.4,
+        "cacheWrite": 5,
+        "output": 24
+      },
+      "assumptions": [
+        "Every underlying request has at most 272,000 input tokens; cumulative turn tokens do not establish request context length.",
+        "Cache-write tokens are a subset of noncached input; their rate replaces the ordinary input rate for those tokens.",
+        "Unknown cache writes range from zero to all noncached input tokens; these are sensitivity bounds under this assumption.",
+        "No region uplift, tool fees, subscription or account-specific pricing is included.",
+        "Recorded model requests do not attest the served model or service tier; standard and Fast are alternative scenarios.",
+        "The Fast scenario assumes an eligible endpoint; GPT-6 Astra Fast is unavailable with EU data residency."
+      ]
+    }
+  },
+  "accounting": "All recorded attempts, including failed attempts, repairs and model escalations, contribute to spend at their recorded requested-model rates. Missing usage or unknown model pricing is never zero.",
+  "breakEvenEquation": "candidate mean spend / candidate success rate < reference mean spend / reference success rate",
+  "paybackEquation": "ceil(all recorded suite attempt spend / savings per accepted task)",
+  "limitations": [
+    "USD values are API pricing scenarios, not observed charges or subscription savings.",
+    "Payback recoups only this recorded evaluation suite, excluding development, coordinator, installation and human time.",
+    "Acceptance rates describe the recorded task sample; repeated fixed tasks do not establish general quality or future savings.",
+    "Context length, served model, service tier and cache-write accounting must be independently verified for billing use.",
+    "Routing evidence records consistent requested dispatch configuration; it does not prove the served model or a causal quality/cost advantage."
+  ],
+  "suite": {
+    "taskRuns": 8,
+    "unstartedRuns": 0,
+    "unfinishedRuns": 0,
+    "attemptCount": 8,
+    "repairAttempts": 0,
+    "firstPassAcceptedTasks": 8,
+    "acceptedTasks": 8,
+    "firstPassAcceptanceRate": 1,
+    "acceptanceRate": 1,
+    "treatmentNoncompliantAttempts": 0,
+    "models": [
+      "gpt-5.6-luna",
+      "gpt-5.6-terra"
+    ],
+    "modelAttemptCounts": {
+      "gpt-5.6-luna": 4,
+      "gpt-5.6-terra": 4
+    },
+    "unknownModelAttempts": 0,
+    "observedUsageAttempts": 8,
+    "unknownUsageAttempts": 0,
+    "pricedUsageAttempts": 8,
+    "unknownPricingAttempts": 0,
+    "completeUsage": true,
+    "completePricing": true,
+    "observedSubtotalTokens": 443419,
+    "totalTokens": 443419,
+    "tokensPerAcceptedTask": 55427.375,
+    "standard": {
+      "observedSubtotalUsd": {
+        "baseUsd": 0.29589087999999997,
+        "cacheWriteSurchargeMinUsd": 0,
+        "cacheWriteSurchargeMaxUsd": 0.0324202,
+        "minUsd": 0.29589087999999997,
+        "maxUsd": 0.32831108
+      },
+      "totalUsd": {
+        "baseUsd": 0.29589087999999997,
+        "cacheWriteSurchargeMinUsd": 0,
+        "cacheWriteSurchargeMaxUsd": 0.0324202,
+        "minUsd": 0.29589087999999997,
+        "maxUsd": 0.32831108
+      },
+      "meanCostPerStartedTaskUsd": {
+        "minUsd": 0.036986359999999996,
+        "maxUsd": 0.041038885
+      },
+      "costPerAcceptedTaskUsd": {
+        "minUsd": 0.036986359999999996,
+        "maxUsd": 0.041038885
+      }
+    },
+    "fast": {
+      "observedSubtotalUsd": {
+        "baseUsd": 0.5917817599999999,
+        "cacheWriteSurchargeMinUsd": 0,
+        "cacheWriteSurchargeMaxUsd": 0.0648404,
+        "minUsd": 0.5917817599999999,
+        "maxUsd": 0.65662216
+      },
+      "totalUsd": {
+        "baseUsd": 0.5917817599999999,
+        "cacheWriteSurchargeMinUsd": 0,
+        "cacheWriteSurchargeMaxUsd": 0.0648404,
+        "minUsd": 0.5917817599999999,
+        "maxUsd": 0.65662216
+      },
+      "meanCostPerStartedTaskUsd": {
+        "minUsd": 0.07397271999999999,
+        "maxUsd": 0.08207777
+      },
+      "costPerAcceptedTaskUsd": {
+        "minUsd": 0.07397271999999999,
+        "maxUsd": 0.08207777
+      }
+    }
+  },
+  "arms": {
+    "read": {
+      "taskRuns": 4,
+      "unstartedRuns": 0,
+      "unfinishedRuns": 0,
+      "attemptCount": 4,
+      "repairAttempts": 0,
+      "firstPassAcceptedTasks": 4,
+      "acceptedTasks": 4,
+      "firstPassAcceptanceRate": 1,
+      "acceptanceRate": 1,
+      "treatmentNoncompliantAttempts": 0,
+      "models": [
+        "gpt-5.6-luna",
+        "gpt-5.6-terra"
+      ],
+      "modelAttemptCounts": {
+        "gpt-5.6-luna": 2,
+        "gpt-5.6-terra": 2
+      },
+      "unknownModelAttempts": 0,
+      "observedUsageAttempts": 4,
+      "unknownUsageAttempts": 0,
+      "pricedUsageAttempts": 4,
+      "unknownPricingAttempts": 0,
+      "completeUsage": true,
+      "completePricing": true,
+      "observedSubtotalTokens": 216149,
+      "totalTokens": 216149,
+      "tokensPerAcceptedTask": 54037.25,
+      "standard": {
+        "observedSubtotalUsd": {
+          "baseUsd": 0.15047132,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.017634649999999998,
+          "minUsd": 0.15047132,
+          "maxUsd": 0.16810597
+        },
+        "totalUsd": {
+          "baseUsd": 0.15047132,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.017634649999999998,
+          "minUsd": 0.15047132,
+          "maxUsd": 0.16810597
+        },
+        "meanCostPerStartedTaskUsd": {
+          "minUsd": 0.03761783,
+          "maxUsd": 0.0420264925
+        },
+        "costPerAcceptedTaskUsd": {
+          "minUsd": 0.03761783,
+          "maxUsd": 0.0420264925
+        }
+      },
+      "fast": {
+        "observedSubtotalUsd": {
+          "baseUsd": 0.30094264,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.035269299999999996,
+          "minUsd": 0.30094264,
+          "maxUsd": 0.33621194
+        },
+        "totalUsd": {
+          "baseUsd": 0.30094264,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.035269299999999996,
+          "minUsd": 0.30094264,
+          "maxUsd": 0.33621194
+        },
+        "meanCostPerStartedTaskUsd": {
+          "minUsd": 0.07523566,
+          "maxUsd": 0.084052985
+        },
+        "costPerAcceptedTaskUsd": {
+          "minUsd": 0.07523566,
+          "maxUsd": 0.084052985
+        }
+      }
+    },
+    "inline": {
+      "taskRuns": 4,
+      "unstartedRuns": 0,
+      "unfinishedRuns": 0,
+      "attemptCount": 4,
+      "repairAttempts": 0,
+      "firstPassAcceptedTasks": 4,
+      "acceptedTasks": 4,
+      "firstPassAcceptanceRate": 1,
+      "acceptanceRate": 1,
+      "treatmentNoncompliantAttempts": 0,
+      "models": [
+        "gpt-5.6-luna",
+        "gpt-5.6-terra"
+      ],
+      "modelAttemptCounts": {
+        "gpt-5.6-luna": 2,
+        "gpt-5.6-terra": 2
+      },
+      "unknownModelAttempts": 0,
+      "observedUsageAttempts": 4,
+      "unknownUsageAttempts": 0,
+      "pricedUsageAttempts": 4,
+      "unknownPricingAttempts": 0,
+      "completeUsage": true,
+      "completePricing": true,
+      "observedSubtotalTokens": 227270,
+      "totalTokens": 227270,
+      "tokensPerAcceptedTask": 56817.5,
+      "standard": {
+        "observedSubtotalUsd": {
+          "baseUsd": 0.14541956,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.01478555,
+          "minUsd": 0.14541956,
+          "maxUsd": 0.16020511
+        },
+        "totalUsd": {
+          "baseUsd": 0.14541956,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.01478555,
+          "minUsd": 0.14541956,
+          "maxUsd": 0.16020511
+        },
+        "meanCostPerStartedTaskUsd": {
+          "minUsd": 0.03635489,
+          "maxUsd": 0.0400512775
+        },
+        "costPerAcceptedTaskUsd": {
+          "minUsd": 0.03635489,
+          "maxUsd": 0.0400512775
+        }
+      },
+      "fast": {
+        "observedSubtotalUsd": {
+          "baseUsd": 0.29083912,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.0295711,
+          "minUsd": 0.29083912,
+          "maxUsd": 0.32041022
+        },
+        "totalUsd": {
+          "baseUsd": 0.29083912,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.0295711,
+          "minUsd": 0.29083912,
+          "maxUsd": 0.32041022
+        },
+        "meanCostPerStartedTaskUsd": {
+          "minUsd": 0.07270978,
+          "maxUsd": 0.080102555
+        },
+        "costPerAcceptedTaskUsd": {
+          "minUsd": 0.07270978,
+          "maxUsd": 0.080102555
+        }
+      }
+    }
+  },
+  "productGoal": {
+    "target": "Higher final quality AND lower total tokens AND lower actual cost than baseline",
+    "candidateArm": "optimized",
+    "status": "insufficient_evidence",
+    "lowerObservedTokensPerAcceptedTask": null,
+    "lowerEstimatedCostAcrossCacheWriteScenarios": null,
+    "higherObservedAcceptanceRate": null,
+    "finalQualitySuperiority": "not_established_by_acceptance_rates_alone",
+    "actualBilledSavings": "not_measured_by_this_calculator",
+    "strictWorkflowComparisonVerified": true,
+    "modelRoutingEvidence": {
+      "status": "no_recorded_routed_dispatches",
+      "routedAttempts": 0,
+      "recordedDispatchAttempts": 0,
+      "missingOrConflictingDispatchAttempts": 0,
+      "requestedModels": [],
+      "recordedEscalationAttempts": 0,
+      "servedModelAttested": false,
+      "qualityOrSavingsEffectEstablished": false
+    },
+    "modelRoutingEffect": "not_established",
+    "higherQualityAndLowerActualCostEstablished": false
+  },
+  "comparisons": {
+    "optimizedVsLegacy": {
+      "status": "missing_arm"
+    },
+    "optimizedVsBaseline": {
+      "status": "missing_arm"
+    },
+    "lunaVsBaseline": {
+      "status": "missing_arm"
+    },
+    "routedVsBaseline": {
+      "status": "missing_arm"
+    },
+    "routedVsLuna": {
+      "status": "missing_arm"
+    }
+  }
+}

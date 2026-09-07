@@ -10,6 +10,8 @@ const {spawn, spawnSync} = require('node:child_process');
 const {performance} = require('node:perf_hooks');
 const {canonical, hash, regularFile, parseJson} = require('./model-routing-io.js');
 const {promptFor, summarizeResult} = require('./session-io.js');
+const {sourceContextFor, validateSourceContext} = require('./session-context.js');
+const {createTelemetry} = require('./session-telemetry.js');
 const {selectTaskExecution, resolveTaskRoute} = require('./task-router.js');
 const {initBudget, readBudget, reserveBudget, settleBudget} = require('./session-budget.js');
 
@@ -75,7 +77,7 @@ function writeNew(filename, value) {
 }
 function validateTask(input) {
   keys(input, ['schema', 'id', 'goal', 'cwd', 'files', 'acceptance'],
-    ['runtime', 'taskType', 'difficulty', 'risk', 'profile', 'constraints', 'mode', 'delegation', 'estimatedTokens', 'remainingTokens', 'maxRelativeUnits', 'limits']);
+    ['runtime', 'taskType', 'difficulty', 'risk', 'profile', 'constraints', 'mode', 'delegation', 'contextMode', 'estimatedTokens', 'remainingTokens', 'maxRelativeUnits', 'limits']);
   if (input.schema !== 'vulpora.session-task/v1' || !ID.test(input.id || '')) fail('INVALID_TASK_ID_OR_SCHEMA');
   text(input.goal, 8192); text(input.cwd, 4096);
   if (!path.isAbsolute(input.cwd)) fail('CWD_MUST_BE_ABSOLUTE');
@@ -92,6 +94,7 @@ function validateTask(input) {
   if (!TASK_TYPES.includes(task.taskType) || !['simple', 'moderate', 'complex'].includes(task.difficulty)
     || !['low', 'high'].includes(task.risk) || !['read-only', 'workspace-write'].includes(task.mode)) fail('INVALID_TASK_SELECTION');
   if (task.profile !== undefined && !['auto', 'frugal', 'standard', 'frontier'].includes(task.profile)) fail('INVALID_TASK_PROFILE');
+  if (task.contextMode !== undefined && !['read', 'inline'].includes(task.contextMode)) fail('INVALID_CONTEXT_MODE');
   strings(task.constraints, 32, 2048);
   if (!['auto', 'independent-session'].includes(task.delegation)) fail('INVALID_TASK_DELEGATION');
   integer(task.estimatedTokens, 1e9); integer(task.remainingTokens, 1e9); integer(task.maxRelativeUnits, 1e9);
@@ -178,6 +181,13 @@ function prepare(options) {
     runtime: executable(), workspace: snapshot(task, attemptDir), preparedAt: new Date().toISOString(),
     expiresAt: new Date(Date.parse(catalog.observedAt) + policy.maxCatalogAgeSeconds * 1000).toISOString(),
     outputSchemaSha256: hash(regularFile(CANDIDATE_SCHEMA_PATH, 65536))};
+  // Explicit until matched measurements justify changing the default. Existing
+  // capsules keep their exact prompt and workspace binding semantics.
+  if (task.contextMode === 'inline') {
+    const sourceContext = sourceContextFor(task.cwd, task.files, capsule.workspace.files);
+    if (sourceContext && Buffer.byteLength(promptFor({...capsule, sourceContext})) <= task.limits.maxPromptBytes)
+      capsule.sourceContext = sourceContext;
+  }
   if (Buffer.byteLength(promptFor(capsule)) > task.limits.maxPromptBytes) fail('PROMPT_BUDGET_EXCEEDED');
   fs.mkdirSync(attemptDir, {mode: 0o700});
   writeNew(path.join(attemptDir, 'capsule.json'), capsule);
@@ -195,7 +205,7 @@ function loadCapsule(filename) {
   if (path.basename(absolute) !== 'capsule.json') fail('CAPSULE_FILENAME_INVALID');
   const bytes = regularFile(absolute, 1024 * 1024);
   const capsule = parseJson(bytes.toString('utf8'));
-  keys(capsule, ['schema', 'attemptId', 'task', 'route', 'runtime', 'workspace', 'preparedAt', 'expiresAt', 'outputSchemaSha256'], ['budget']);
+  keys(capsule, ['schema', 'attemptId', 'task', 'route', 'runtime', 'workspace', 'preparedAt', 'expiresAt', 'outputSchemaSha256'], ['budget', 'sourceContext']);
   if (capsule.schema !== 'vulpora.session-capsule/v1' || !ID.test(capsule.attemptId || '')
     || canonical(capsule) !== bytes.toString('utf8')) fail('INVALID_CAPSULE');
   if (!capsule.budget) fail('BUDGET_REQUIRED');
@@ -204,6 +214,7 @@ function loadCapsule(filename) {
     || !ID.test(capsule.budget.id || '')) fail('INVALID_CAPSULE_BUDGET');
   const task = validateTask(capsule.task);
   if (canonical(task) !== canonical(capsule.task)) fail('NON_CANONICAL_TASK');
+  if (Object.hasOwn(capsule, 'sourceContext')) validateSourceContext(capsule.sourceContext, task.files, capsule.workspace.files);
   if (capsule.route?.status !== 'RESOLVED' || capsule.route.runtime !== 'codex'
     || !/^[A-Za-z0-9][A-Za-z0-9._:/+-]{0,199}$/.test(capsule.route.model || '')
     || !['minimal', 'low', 'medium', 'high', 'xhigh', 'max', 'ultra'].includes(capsule.route.reasoning_effort)) fail('INVALID_CAPSULE_ROUTE');
@@ -285,6 +296,7 @@ async function execute(capsule, attemptDir) {
     '-c', 'approval_policy="never"', '--disable', 'multi_agent', '--disable', 'multi_agent_v2', '-'];
   const limits = capsule.task.limits;
   const started = performance.now();
+  const telemetry = createTelemetry();
   const stdoutHash = crypto.createHash('sha256'), stderrHash = crypto.createHash('sha256');
   let outputBytes = 0, buffer = '', reason = null, usage = null, usageEvents = 0, eventCount = 0, threadId = null;
   let child, deadline, killTimer, drainTimer, fileTimer, closed = false, exited = false;
@@ -307,6 +319,7 @@ async function execute(capsule, attemptDir) {
     let value;
     try { value = JSON.parse(line); } catch { stop('INVALID_RUNTIME_EVENT'); return; }
     eventCount++;
+    telemetry.observe(value);
     if (value.type === 'thread.started' && typeof value.thread_id === 'string' && ID.test(value.thread_id)) threadId = value.thread_id;
     // Only top-level CLI protocol events provide usage; model/tool text and the
     // candidate response are never scanned for measurements.
@@ -378,6 +391,8 @@ async function execute(capsule, attemptDir) {
     return {reason, ...completion, runtimeThreadId: threadId, usage: usage || {source: 'unavailable'}, eventCount,
       elapsedMs: Math.round(performance.now() - started), outputBytes, stdoutSha256: stdoutHash.digest('hex'),
       stderrSha256: stderrHash.digest('hex'), invocationSha256: hash(canonical({executable: capsule.runtime.executable, args})),
+      telemetry: telemetry.summary(), promptBytes: Buffer.byteLength(promptFor(capsule)),
+      sourceContextBytes: capsule.sourceContext ? Buffer.byteLength(canonical(capsule.sourceContext)) : 0,
       rawTranscriptRetained: false, backendIdentity: 'NOT_ATTESTED', descendantCleanup: 'NOT_ATTESTED'};
   } finally {
     clearTimeout(deadline); clearTimeout(killTimer); clearTimeout(drainTimer); clearInterval(fileTimer);

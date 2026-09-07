@@ -97,6 +97,36 @@ else {
     assert.equal(prepare(retry).json.model,'fake-standard');
     assert.equal(JSON.parse(fs.readFileSync(retry.capsule)).route.taskSelection.explicitProfile,'standard');
   });
+  check('inline context is fingerprinted, bounded, optional, and stale-protected',()=>{
+    const item=fixture('inline-context',{contextMode:'inline'});
+    assert.equal(prepare(item).status,0);
+    const capsule=JSON.parse(fs.readFileSync(item.capsule));
+    assert.equal(capsule.sourceContext.files[0].content,'original\n');
+    assert.equal(run(item).status,0);
+    const captured=JSON.parse(fs.readFileSync(item.capture));
+    assert.deepEqual(captured.prompt.source_context,capsule.sourceContext);
+    const result=invoke(['status','--capsule',item.capsule,'--detail'],item).json;
+    assert.ok(result.runtime.sourceContextBytes>0);
+    assert.equal(result.runtime.telemetry.itemCompleted.agentMessages,1);
+    assert.equal(result.runtime.usage.inputTokens,100);
+    const plain=fixture('read-context',{contextMode:'read'});prepare(plain);
+    assert.equal(JSON.parse(fs.readFileSync(plain.capsule)).sourceContext,undefined);
+    const large=fixture('large-inline-context',{contextMode:'inline'});
+    fs.writeFileSync(path.join(large.cwd,'source.txt'),'x'.repeat(5000));prepare(large);
+    assert.equal(JSON.parse(fs.readFileSync(large.capsule)).sourceContext,undefined);
+    const tight=fixture('tight-inline-context',{contextMode:'inline'});
+    const api=require(runner);
+    const minimum=Buffer.byteLength(api.promptFor({task:api.validateTask(tight.task),attemptId:'a'.repeat(36)}));
+    tight.task.limits={maxPromptBytes:minimum+5};fs.writeFileSync(tight.taskPath,JSON.stringify(tight.task));
+    assert.equal(prepare(tight).status,0);
+    assert.equal(JSON.parse(fs.readFileSync(tight.capsule)).sourceContext,undefined);
+    const stale=fixture('stale-inline-context',{contextMode:'inline'});prepare(stale);
+    fs.writeFileSync(path.join(stale.cwd,'source.txt'),'new\n');
+    assert.equal(run(stale).json.reason,'STALE_WORKSPACE');
+    assert.equal(fs.existsSync(stale.capture),false);
+    const invalid=fixture('invalid-context-mode',{contextMode:'everything'});
+    assert.equal(prepare(invalid).json.reason,'INVALID_CONTEXT_MODE');
+  });
   check('profile pins cannot bypass risk floors, budgets, ownership, or input validation',()=>{
     const high=fixture('profile-risk',{risk:'high',profile:'frugal'});
     assert.equal(prepare(high).json.model,'fake-frontier');

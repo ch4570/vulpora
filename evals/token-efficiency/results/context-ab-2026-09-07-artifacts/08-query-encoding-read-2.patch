@@ -1,0 +1,62 @@
+diff --git a/src/query.js b/src/query.js
+index ccd7d9e..9373f10 100644
+--- a/src/query.js
++++ b/src/query.js
+@@ -1,3 +1,15 @@
+ 'use strict';
+-function queryPairs(filters){return Object.entries(filters).filter(([,value])=>value).map(([key,value])=>[key,String(value)]);}
++
++function queryPairs(filters){
++  const pairs=[];
++  for(const [key,value] of Object.entries(filters)){
++    const values=Array.isArray(value)?value:[value];
++    for(const item of values){
++      if((typeof item==='string'||typeof item==='number'||typeof item==='boolean')){
++        pairs.push([key,String(item)]);
++      }
++    }
++  }
++  return pairs;
++}
+ module.exports={queryPairs};
+diff --git a/src/search.js b/src/search.js
+index 65f12d1..a86272a 100644
+--- a/src/search.js
++++ b/src/search.js
+@@ -1,3 +1,8 @@
+ 'use strict';
+-function buildSearch(filters){return '?'+Object.entries(filters).map(([key,value])=>key+'='+value).join('&');}
++const {queryPairs}=require('./query.js');
++
++function buildSearch(filters){
++  const pairs=queryPairs(filters);
++  return pairs.length?'?'+new URLSearchParams(pairs).toString():'';
++}
+ module.exports={buildSearch};
+diff --git a/test/search.test.js b/test/search.test.js
+index ca55db6..8873d50 100644
+--- a/test/search.test.js
++++ b/test/search.test.js
+@@ -1,4 +1,21 @@
+ 'use strict';
+ const test=require('node:test'),assert=require('node:assert/strict');
+ const {buildSearch}=require('../src/search.js');
+-test('basic',()=>assert.equal(buildSearch({q:'term'}),'?q=term'));
++const {queryPairs}=require('../src/query.js');
++
++test('queryPairs serializes supported scalar values in entry order',()=>{
++  assert.deepEqual(queryPairs({q:'term',page:0,enabled:false,empty:''}),[
++    ['q','term'],['page','0'],['enabled','false'],['empty','']
++  ]);
++});
++
++test('queryPairs expands arrays and omits unsupported values',()=>{
++  const filters={a:[1,null,false,undefined,['nested'],''],b:null,c:undefined,d:{x:1},e:()=>{},f:Symbol('x'),g:1n};
++  assert.deepEqual(queryPairs(filters),[['a','1'],['a','false'],['a','']]);
++  assert.deepEqual(filters.a,[1,null,false,undefined,['nested'],'']);
++});
++
++test('buildSearch encodes repeated pairs and returns empty when no pairs remain',()=>{
++  assert.equal(buildSearch({q:'a b',tag:['x&y',''],page:0}),'?q=a+b&tag=x%26y&tag=&page=0');
++  assert.equal(buildSearch({a:null,b:undefined,c:{}}),'');
++});
