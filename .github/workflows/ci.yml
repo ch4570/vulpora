@@ -47,7 +47,9 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update
-          sudo apt-get install --yes ripgrep poppler-utils util-linux
+          sudo apt-get install --yes ripgrep poppler-utils util-linux fontconfig fonts-noto-cjk
+          test -n "$(fc-list :lang=ko family)"
+          fc-match 'sans-serif:lang=ko'
           test -x /opt/google/chrome/chrome
           /opt/google/chrome/chrome --version
           echo "MARKDOWN_PUBLISHER_BROWSER=/opt/google/chrome/chrome" >> "$GITHUB_ENV"
