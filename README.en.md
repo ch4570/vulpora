@@ -130,6 +130,10 @@ Keep the shared budget outside the task workspace and reuse it across related at
 parallel work; unavailable usage and observed overruns block new launches. `status` returns compact artifact
 references; add `--detail` for the full result. These controls and output limits do not prove billing savings.
 
+For small low-risk edits, optional `workerMode: "edit-proposal"` returns bounded replacement contents from a
+read-only worker. The coordinator validates hashes and applies edits; the parent verifies the result. Difficulty
+routing still selects Luna or Terra. See the [matched transport experiment](evals/token-efficiency/PROPOSAL-EVAL.md).
+
 See the [task JSON and session limits](skills/start-task/reference/kb/independent-sessions.md) and
 [token measurements](evals/token-efficiency/README.md). New sessions do not inherit the parent transcript;
 their startup and rereads still cost tokens. Claude session execution is not yet implemented; explicit audits
