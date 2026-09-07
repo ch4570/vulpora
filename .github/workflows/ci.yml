@@ -26,7 +26,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - macos-latest
+          - macos-26
         node:
           - 22.x
           - 24.x
@@ -58,11 +58,30 @@ jobs:
         shell: bash
         run: |
           brew install ripgrep poppler
+          # Pin the real headless browser tested on the macOS arm64 runner.
+          # Full Chrome can retain inherited pipes or stall before PDF output.
+          test "$(uname -m)" = arm64
+          browser_root="$RUNNER_TEMP/vulpora-headless-shell-152.0.7977.82"
+          mkdir "$browser_root"
+          curl --fail --silent --show-error --location --max-time 120 \
+            'https://storage.googleapis.com/chrome-for-testing-public/152.0.7977.82/mac-arm64/chrome-headless-shell-mac-arm64.zip' \
+            --output "$browser_root/browser.zip"
+          printf '%s  %s\n' \
+            '1615f063c894aa824fd55c89f8f05e9904f63cce0c95d0cbce7394d77884fba5' \
+            "$browser_root/browser.zip" | shasum -a 256 --check
+          ditto -xk "$browser_root/browser.zip" "$browser_root"
+          test_browser="$browser_root/chrome-headless-shell-mac-arm64/chrome-headless-shell"
+          test -x "$test_browser"
+          test "$("$test_browser" --version)" = 'Google Chrome for Testing 152.0.7977.82'
+          echo "MARKDOWN_PUBLISHER_BROWSER=$test_browser" >> "$GITHUB_ENV"
 
       - name: Verify test prerequisites and real network denial
         shell: bash
         run: |
           rg --version
+          test_browser=$(node skills/markdown-publisher/scripts/render-pdf.mjs --preflight)
+          printf 'PDF browser: %s\n' "$test_browser"
+          "$test_browser" --version
           python3 skills/pdf-qa/scripts/preflight.py --pretty
           probe_rc=0
           bash evals/behavioral/fixtures/repos/sample-start-task-live/run-offline.sh \

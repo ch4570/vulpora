@@ -11,10 +11,10 @@ A local test result does not by itself prove remote closure or operational deplo
 | PR #29: setup-node action | Merged; pinned v7.0.0 | Official tag matches pinned SHA |
 | PR #30: development dependencies | Merged | Combined TypeScript 7 / Node types 26 build and typecheck |
 | PR #31: production dependencies | Merged after resolving lockfile conflict with #30 | 36 MCP tests, build, typecheck, npm audit: 0 vulnerabilities; mocked drivers |
-| Issue #22: no-op gates | Fix implemented; final remote closure follows release validation | Missing/stale gates and uncovered behavioral selections fail explicitly |
-| Issue #23: incident regressions | Fix implemented; final remote closure follows release validation | Five synthetic incidents and healthy control; ten receipt checks |
-| Issue #27: shell/awk portability | Matrix implemented; public CI execution pending | Ubuntu system/GNU Awk and macOS system jobs; missing tools are NOT_RUN |
-| Issue #25: external evaluation trust | **Operational requirements remain open** | Offline crypto/budget checks are not trusted isolation, independent identity, immutable storage, or repeated live security acceptance |
+| Issue #22: no-op gates | Closed after implementation and regression verification | Missing/stale gates and uncovered behavioral selections fail explicitly |
+| Issue #23: incident regressions | Closed after implementation and regression verification | Five synthetic incidents and healthy control; ten receipt checks |
+| Issue #27: shell/awk portability | Closed; all three public CI matrix jobs passed | Ubuntu system/GNU Awk and macOS system jobs; missing tools are NOT_RUN |
+| Issue #25: external evaluation trust | Private issue closed as migrated; [public follow-up #1 remains open](https://github.com/ch4570/vulpora/issues/1) | Offline crypto/budget checks are not trusted isolation, independent identity, immutable storage, or repeated live security acceptance |
 
 ## V1 implementation
 
@@ -33,8 +33,9 @@ quality or lower total cost. Claude independent sessions and trusted automated e
 available in v1. The MCP tests use fake database drivers, not live PostgreSQL/MySQL/SQL Server services.
 
 The private repository's Actions jobs could not start because of account billing/spending limits. Those runs
-are infrastructure blocks, not executed test failures. Public CI and final package results are recorded with
-the release after they finish.
+are infrastructure blocks, not executed test failures. The public [Ubuntu/macOS evaluation matrix](https://github.com/ch4570/vulpora/actions/runs/34086808364) and
+MCP Node 22/24 jobs passed. A 10-second browser deadline in the core job was increased to 30 seconds;
+the release records the corrected core run and final package results.
 
 ## Private history and public source
 

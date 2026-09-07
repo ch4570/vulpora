@@ -7,8 +7,7 @@ hosted MCP 연결을 선택 설치합니다. 전체 설치의 정상 inventory�
 OpenCode는 저수준 installer의 project-scope agent/skill renderer만 experimental로 제공합니다. 상위 CLI와
 native execution smoke test가 완성되기 전까지 안정 지원에 포함하지 않습니다.
 
-**npm registry 배포는 아직 대기 중입니다.** 현재는 아래 GitHub 명령이나 로컬 checkout을 사용합니다.
-저장소가 공개되기 전에는 GitHub repository 접근 권한이 필요하며, 이 문서는 공개 배포 완료를 의미하지 않습니다.
+**npm registry 게시는 보류했습니다.** 공개 GitHub 저장소의 명령, 릴리스 tarball, 로컬 checkout으로 설치할 수 있습니다.
 
 패키지·명령은 `vulpora`, 초기화 스킬은 `vulpora-init`입니다. `VULPORA_*` 환경변수,
 `.vulpora` 기록 경로, `vulpora.config.json`, `vulpora@vulpora` Claude plugin을 사용합니다.

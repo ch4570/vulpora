@@ -40,13 +40,13 @@ Pack을 고르면 선언된 의존성도 함께 설치하며, 공유 자산은 �
 
 ### 1. 설치기 실행
 
-현재 npm registry 배포는 **대기 중**입니다. 저장소 버전으로 실행합니다.
+npm registry 게시는 **보류**했습니다. 공개 저장소 버전으로 실행합니다.
 
 ```sh
 npx --yes --package='git+https://github.com/ch4570/vulpora.git' -- vulpora
 ```
 
-저장소 기본 브랜치를 사용하며 저장소 접근 권한이 필요합니다. 설치기는 런타임을 자동 감지하고,
+공개 저장소의 기본 브랜치를 사용합니다. 설치기는 런타임을 자동 감지하고,
 프로젝트/사용자 범위와 설치 항목을 선택한 뒤 적용할 변경을 보여줍니다.
 스킬 선택 화면에서는 **`vulpora-init`**와 **`code-authoring-router`**로 시작하세요.
 Pack 전체를 고르려면 checkout에서 `./vulpora setup --runtime codex --scope project --target /absolute/project pack:core`를

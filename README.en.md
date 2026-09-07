@@ -41,13 +41,13 @@ Optional skills may need more tools; see the [skill prerequisites](docs/skills.e
 
 ### 1. Open the installer
 
-The npm registry release is **pending**. Run the current repository version:
+npm registry publication is **deferred**. Run the public repository version:
 
 ```sh
 npx --yes --package='git+https://github.com/ch4570/vulpora.git' -- vulpora
 ```
 
-This follows the default branch and requires access to the repository. The installer detects your
+This follows the public default branch. The installer detects your
 runtimes, offers project/user scope and capability selection, then previews changes before applying them.
 In the skill picker, start with **`vulpora-init`** and **`code-authoring-router`**. To select a complete
 pack, use `./vulpora setup --runtime codex --scope project --target /absolute/project pack:core`

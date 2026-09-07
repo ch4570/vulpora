@@ -93,6 +93,8 @@ if BROWSER=$(node "$ROOT/scripts/render-pdf.mjs" --preflight 2>/dev/null); then
     --browser "$BROWSER" \
     --pdf >/dev/null
   expect 'PDF has a valid signature' sh -c "test \"\$(head -c 5 '$TMP/pdf/report.pdf')\" = '%PDF-'"
+  pdftotext "$TMP/pdf/report.pdf" "$TMP/pdf/report.txt"
+  expect 'PDF contains the rendered Korean heading' grep -Fq '한글 기술 보고서' "$TMP/pdf/report.txt"
   expect 'PDF manifest requires pdf-qa' node -e '
     const fs = require("fs");
     const data = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
