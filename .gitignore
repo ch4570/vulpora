@@ -45,3 +45,6 @@ __pycache__/
 /test-report/
 /test-results/
 /playwright-report/
+
+# Private raw scanner output; publish reviewed summaries only.
+/docs/security/raw/
