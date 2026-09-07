@@ -52,6 +52,35 @@ function workspace(t) {
   return cwd;
 }
 const options = {taskId: 'task-1', files, sourceHashes};
+test('proposal output schema declares a type for every property including the schema discriminator', () => {
+  const schema = require('../skills/start-task/scripts/session-edit-proposal.schema.json');
+  function typed(value) {
+    assert.ok(value.type, 'Every output property requires an explicit type');
+    if (value.type === 'object') {
+      assert.equal(value.additionalProperties, false);
+      assert.deepEqual([...value.required].sort(), Object.keys(value.properties).sort());
+      Object.values(value.properties).forEach(typed);
+    }
+    if (value.type === 'array') typed(value.items);
+  }
+  typed(schema);assert.equal(schema.properties.schema.type, 'string');
+  assert.equal(schema.properties.schema.const, SCHEMA);
+});
+test('runtime failures expose only fixed diagnostic categories and codes, never raw messages', () => {
+  const {classifyRuntimeFailure} = require('../skills/start-task/scripts/session-runner.js');
+  const secret = 'SECRET api-key /private/path https://private.example';
+  assert.deepEqual(classifyRuntimeFailure({type: 'error', code: 'invalid_json_schema', message: secret}),
+    {eventType: 'error', category: 'output_schema', code: 'invalid_json_schema', classification: 'recognized_code'});
+  const inferred = classifyRuntimeFailure({type: 'turn.failed', error: {code: secret,
+    message: `Invalid schema for response_format: type key missing. ${secret}`}});
+  assert.equal(inferred.category, 'output_schema');assert.equal(inferred.code, null);
+  assert.equal(inferred.classification, 'message_pattern');assert.ok(!JSON.stringify(inferred).includes('SECRET'));
+  const unknown = classifyRuntimeFailure({type: 'error', error: {code: secret, message: secret}});
+  assert.deepEqual(unknown, {eventType: 'error', category: 'unknown', code: null, classification: 'unclassified'});
+  assert.equal(classifyRuntimeFailure({type: 'item.completed', item: {type: 'agent_message', text: 'invalid_json_schema'}}), null);
+  const bounded = classifyRuntimeFailure({type: 'error', message: 'x'.repeat(5000) + 'Invalid schema'});
+  assert.equal(bounded.category, 'unknown');
+});
 test('applies bound replacement and absent-file creation atomically with preserved modes', t => {
   const cwd = workspace(t), value = proposal();
   value.edits.push({path: 'test/a.test.js', before_sha256: null, content: 'test source'});

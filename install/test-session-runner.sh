@@ -25,6 +25,13 @@ fs.writeFileSync(process.env.SESSION_TEST_CAPTURE, JSON.stringify({args, prompt}
 const mode = process.env.SESSION_TEST_MODE || 'good';
 if (mode === 'budget-lock') fs.mkdirSync(process.env.SESSION_TEST_BUDGET + '.lock');
 if (mode === 'timeout') { setInterval(() => {}, 1000); }
+else if (mode === 'provider-schema-error') {
+  const secret='SECRET /private/path credential-value';
+  const events=[{type:'error',message:'Invalid schema for response_format: missing type key. '+secret},
+    {type:'turn.failed',error:{code:'invalid_json_schema',message:secret}},
+    ...Array.from({length:4},()=>({type:'error',code:secret,message:secret}))];
+  process.stdout.write(events.map(event=>JSON.stringify(event)).join('\\n')+'\\n');
+}
 else {
   if (mode === 'huge') process.stdout.write('x'.repeat(10000));
   if (mode === 'write' || mode === 'silent-write' || mode === 'proposal-mutate') fs.writeFileSync(require('node:path').join(prompt.cwd,'source.txt'),'worker edit\\n');
@@ -201,6 +208,21 @@ else {
       const budget=readBudget(item.budget);assert.equal(budget.committedTokens,0);
       assert.equal(budget.reservedTokens,4000);assert.equal(budget.unresolvedAttempts,1);
     }
+  });
+  check('provider failures retain bounded private-safe diagnostics without fabricating usage or applying edits',()=>{
+    const item=fixture('proposal-provider-schema-error',{workerMode:'edit-proposal',mode:'workspace-write'});prepare(item);
+    const result=run(item,'provider-schema-error');assert.equal(result.status,3);
+    assert.equal(result.json.reason,'RUNTIME_REPORTED_FAILURE');
+    const diagnostics=result.json.runtime.failureDiagnostics;
+    assert.equal(diagnostics.events.length,4);assert.equal(diagnostics.omittedEvents,2);
+    assert.equal(diagnostics.events[0].category,'output_schema');
+    assert.equal(diagnostics.events[0].classification,'message_pattern');
+    assert.equal(diagnostics.events[1].code,'invalid_json_schema');
+    assert.equal(diagnostics.rawMessageRetained,false);
+    assert.ok(!result.stdout.includes('SECRET'));assert.ok(!result.stdout.includes('/private/path'));
+    assert.equal(result.json.runtime.usage.source,'unavailable');assert.equal(result.json.candidate,null);
+    assert.equal(fs.readFileSync(path.join(item.cwd,'source.txt'),'utf8'),'original\n');
+    assert.equal(readBudget(item.budget).reservedTokens,4000);assert.equal(readBudget(item.budget).unresolvedAttempts,1);
   });
   check('proposal eligibility is explicit and never silently changes mode or source scope',()=>{
     for(const [name,overrides,reason] of [

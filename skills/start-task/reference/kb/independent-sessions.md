@@ -126,6 +126,26 @@ The bundle is bound to the prepared workspace hashes; changes before launch stil
 This opt-in can avoid an initial read round on small tasks, but sending more source upfront can also increase
 tokens. Use the [matched context experiment](../../../../evals/token-efficiency/CONTEXT-EVAL.md) to measure it.
 
+For a bounded edit with complete source, set `workerMode: "edit-proposal"` and `mode: "workspace-write"`.
+This explicitly requests a session even for a tiny task. It accepts only low-risk implementation, testing, or
+documentation work with at most four files, complete source within 4,096 bytes, and existing parent directories.
+Nested `AGENTS.md` files make the mode ineligible because the worker cannot discover additional instructions.
+Ineligible requests fail before launch; the runner does not silently change the requested mode or risk floor.
+Model selection still follows the difficulty router: simple work can use Luna and moderate work can use Terra.
+
+The proposal worker runs in a read-only CLI sandbox with shell execution and web search disabled. It returns
+complete replacement file contents using [`session-edit-proposal.schema.json`](../../scripts/session-edit-proposal.schema.json).
+The coordinator requires observed provider usage, unchanged workspace fingerprints, matching original hashes,
+declared paths, no tool events, and a valid bounded proposal before applying it. Existing modes are preserved;
+creation cannot overwrite an unexpected file. Multi-file application has best-effort rollback and requires an
+exclusive, stable workspace. Independent verification remains the parent's responsibility.
+
+Set `limits.maxResultBytes` to the needed bound, up to the proposal mode's 16,384-byte maximum, to accommodate
+replacement contents. The raw proposal stays in the bounded attempt artifact; the result envelope contains a
+compact candidate with `verification: NOT_VERIFIED`. It never reports tests as passed simply because edits applied.
+The default `workerMode: "agent"` keeps the existing tool-driven behavior. Use the
+[production transport comparison](../../../../evals/token-efficiency/PROPOSAL-EVAL.md) to assess the tradeoff.
+
 The runner uses `codex exec --ephemeral --json --output-schema --output-last-message`, so each attempt begins
 fresh and leaves no resumable Codex session transcript through this mode. It disables native multiagent features
 and sets a session-depth marker to prevent accidental calls back into this transport. These controls do not

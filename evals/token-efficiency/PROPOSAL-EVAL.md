@@ -32,3 +32,16 @@ retained; independently reconstruct and regrade every accepted artifact before r
 node evals/token-efficiency/run-proposal-ab.js --run --out /absolute/new-proposal-report.json --cases query-encoding,retry --repeats 2 --max-tokens 500000
 node evals/token-efficiency/economic-cost.cjs /absolute/new-proposal-report.json
 ```
+
+## Pilot history and confirmation
+
+`proposal-ab-2026-09-07.json` is an interrupted pilot preserved with its source at commit `4d62ea9`.
+Its agent control passed using 54,500 observed tokens; the first proposal invocation reported a runtime error
+without provider usage. The original reservation remains unresolved. That invocation is not zero-cost and
+the incomplete pilot cannot establish savings. The schema's constant discriminator lacked an explicit type;
+the original stream did not retain enough detail to prove the provider's exact rejection reason.
+
+After correcting the schema and adding bounded error categories, run a new complete plan as
+`proposal-confirmation-2026-09-07.json` with the same cases, routes, order, repeats and criteria above.
+This is a new experiment after a code correction, with no reused observations or cleared old reservation.
+Keep the interrupted pilot and its unknown-usage invocation in the experiment-wide spend record.

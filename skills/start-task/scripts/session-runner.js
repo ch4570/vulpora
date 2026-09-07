@@ -24,6 +24,33 @@ const CANDIDATE_SCHEMA_PATH = path.join(__dirname, 'session-candidate.schema.jso
 const EDIT_SCHEMA_PATH = path.join(__dirname, 'session-edit-proposal.schema.json');
 const fail = code => { throw Object.assign(new Error(code), {code}); };
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+const FAILURE_CODES = Object.freeze({invalid_json_schema: 'output_schema', invalid_schema: 'output_schema',
+  schema_validation_error: 'output_schema', invalid_request_error: 'invalid_request',
+  invalid_api_key: 'authentication', authentication_error: 'authentication',
+  insufficient_quota: 'quota', rate_limit_exceeded: 'rate_limit', model_not_found: 'model_unavailable',
+  context_length_exceeded: 'context_limit', server_error: 'provider', service_unavailable: 'provider',
+  timeout: 'transport', connection_error: 'transport'});
+function classifyRuntimeFailure(event) {
+  if (!object(event) || !['error', 'turn.failed'].includes(event.type)) return null;
+  const error = object(event.error) ? event.error : {};
+  const code = [error.code, event.code].find(value => typeof value === 'string' && Object.hasOwn(FAILURE_CODES, value)) ?? null;
+  let category = code ? FAILURE_CODES[code] : 'unknown', classification = code ? 'recognized_code' : 'unclassified';
+  if (!code || category === 'invalid_request') {
+    // Infer a fixed category from bounded text, then discard it. Never persist
+    // provider messages, unknown codes, URLs, request IDs, or arbitrary fields.
+    const message = [error.message, event.message].filter(value => typeof value === 'string')
+      .map(value => value.slice(0, 4096)).join('\n');
+    const patterns = [['output_schema', /invalid (?:json )?schema|schema.{0,160}(?:invalid|unsupported|missing|type.{0,20}key)/i],
+      ['authentication', /invalid api key|authentication failed|unauthorized/i],
+      ['quota', /insufficient.quota|quota exceeded/i], ['rate_limit', /rate.limit|too many requests/i],
+      ['model_unavailable', /model.{0,100}(?:not found|not available|does not exist|not supported)/i],
+      ['context_limit', /context.length|maximum context|too many tokens/i],
+      ['transport', /connection (?:failed|reset|refused)|timed? ?out|network error/i]];
+    const matched = patterns.find(([, pattern]) => pattern.test(message));
+    if (matched) { category = matched[0]; classification = 'message_pattern'; }
+  }
+  return {eventType: event.type, category, code, classification};
+}
 const proposalMode = task => task.workerMode === 'edit-proposal';
 const outputSchemaPathFor = task => proposalMode(task) ? EDIT_SCHEMA_PATH : CANDIDATE_SCHEMA_PATH;
 function workerPromptFor(capsule) {
@@ -332,6 +359,8 @@ async function execute(capsule, attemptDir) {
   const limits = capsule.task.limits;
   const started = performance.now();
   const telemetry = createTelemetry();
+  const failureDiagnostics = {schema: 'vulpora.runtime-failure-diagnostics/v1', events: [],
+    limit: 4, omittedEvents: 0, rawMessageRetained: false};
   const stdoutHash = crypto.createHash('sha256'), stderrHash = crypto.createHash('sha256');
   let outputBytes = 0, buffer = '', reason = null, usage = null, usageEvents = 0, eventCount = 0, threadId = null;
   let child, deadline, killTimer, drainTimer, fileTimer, closed = false, exited = false;
@@ -380,7 +409,12 @@ async function execute(capsule, attemptDir) {
         reasoningTokens: Number.isSafeInteger(observed.reasoning_output_tokens) && observed.reasoning_output_tokens >= 0
           ? observed.reasoning_output_tokens : null, reasoningSemantics: 'provider_reported_not_added'};
     }
-    if (value.type === 'turn.failed' || value.type === 'error') stop('RUNTIME_REPORTED_FAILURE');
+    if (value.type === 'turn.failed' || value.type === 'error') {
+      const diagnostic = classifyRuntimeFailure(value);
+      if (failureDiagnostics.events.length < failureDiagnostics.limit) failureDiagnostics.events.push(diagnostic);
+      else failureDiagnostics.omittedEvents = Math.min(Number.MAX_SAFE_INTEGER, failureDiagnostics.omittedEvents + 1);
+      stop('RUNTIME_REPORTED_FAILURE');
+    }
   }
   try {
     child = spawn(capsule.runtime.executable, args, {cwd: capsule.task.cwd, env: {...process.env, VULPORA_SESSION_DEPTH: '1'},
@@ -434,7 +468,7 @@ async function execute(capsule, attemptDir) {
         reasoning_effort: capsule.route.reasoning_effort, commandSha256: hash(canonical([capsule.runtime.executable, ...args])),
         primarySessions: 1, nestedOrchestrator: false, backendIdentity: 'NOT_ATTESTED',
         sandbox: proposalMode(capsule.task) ? 'read-only' : capsule.task.mode},
-      telemetry: telemetry.summary(), promptBytes: Buffer.byteLength(workerPromptFor(capsule)),
+      telemetry: telemetry.summary(), failureDiagnostics, promptBytes: Buffer.byteLength(workerPromptFor(capsule)),
       sourceContextBytes: capsule.sourceContext ? Buffer.byteLength(canonical(capsule.sourceContext)) : 0,
       rawTranscriptRetained: false, backendIdentity: 'NOT_ATTESTED', descendantCleanup: 'NOT_ATTESTED'};
   } finally {
@@ -542,7 +576,7 @@ function errorResult(error) {
   return {schema: 'vulpora.session-error/v1', status: 'BLOCKED', reason, execution: error.execution || 'NOT_RUN'};
 }
 module.exports = {main, prepare, run, status, reconcile, validateTask, validateCandidate, promptFor,
-  workerPromptFor, outputSchemaPathFor, applyEditProposal, errorResult};
+  workerPromptFor, outputSchemaPathFor, applyEditProposal, classifyRuntimeFailure, errorResult};
 if (require.main === module) main().then(result => {
   process.stdout.write(`${JSON.stringify(result)}\n`);
   if (['failed', 'blocked'].includes(result.status)) process.exitCode = 3;
