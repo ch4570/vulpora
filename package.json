@@ -51,7 +51,8 @@
     "check": "VULPORA_ALLOW_DIRTY_CHECK=1 bash install/check-npm-package.sh",
     "check:release": "bash install/check-npm-package.sh",
     "test": "bash install/test-npm-package.sh",
-    "test:routing": "bash install/test-model-router.sh && bash install/test-codex-model-catalog.sh && bash install/test-codex-agent-compat.sh && bash install/test-start-task-evidence.sh",
+    "test:routing": "bash install/run-routing-efficiency.sh",
+    "test:economics": "node --test evals/token-efficiency/economic-*.test.cjs",
     "prepack": "bash install/check-npm-package.sh"
   },
   "publishConfig": {

@@ -62,8 +62,12 @@ Usage:
                   [--risk low|high] [--max-units N] [--estimated-tokens N] [--remaining-tokens N]
   vulpora route --runtime codex --task-type <type> --difficulty simple|moderate|complex
                   --catalog <runtime-models.json> [--profile auto|frugal|standard|frontier]
-  vulpora session prepare --task <task.json> --catalog <runtime-models.json> --out <attempt-dir>
-  vulpora session run|status --capsule <attempt-dir/capsule.json>
+  vulpora session budget-init --out <budget.json> --tokens N --units N
+  vulpora session budget-status --budget <budget.json>
+  vulpora session prepare --task <task.json>
+                  [--catalog <runtime-models.json> --budget <budget.json> --out <attempt-dir>]
+  vulpora session run|reconcile --capsule <attempt-dir/capsule.json>
+  vulpora session status --capsule <attempt-dir/capsule.json> [--detail]
   vulpora version
 
 --runtime은 생략할 수 있고 기본값은 auto입니다. auto는 PATH에서 Claude Code(claude)와

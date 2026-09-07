@@ -1,0 +1,555 @@
+{
+  "schema": "vulpora.economic-cost/v1",
+  "model": "mixed",
+  "models": [
+    "gpt-5.6-terra",
+    "gpt-5.6-luna"
+  ],
+  "pricingAvailable": true,
+  "billingAttested": false,
+  "pricing": null,
+  "pricingByModel": {
+    "gpt-5.6-terra": {
+      "model": "gpt-5.6-terra",
+      "verifiedOn": "2026-09-07",
+      "currency": "USD",
+      "unit": "per 1,000,000 tokens",
+      "sources": [
+        "https://developers.openai.com/api/docs/models/gpt-5.6-terra",
+        "https://developers.openai.com/api/docs/pricing",
+        "https://developers.openai.com/api/docs/guides/prompt-caching"
+      ],
+      "standard": {
+        "input": 2,
+        "cachedInput": 0.2,
+        "cacheWrite": 2.5,
+        "output": 12
+      },
+      "fast": {
+        "input": 4,
+        "cachedInput": 0.4,
+        "cacheWrite": 5,
+        "output": 24
+      },
+      "assumptions": [
+        "Every underlying request has at most 272,000 input tokens; cumulative turn tokens do not establish request context length.",
+        "Cache-write tokens are a subset of noncached input; their rate replaces the ordinary input rate for those tokens.",
+        "Unknown cache writes range from zero to all noncached input tokens; these are sensitivity bounds under this assumption.",
+        "No region uplift, tool fees, subscription or account-specific pricing is included.",
+        "Recorded model requests do not attest the served model or service tier; standard and Fast are alternative scenarios.",
+        "The Fast scenario assumes an eligible endpoint; GPT-6 Astra Fast is unavailable with EU data residency."
+      ]
+    },
+    "gpt-5.6-luna": {
+      "model": "gpt-5.6-luna",
+      "verifiedOn": "2026-09-07",
+      "currency": "USD",
+      "unit": "per 1,000,000 tokens",
+      "sources": [
+        "https://developers.openai.com/api/docs/models/gpt-5.6-luna",
+        "https://developers.openai.com/api/docs/pricing",
+        "https://developers.openai.com/api/docs/guides/prompt-caching"
+      ],
+      "standard": {
+        "input": 0.2,
+        "cachedInput": 0.02,
+        "cacheWrite": 0.25,
+        "output": 1.2
+      },
+      "fast": {
+        "input": 0.4,
+        "cachedInput": 0.04,
+        "cacheWrite": 0.5,
+        "output": 2.4
+      },
+      "assumptions": [
+        "Every underlying request has at most 272,000 input tokens; cumulative turn tokens do not establish request context length.",
+        "Cache-write tokens are a subset of noncached input; their rate replaces the ordinary input rate for those tokens.",
+        "Unknown cache writes range from zero to all noncached input tokens; these are sensitivity bounds under this assumption.",
+        "No region uplift, tool fees, subscription or account-specific pricing is included.",
+        "Recorded model requests do not attest the served model or service tier; standard and Fast are alternative scenarios.",
+        "The Fast scenario assumes an eligible endpoint; GPT-6 Astra Fast is unavailable with EU data residency."
+      ]
+    }
+  },
+  "accounting": "All recorded attempts, including failed attempts, repairs and model escalations, contribute to spend at their recorded requested-model rates. Missing usage or unknown model pricing is never zero.",
+  "breakEvenEquation": "candidate mean spend / candidate success rate < reference mean spend / reference success rate",
+  "paybackEquation": "ceil(all recorded suite attempt spend / savings per accepted task)",
+  "limitations": [
+    "USD values are API pricing scenarios, not observed charges or subscription savings.",
+    "Payback recoups only this recorded evaluation suite, excluding development, coordinator, installation and human time.",
+    "Acceptance rates describe the recorded task sample; repeated fixed tasks do not establish general quality or future savings.",
+    "Context length, served model, service tier and cache-write accounting must be independently verified for billing use.",
+    "Routing evidence records consistent requested dispatch configuration; it does not prove the served model or a causal quality/cost advantage."
+  ],
+  "suite": {
+    "taskRuns": 12,
+    "unstartedRuns": 0,
+    "unfinishedRuns": 0,
+    "attemptCount": 12,
+    "repairAttempts": 0,
+    "firstPassAcceptedTasks": 12,
+    "acceptedTasks": 12,
+    "firstPassAcceptanceRate": 1,
+    "acceptanceRate": 1,
+    "treatmentNoncompliantAttempts": 0,
+    "models": [
+      "gpt-5.6-terra",
+      "gpt-5.6-luna"
+    ],
+    "modelAttemptCounts": {
+      "gpt-5.6-terra": 6,
+      "gpt-5.6-luna": 6
+    },
+    "unknownModelAttempts": 0,
+    "observedUsageAttempts": 12,
+    "unknownUsageAttempts": 0,
+    "pricedUsageAttempts": 12,
+    "unknownPricingAttempts": 0,
+    "completeUsage": true,
+    "completePricing": true,
+    "observedSubtotalTokens": 587416,
+    "totalTokens": 587416,
+    "tokensPerAcceptedTask": 48951.333333333336,
+    "standard": {
+      "observedSubtotalUsd": {
+        "baseUsd": 0.32973872000000004,
+        "cacheWriteSurchargeMinUsd": 0,
+        "cacheWriteSurchargeMaxUsd": 0.0371896,
+        "minUsd": 0.32973872000000004,
+        "maxUsd": 0.36692832
+      },
+      "totalUsd": {
+        "baseUsd": 0.32973872000000004,
+        "cacheWriteSurchargeMinUsd": 0,
+        "cacheWriteSurchargeMaxUsd": 0.0371896,
+        "minUsd": 0.32973872000000004,
+        "maxUsd": 0.36692832
+      },
+      "meanCostPerStartedTaskUsd": {
+        "minUsd": 0.02747822666666667,
+        "maxUsd": 0.030577359999999998
+      },
+      "costPerAcceptedTaskUsd": {
+        "minUsd": 0.02747822666666667,
+        "maxUsd": 0.030577359999999998
+      }
+    },
+    "fast": {
+      "observedSubtotalUsd": {
+        "baseUsd": 0.6594774400000001,
+        "cacheWriteSurchargeMinUsd": 0,
+        "cacheWriteSurchargeMaxUsd": 0.0743792,
+        "minUsd": 0.6594774400000001,
+        "maxUsd": 0.73385664
+      },
+      "totalUsd": {
+        "baseUsd": 0.6594774400000001,
+        "cacheWriteSurchargeMinUsd": 0,
+        "cacheWriteSurchargeMaxUsd": 0.0743792,
+        "minUsd": 0.6594774400000001,
+        "maxUsd": 0.73385664
+      },
+      "meanCostPerStartedTaskUsd": {
+        "minUsd": 0.05495645333333334,
+        "maxUsd": 0.061154719999999996
+      },
+      "costPerAcceptedTaskUsd": {
+        "minUsd": 0.05495645333333334,
+        "maxUsd": 0.061154719999999996
+      }
+    }
+  },
+  "arms": {
+    "baseline": {
+      "taskRuns": 4,
+      "unstartedRuns": 0,
+      "unfinishedRuns": 0,
+      "attemptCount": 4,
+      "repairAttempts": 0,
+      "firstPassAcceptedTasks": 4,
+      "acceptedTasks": 4,
+      "firstPassAcceptanceRate": 1,
+      "acceptanceRate": 1,
+      "treatmentNoncompliantAttempts": 0,
+      "models": [
+        "gpt-5.6-terra"
+      ],
+      "modelAttemptCounts": {
+        "gpt-5.6-terra": 4
+      },
+      "unknownModelAttempts": 0,
+      "observedUsageAttempts": 4,
+      "unknownUsageAttempts": 0,
+      "pricedUsageAttempts": 4,
+      "unknownPricingAttempts": 0,
+      "completeUsage": true,
+      "completePricing": true,
+      "observedSubtotalTokens": 194543,
+      "totalTokens": 194543,
+      "tokensPerAcceptedTask": 48635.75,
+      "standard": {
+        "observedSubtotalUsd": {
+          "baseUsd": 0.1766288,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.019687,
+          "minUsd": 0.1766288,
+          "maxUsd": 0.1963158
+        },
+        "totalUsd": {
+          "baseUsd": 0.1766288,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.019687,
+          "minUsd": 0.1766288,
+          "maxUsd": 0.1963158
+        },
+        "meanCostPerStartedTaskUsd": {
+          "minUsd": 0.0441572,
+          "maxUsd": 0.04907895
+        },
+        "costPerAcceptedTaskUsd": {
+          "minUsd": 0.0441572,
+          "maxUsd": 0.04907895
+        }
+      },
+      "fast": {
+        "observedSubtotalUsd": {
+          "baseUsd": 0.3532576,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.039374,
+          "minUsd": 0.3532576,
+          "maxUsd": 0.3926316
+        },
+        "totalUsd": {
+          "baseUsd": 0.3532576,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.039374,
+          "minUsd": 0.3532576,
+          "maxUsd": 0.3926316
+        },
+        "meanCostPerStartedTaskUsd": {
+          "minUsd": 0.0883144,
+          "maxUsd": 0.0981579
+        },
+        "costPerAcceptedTaskUsd": {
+          "minUsd": 0.0883144,
+          "maxUsd": 0.0981579
+        }
+      }
+    },
+    "luna": {
+      "taskRuns": 4,
+      "unstartedRuns": 0,
+      "unfinishedRuns": 0,
+      "attemptCount": 4,
+      "repairAttempts": 0,
+      "firstPassAcceptedTasks": 4,
+      "acceptedTasks": 4,
+      "firstPassAcceptanceRate": 1,
+      "acceptanceRate": 1,
+      "treatmentNoncompliantAttempts": 0,
+      "models": [
+        "gpt-5.6-luna"
+      ],
+      "modelAttemptCounts": {
+        "gpt-5.6-luna": 4
+      },
+      "unknownModelAttempts": 0,
+      "observedUsageAttempts": 4,
+      "unknownUsageAttempts": 0,
+      "pricedUsageAttempts": 4,
+      "unknownPricingAttempts": 0,
+      "completeUsage": true,
+      "completePricing": true,
+      "observedSubtotalTokens": 183090,
+      "totalTokens": 183090,
+      "tokensPerAcceptedTask": 45772.5,
+      "standard": {
+        "observedSubtotalUsd": {
+          "baseUsd": 0.02172272,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.0028607999999999997,
+          "minUsd": 0.02172272,
+          "maxUsd": 0.02458352
+        },
+        "totalUsd": {
+          "baseUsd": 0.02172272,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.0028607999999999997,
+          "minUsd": 0.02172272,
+          "maxUsd": 0.02458352
+        },
+        "meanCostPerStartedTaskUsd": {
+          "minUsd": 0.00543068,
+          "maxUsd": 0.00614588
+        },
+        "costPerAcceptedTaskUsd": {
+          "minUsd": 0.00543068,
+          "maxUsd": 0.00614588
+        }
+      },
+      "fast": {
+        "observedSubtotalUsd": {
+          "baseUsd": 0.04344544,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.005721599999999999,
+          "minUsd": 0.04344544,
+          "maxUsd": 0.04916704
+        },
+        "totalUsd": {
+          "baseUsd": 0.04344544,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.005721599999999999,
+          "minUsd": 0.04344544,
+          "maxUsd": 0.04916704
+        },
+        "meanCostPerStartedTaskUsd": {
+          "minUsd": 0.01086136,
+          "maxUsd": 0.01229176
+        },
+        "costPerAcceptedTaskUsd": {
+          "minUsd": 0.01086136,
+          "maxUsd": 0.01229176
+        }
+      }
+    },
+    "routed": {
+      "taskRuns": 4,
+      "unstartedRuns": 0,
+      "unfinishedRuns": 0,
+      "attemptCount": 4,
+      "repairAttempts": 0,
+      "firstPassAcceptedTasks": 4,
+      "acceptedTasks": 4,
+      "firstPassAcceptanceRate": 1,
+      "acceptanceRate": 1,
+      "treatmentNoncompliantAttempts": 0,
+      "models": [
+        "gpt-5.6-luna",
+        "gpt-5.6-terra"
+      ],
+      "modelAttemptCounts": {
+        "gpt-5.6-luna": 2,
+        "gpt-5.6-terra": 2
+      },
+      "unknownModelAttempts": 0,
+      "observedUsageAttempts": 4,
+      "unknownUsageAttempts": 0,
+      "pricedUsageAttempts": 4,
+      "unknownPricingAttempts": 0,
+      "completeUsage": true,
+      "completePricing": true,
+      "observedSubtotalTokens": 209783,
+      "totalTokens": 209783,
+      "tokensPerAcceptedTask": 52445.75,
+      "standard": {
+        "observedSubtotalUsd": {
+          "baseUsd": 0.13138719999999998,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.0146418,
+          "minUsd": 0.13138719999999998,
+          "maxUsd": 0.146029
+        },
+        "totalUsd": {
+          "baseUsd": 0.13138719999999998,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.0146418,
+          "minUsd": 0.13138719999999998,
+          "maxUsd": 0.146029
+        },
+        "meanCostPerStartedTaskUsd": {
+          "minUsd": 0.032846799999999995,
+          "maxUsd": 0.03650725
+        },
+        "costPerAcceptedTaskUsd": {
+          "minUsd": 0.032846799999999995,
+          "maxUsd": 0.03650725
+        }
+      },
+      "fast": {
+        "observedSubtotalUsd": {
+          "baseUsd": 0.26277439999999996,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.0292836,
+          "minUsd": 0.26277439999999996,
+          "maxUsd": 0.292058
+        },
+        "totalUsd": {
+          "baseUsd": 0.26277439999999996,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.0292836,
+          "minUsd": 0.26277439999999996,
+          "maxUsd": 0.292058
+        },
+        "meanCostPerStartedTaskUsd": {
+          "minUsd": 0.06569359999999999,
+          "maxUsd": 0.0730145
+        },
+        "costPerAcceptedTaskUsd": {
+          "minUsd": 0.06569359999999999,
+          "maxUsd": 0.0730145
+        }
+      }
+    }
+  },
+  "productGoal": {
+    "target": "Higher final quality AND lower total tokens AND lower actual cost than baseline",
+    "candidateArm": "routed",
+    "status": "not_met",
+    "lowerObservedTokensPerAcceptedTask": false,
+    "lowerEstimatedCostAcrossCacheWriteScenarios": true,
+    "higherObservedAcceptanceRate": false,
+    "finalQualitySuperiority": "not_established_by_acceptance_rates_alone",
+    "actualBilledSavings": "not_measured_by_this_calculator",
+    "strictWorkflowComparisonVerified": true,
+    "modelRoutingEvidence": {
+      "status": "recorded_dispatches",
+      "routedAttempts": 4,
+      "recordedDispatchAttempts": 4,
+      "missingOrConflictingDispatchAttempts": 0,
+      "requestedModels": [
+        "gpt-5.6-luna",
+        "gpt-5.6-terra"
+      ],
+      "recordedEscalationAttempts": 0,
+      "servedModelAttested": false,
+      "qualityOrSavingsEffectEstablished": false
+    },
+    "modelRoutingEffect": "requested_routes_exercised_effect_not_established",
+    "higherQualityAndLowerActualCostEstablished": false
+  },
+  "comparisons": {
+    "optimizedVsLegacy": {
+      "status": "missing_arm"
+    },
+    "optimizedVsBaseline": {
+      "status": "missing_arm"
+    },
+    "lunaVsBaseline": {
+      "status": "observed_sample_only",
+      "candidateAcceptanceRate": 1,
+      "referenceAcceptanceRate": 1,
+      "tokenSavingsPerAcceptedTask": 2863.25,
+      "standard": {
+        "requiredSuccessRateRatio": {
+          "min": 0.1106519189998971,
+          "max": 0.13918183218138833
+        },
+        "requiredCandidateSuccessRate": {
+          "min": 0.1106519189998971,
+          "max": 0.13918183218138833
+        },
+        "savingsPerAcceptedTaskUsd": {
+          "minUsd": 0.03801132,
+          "maxUsd": 0.04364827
+        },
+        "suiteEvaluationPaybackAcceptedTasks": {
+          "min": 8,
+          "max": 10
+        },
+        "paybackStatus": "positive_savings_in_both_bounds"
+      },
+      "fast": {
+        "requiredSuccessRateRatio": {
+          "min": 0.1106519189998971,
+          "max": 0.13918183218138833
+        },
+        "requiredCandidateSuccessRate": {
+          "min": 0.1106519189998971,
+          "max": 0.13918183218138833
+        },
+        "savingsPerAcceptedTaskUsd": {
+          "minUsd": 0.07602264,
+          "maxUsd": 0.08729654
+        },
+        "suiteEvaluationPaybackAcceptedTasks": {
+          "min": 8,
+          "max": 10
+        },
+        "paybackStatus": "positive_savings_in_both_bounds"
+      }
+    },
+    "routedVsBaseline": {
+      "status": "observed_sample_only",
+      "candidateAcceptanceRate": 1,
+      "referenceAcceptanceRate": 1,
+      "tokenSavingsPerAcceptedTask": -3810,
+      "standard": {
+        "requiredSuccessRateRatio": {
+          "min": 0.6692645217552534,
+          "max": 0.826756451948946
+        },
+        "requiredCandidateSuccessRate": {
+          "min": 0.6692645217552534,
+          "max": 0.826756451948946
+        },
+        "savingsPerAcceptedTaskUsd": {
+          "minUsd": 0.007649950000000003,
+          "maxUsd": 0.016232150000000008
+        },
+        "suiteEvaluationPaybackAcceptedTasks": {
+          "min": 21,
+          "max": 48
+        },
+        "paybackStatus": "positive_savings_in_both_bounds"
+      },
+      "fast": {
+        "requiredSuccessRateRatio": {
+          "min": 0.6692645217552534,
+          "max": 0.826756451948946
+        },
+        "requiredCandidateSuccessRate": {
+          "min": 0.6692645217552534,
+          "max": 0.826756451948946
+        },
+        "savingsPerAcceptedTaskUsd": {
+          "minUsd": 0.015299900000000005,
+          "maxUsd": 0.032464300000000015
+        },
+        "suiteEvaluationPaybackAcceptedTasks": {
+          "min": 21,
+          "max": 48
+        },
+        "paybackStatus": "positive_savings_in_both_bounds"
+      }
+    },
+    "routedVsLuna": {
+      "status": "observed_sample_only",
+      "candidateAcceptanceRate": 1,
+      "referenceAcceptanceRate": 1,
+      "tokenSavingsPerAcceptedTask": -6673.25,
+      "standard": {
+        "requiredSuccessRateRatio": {
+          "min": 5.344523485652176,
+          "max": 6.7224086118128845
+        },
+        "requiredCandidateSuccessRate": {
+          "min": 5.344523485652176,
+          "max": 6.7224086118128845
+        },
+        "savingsPerAcceptedTaskUsd": {
+          "minUsd": -0.031076569999999998,
+          "maxUsd": -0.026700919999999996
+        },
+        "suiteEvaluationPaybackAcceptedTasks": null,
+        "paybackStatus": "nonpositive_or_uncertain_savings"
+      },
+      "fast": {
+        "requiredSuccessRateRatio": {
+          "min": 5.344523485652176,
+          "max": 6.7224086118128845
+        },
+        "requiredCandidateSuccessRate": {
+          "min": 5.344523485652176,
+          "max": 6.7224086118128845
+        },
+        "savingsPerAcceptedTaskUsd": {
+          "minUsd": -0.062153139999999996,
+          "maxUsd": -0.05340183999999999
+        },
+        "suiteEvaluationPaybackAcceptedTasks": null,
+        "paybackStatus": "nonpositive_or_uncertain_savings"
+      }
+    }
+  }
+}

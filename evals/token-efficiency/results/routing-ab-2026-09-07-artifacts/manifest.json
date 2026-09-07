@@ -1,0 +1,176 @@
+{
+  "schema": "vulpora.routing-artifacts/v1",
+  "sourceReport": "routing-ab-2026-09-07.json",
+  "sourceReportSha256": "5a4700da5edd6cc0c36b8a9d9e5bd41041283a4a08315915768b9eb677170f42",
+  "scope": "Final source and test patches for every task; this pilot had no repair attempts.",
+  "runs": [
+    {
+      "order": 1,
+      "caseId": "positive",
+      "arm": "baseline",
+      "patch": "01-positive-baseline.patch",
+      "patchSha256": "092b3e96258fd81e30f7ff6ee7fd43d3edb0f2c42c033131c5b3e16f6cbe5876",
+      "finalFilesSha256": "8754ffb94fc9121b23e7486ef3dba6404eb4e8923ec65296f6552d4f81bdf65f",
+      "exactReconstruction": true,
+      "verification": {
+        "testsPassed": true,
+        "oraclePassed": true,
+        "mutantChecksPassed": true
+      }
+    },
+    {
+      "order": 2,
+      "caseId": "positive",
+      "arm": "luna",
+      "patch": "02-positive-luna.patch",
+      "patchSha256": "c091281c9d2b9a8b2fac7f0aecd73ab64b6a9bb5a97b40cc3a3915ca9ca416fd",
+      "finalFilesSha256": "94c83d8c5b9b26c3bfb12af98c74f788eb4cc3b87855935caf3e289f698b6c38",
+      "exactReconstruction": true,
+      "verification": {
+        "testsPassed": true,
+        "oraclePassed": true,
+        "mutantChecksPassed": true
+      }
+    },
+    {
+      "order": 3,
+      "caseId": "positive",
+      "arm": "routed",
+      "patch": "03-positive-routed.patch",
+      "patchSha256": "2297eef9d9bb14f3cec5c68e860ad932d0bd4f10178e67a2c00771c85bbfb9c3",
+      "finalFilesSha256": "198e399b7b21538ad7f7af51c1629ff4f0192b80c1e71cfddeb967bcec7856d6",
+      "exactReconstruction": true,
+      "verification": {
+        "testsPassed": true,
+        "oraclePassed": true,
+        "mutantChecksPassed": true
+      }
+    },
+    {
+      "order": 4,
+      "caseId": "query-encoding",
+      "arm": "baseline",
+      "patch": "04-query-encoding-baseline.patch",
+      "patchSha256": "a94a4d0e8474bf91b38ce22f360b77b6f36d2bb40194dbb2db4c0669ee7ce18a",
+      "finalFilesSha256": "736cebe93733573d6c33572e4e6cf4e4efbabc35e3f71b742f078a8131ad3c94",
+      "exactReconstruction": true,
+      "verification": {
+        "testsPassed": true,
+        "oraclePassed": true,
+        "mutantChecksPassed": true
+      }
+    },
+    {
+      "order": 5,
+      "caseId": "query-encoding",
+      "arm": "routed",
+      "patch": "05-query-encoding-routed.patch",
+      "patchSha256": "9c66bdfdcf0bbd8d807d947d656cf0e478c1c8194f47efc913481a8589dcf3be",
+      "finalFilesSha256": "2eafcf5cb418e0c396444d0ec8590bdad65ea48367aec1dd86aa6d9a857224bc",
+      "exactReconstruction": true,
+      "verification": {
+        "testsPassed": true,
+        "oraclePassed": true,
+        "mutantChecksPassed": true
+      }
+    },
+    {
+      "order": 6,
+      "caseId": "query-encoding",
+      "arm": "luna",
+      "patch": "06-query-encoding-luna.patch",
+      "patchSha256": "11f92945d8eb2e528b9bbe5416a836fe8809cfaacb64142722a3928525c18f8c",
+      "finalFilesSha256": "9b9b38d41d7128a2429b3cd466cb3b9181bde94619cc68757ef809603c174d13",
+      "exactReconstruction": true,
+      "verification": {
+        "testsPassed": true,
+        "oraclePassed": true,
+        "mutantChecksPassed": true
+      }
+    },
+    {
+      "order": 7,
+      "caseId": "lru-cache",
+      "arm": "luna",
+      "patch": "07-lru-cache-luna.patch",
+      "patchSha256": "8b54568198e325618bde28903a994695ba5b3631653c6237cee002d7705b4114",
+      "finalFilesSha256": "a2834b74db91a97ba9f1e847e9dd322181cb9a62c05c088b83628601bcf04651",
+      "exactReconstruction": true,
+      "verification": {
+        "testsPassed": true,
+        "oraclePassed": true,
+        "mutantChecksPassed": true
+      }
+    },
+    {
+      "order": 8,
+      "caseId": "lru-cache",
+      "arm": "baseline",
+      "patch": "08-lru-cache-baseline.patch",
+      "patchSha256": "13ca3c030640a60a58391cd8cd7aab03952e243a138ac572c2eb97d9a63c7739",
+      "finalFilesSha256": "85d7a31b561b15cd759016f9048d34e6344beb8c39a9e254c2e9ab69d9180930",
+      "exactReconstruction": true,
+      "verification": {
+        "testsPassed": true,
+        "oraclePassed": true,
+        "mutantChecksPassed": true
+      }
+    },
+    {
+      "order": 9,
+      "caseId": "lru-cache",
+      "arm": "routed",
+      "patch": "09-lru-cache-routed.patch",
+      "patchSha256": "e094140416467aeb8a850eeac62fb8532ba8359de48196d9def83a0c54af5ab6",
+      "finalFilesSha256": "45d46f90f4464fe8364efa525e8e9c25481286e3b760ab9dc3e895edbc62f59b",
+      "exactReconstruction": true,
+      "verification": {
+        "testsPassed": true,
+        "oraclePassed": true,
+        "mutantChecksPassed": true
+      }
+    },
+    {
+      "order": 10,
+      "caseId": "retry",
+      "arm": "luna",
+      "patch": "10-retry-luna.patch",
+      "patchSha256": "4bec2617b765a431b1238f12e3986a1d06dd75c97d1c21cbb7bce31055e6c6dc",
+      "finalFilesSha256": "94eededa1a59c8d7092484c8b3729919e640a4a8edbac215f494e2752ae55858",
+      "exactReconstruction": true,
+      "verification": {
+        "testsPassed": true,
+        "oraclePassed": true,
+        "mutantChecksPassed": true
+      }
+    },
+    {
+      "order": 11,
+      "caseId": "retry",
+      "arm": "routed",
+      "patch": "11-retry-routed.patch",
+      "patchSha256": "ef70e9bcc56144f8d28223f544517f04e48888c2cc4ff256d397db3fe391549a",
+      "finalFilesSha256": "7f5e24ce26ef987fea812c5155aa9b01d2bfd4ab807ef3ea2021b9de220ff3a3",
+      "exactReconstruction": true,
+      "verification": {
+        "testsPassed": true,
+        "oraclePassed": true,
+        "mutantChecksPassed": true
+      }
+    },
+    {
+      "order": 12,
+      "caseId": "retry",
+      "arm": "baseline",
+      "patch": "12-retry-baseline.patch",
+      "patchSha256": "dfee74c7a5b436ef05d4e118c029c04b6a8823900b43f3efdf8f5fef0fcaa38e",
+      "finalFilesSha256": "48b8c71e0cbfc42812d24c058ad8136565af26c8eeb1a5183decd1169fe5a460",
+      "exactReconstruction": true,
+      "verification": {
+        "testsPassed": true,
+        "oraclePassed": true,
+        "mutantChecksPassed": true
+      }
+    }
+  ]
+}

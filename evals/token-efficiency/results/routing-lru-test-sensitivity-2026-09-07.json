@@ -1,0 +1,367 @@
+{
+  "schema": "vulpora.routing-lru-test-sensitivity/v1",
+  "createdAt": "2026-09-07T13:02:00.714Z",
+  "sourceReportSha256": "5a4700da5edd6cc0c36b8a9d9e5bd41041283a4a08315915768b9eb677170f42",
+  "sourceReportCompleteAtRead": true,
+  "sourceReportHashScope": "snapshot at diagnostic start; completed LRU run records are bound separately",
+  "diagnosticSourceSha256": "6e611ce114cbe6af0b7df9d85590ea9500691141f3ec7b869b32d3819a5a280c",
+  "referenceSha256": "fcc8e754f061361cf84c1652311755e11c931a1d2c32dc40d549b91fb7ab1b38",
+  "scope": "Supplemental sensitivity of generated regression tests to eight shared contract faults; not fixed acceptance, candidate implementation correctness, or general model quality",
+  "design": "Independent common reference and all eight faults fixed from the public fixture contract before inspecting candidate outputs; isolated process and fixture copy for every control and mutant",
+  "limitations": [
+    "Small supported fault grid; no population quality inference",
+    "A failing reference control invalidates an arm sensitivity score",
+    "Survivors and non-assertion failures are retained; original acceptance outcomes are unchanged"
+  ],
+  "faultGrid": [
+    {
+      "id": "invalid-capacity-accepted",
+      "sourceSha256": "8c9504009f1415bbf333034ffaa3c6895a00afc4c1c8927391621d1bd7cdbe17"
+    },
+    {
+      "id": "set-does-not-refresh",
+      "sourceSha256": "da48fad1bbfdaad1708c9c2242d00a09d8941802c5287efcee7403315d9b135e"
+    },
+    {
+      "id": "get-does-not-refresh",
+      "sourceSha256": "8afa3b4a0c8df6d3b5bf2348d504b0e1f4685231dfe8547d0623caea9853f324"
+    },
+    {
+      "id": "has-refreshes",
+      "sourceSha256": "14156566de3d214a56f965a5f7b4f1e3d861677f001a4d3e5d7f324b7fec1903"
+    },
+    {
+      "id": "missing-get-inserts-undefined",
+      "sourceSha256": "ace1504e176e585b041b3c2a77aeab50e487abfa61b719955e065e9a0137c2b1"
+    },
+    {
+      "id": "has-loses-stored-undefined",
+      "sourceSha256": "6df21bda608773bb59e4ed7cfc119b245f51312b6268c0079aaa85ac4ffdab45"
+    },
+    {
+      "id": "evicts-newest",
+      "sourceSha256": "0017945af961d0106fc0229eb60ae5cb81c54b013af5a909b5737410141b46ec"
+    },
+    {
+      "id": "falsy-get-lost",
+      "sourceSha256": "6b8bdebbab5cfe8ce35bb012779f63861b3c3ea0e934d106efb10c41080e2806"
+    }
+  ],
+  "arms": [
+    {
+      "arm": "luna",
+      "order": 7,
+      "repeat": 1,
+      "originalAccepted": true,
+      "finalModel": "gpt-5.6-luna",
+      "candidateRunRecordSha256": "9842cd84c8b4ce771ec1227b72ab73b704342266224cd1cd29593197d50ce21d",
+      "candidateHashes": {
+        "src/lru.js": "56e922e946947f22a3b8578dbcf01ced646a5fe55f30d0634fa1cc969c699d33",
+        "test/lru.test.js": "5132a1ca9fd2f6c1536bb859905f580a3c7ef4f7ccbb35c19938c5c95f2c037a"
+      },
+      "control": {
+        "passed": true,
+        "assertionFailure": false,
+        "exitCode": 0,
+        "processError": null,
+        "stdoutSha256": "aafbb2fa27a8de7af6d3be72b3e86a93293354ffa4337d8a2245d4e3e4028f76",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "validControl": true,
+      "detectedCount": 6,
+      "totalMutants": 8,
+      "mutants": [
+        {
+          "id": "invalid-capacity-accepted",
+          "passed": false,
+          "assertionFailure": true,
+          "exitCode": 1,
+          "processError": null,
+          "stdoutSha256": "3e71ea7cc88cdf994f99322826b9361ebe1a5ec5b7b1000e1b809d6aa44c0d55",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "detected"
+        },
+        {
+          "id": "set-does-not-refresh",
+          "passed": false,
+          "assertionFailure": true,
+          "exitCode": 1,
+          "processError": null,
+          "stdoutSha256": "527a3530892547131f47243ac91effd09f8ef306cb30cbdf63158133ab874f05",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "detected"
+        },
+        {
+          "id": "get-does-not-refresh",
+          "passed": false,
+          "assertionFailure": true,
+          "exitCode": 1,
+          "processError": null,
+          "stdoutSha256": "5f6063a8fa63835eea30271be1f1950bbce42ad8058af2470cee4ac32029b888",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "detected"
+        },
+        {
+          "id": "has-refreshes",
+          "passed": false,
+          "assertionFailure": true,
+          "exitCode": 1,
+          "processError": null,
+          "stdoutSha256": "4f462bea445779b119992211cf3e6e3f0578d1041aabb803704e75853cbd147a",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "detected"
+        },
+        {
+          "id": "missing-get-inserts-undefined",
+          "passed": true,
+          "assertionFailure": false,
+          "exitCode": 0,
+          "processError": null,
+          "stdoutSha256": "a5f9c9c1b5a9f934a6af2e86a1f41e0d68444e8d25cfe7a16485343614b77220",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "survived"
+        },
+        {
+          "id": "has-loses-stored-undefined",
+          "passed": true,
+          "assertionFailure": false,
+          "exitCode": 0,
+          "processError": null,
+          "stdoutSha256": "00fb645c8c23c0a9ffde8eb1b5e6095a806c42e381573bc1e99b8fbc2c743e7c",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "survived"
+        },
+        {
+          "id": "evicts-newest",
+          "passed": false,
+          "assertionFailure": true,
+          "exitCode": 1,
+          "processError": null,
+          "stdoutSha256": "f40525b69fb7025961fdf1d483a03879664d2e027ec9bbe1576cc25031b14035",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "detected"
+        },
+        {
+          "id": "falsy-get-lost",
+          "passed": false,
+          "assertionFailure": true,
+          "exitCode": 1,
+          "processError": null,
+          "stdoutSha256": "229d1caae86bd9ac968ce6ae10c00c5f2dc02a6b617fdf50f66c33178da229ab",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "detected"
+        }
+      ]
+    },
+    {
+      "arm": "baseline",
+      "order": 8,
+      "repeat": 1,
+      "originalAccepted": true,
+      "finalModel": "gpt-5.6-terra",
+      "candidateRunRecordSha256": "5e438350559f92ed709419dc5d634711296e28c3fdccdc3d23720ab6d998cc01",
+      "candidateHashes": {
+        "src/lru.js": "c29aead5dc1a61afd7366acda3cc4ef1a94e52a22b59476a89083186822abeda",
+        "test/lru.test.js": "090718f845be69b69507a49d46f92cbe6376ce42bde8207cb5990c95ed7eea51"
+      },
+      "control": {
+        "passed": true,
+        "assertionFailure": false,
+        "exitCode": 0,
+        "processError": null,
+        "stdoutSha256": "226c73b81ec04d098f11827b784c48f4d4af6bf4d71ab5ec35bf68350ba0b7c3",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "validControl": true,
+      "detectedCount": 7,
+      "totalMutants": 8,
+      "mutants": [
+        {
+          "id": "invalid-capacity-accepted",
+          "passed": false,
+          "assertionFailure": true,
+          "exitCode": 1,
+          "processError": null,
+          "stdoutSha256": "61f36e1dec2f87d841544cf75a32539326f62997f9f86bd2189ab3a214226a42",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "detected"
+        },
+        {
+          "id": "set-does-not-refresh",
+          "passed": false,
+          "assertionFailure": true,
+          "exitCode": 1,
+          "processError": null,
+          "stdoutSha256": "71a23b1b0069e3992f521200fb819f8734b84e301fbff5476b0b1b8606be16e5",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "detected"
+        },
+        {
+          "id": "get-does-not-refresh",
+          "passed": false,
+          "assertionFailure": true,
+          "exitCode": 1,
+          "processError": null,
+          "stdoutSha256": "e287df624407765928b73ef41bf1c582c1762c8441a0cf06345015d3f7733d27",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "detected"
+        },
+        {
+          "id": "has-refreshes",
+          "passed": false,
+          "assertionFailure": true,
+          "exitCode": 1,
+          "processError": null,
+          "stdoutSha256": "bf1e97cb5ae4fba8144fb3792c4d7e4dfcdaaf79bd0ce062af9f0b7bc8c2d73a",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "detected"
+        },
+        {
+          "id": "missing-get-inserts-undefined",
+          "passed": true,
+          "assertionFailure": false,
+          "exitCode": 0,
+          "processError": null,
+          "stdoutSha256": "2ce9058ededa3afc598213d37a902dc0565ba8e2dc2ef1dfd8ae42ae5650c6d6",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "survived"
+        },
+        {
+          "id": "has-loses-stored-undefined",
+          "passed": false,
+          "assertionFailure": true,
+          "exitCode": 1,
+          "processError": null,
+          "stdoutSha256": "1abcbb619a250fb7c11e6cc6579205cf8e417abaf39f51646729e062e09a4889",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "detected"
+        },
+        {
+          "id": "evicts-newest",
+          "passed": false,
+          "assertionFailure": true,
+          "exitCode": 1,
+          "processError": null,
+          "stdoutSha256": "42161d95a8770b433e4c2ed6003a295c73d57a2383533d7da8a8d9aa96095367",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "detected"
+        },
+        {
+          "id": "falsy-get-lost",
+          "passed": false,
+          "assertionFailure": true,
+          "exitCode": 1,
+          "processError": null,
+          "stdoutSha256": "7aa6e9fc6e204f2a4d640fd8d60cec0a0178a2b3fc4ff3a03c7ebd0c9942c36a",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "detected"
+        }
+      ]
+    },
+    {
+      "arm": "routed",
+      "order": 9,
+      "repeat": 1,
+      "originalAccepted": true,
+      "finalModel": "gpt-5.6-terra",
+      "candidateRunRecordSha256": "c978b13b670fff952bff5716fbbd59e864b5daddb7b607530f84bf65ae6fa630",
+      "candidateHashes": {
+        "src/lru.js": "998e22096b6eef7652d9fc10f6994aaee164491b8ff58a33d55fc44937e03af6",
+        "test/lru.test.js": "517765378a1c0c9192467c9b483b205919f0bd6cefd82d759d20e1885aca7224"
+      },
+      "control": {
+        "passed": true,
+        "assertionFailure": false,
+        "exitCode": 0,
+        "processError": null,
+        "stdoutSha256": "13c80b02b7c82bf96abcc1c1e34533abe81e3b509f77de9dbe6a6108a0d10253",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "validControl": true,
+      "detectedCount": 8,
+      "totalMutants": 8,
+      "mutants": [
+        {
+          "id": "invalid-capacity-accepted",
+          "passed": false,
+          "assertionFailure": true,
+          "exitCode": 1,
+          "processError": null,
+          "stdoutSha256": "1320fa9286bcb88013a394faba7edbaf2e0d12db14b0c8537ccc2f901ef505a3",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "detected"
+        },
+        {
+          "id": "set-does-not-refresh",
+          "passed": false,
+          "assertionFailure": true,
+          "exitCode": 1,
+          "processError": null,
+          "stdoutSha256": "fd85b1df6dcb690c03f79220ae0ffc02cd18f94e040ee5973bd3de5c94e9e9f1",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "detected"
+        },
+        {
+          "id": "get-does-not-refresh",
+          "passed": false,
+          "assertionFailure": true,
+          "exitCode": 1,
+          "processError": null,
+          "stdoutSha256": "d12b420d3dd148c5ea7c9e7098e2d157576643a466deab87d9f0e0c6218c4303",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "detected"
+        },
+        {
+          "id": "has-refreshes",
+          "passed": false,
+          "assertionFailure": true,
+          "exitCode": 1,
+          "processError": null,
+          "stdoutSha256": "bb41bf534e171c69c93a31dc4d1e8798122bd0a0e7576f13f96e17336a885106",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "detected"
+        },
+        {
+          "id": "missing-get-inserts-undefined",
+          "passed": false,
+          "assertionFailure": true,
+          "exitCode": 1,
+          "processError": null,
+          "stdoutSha256": "ac3741363ce375739f5f908d3ed6070946269cabb39b76d22046479cd2124d8f",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "detected"
+        },
+        {
+          "id": "has-loses-stored-undefined",
+          "passed": false,
+          "assertionFailure": true,
+          "exitCode": 1,
+          "processError": null,
+          "stdoutSha256": "1f5d1949e4afb0039f3a458bc336fc279c313515abf722d41facb39c6eb348c3",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "detected"
+        },
+        {
+          "id": "evicts-newest",
+          "passed": false,
+          "assertionFailure": true,
+          "exitCode": 1,
+          "processError": null,
+          "stdoutSha256": "a35024d6e99d4f892cab03b6b8f5d22ec07d42a35403457b7244d50960c1d91e",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "detected"
+        },
+        {
+          "id": "falsy-get-lost",
+          "passed": false,
+          "assertionFailure": true,
+          "exitCode": 1,
+          "processError": null,
+          "stdoutSha256": "9d22a1a0e4466564d56bdf38faf6b983ba783d8b3354a88e84d588ceb8c439f1",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outcome": "detected"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,396 @@
+{
+  "sourceReport": "../economic-confirmation-2026-09-07.json",
+  "purpose": "Generated fixture-only code and regression-test diffs. No runtime prompts or logs. Apply to the fixed fixture source to inspect or reverify each final result.",
+  "runs": [
+    {
+      "order": 1,
+      "caseId": "positive",
+      "arm": "baseline",
+      "repeat": 1,
+      "patch": "01-positive-baseline-1.patch",
+      "patchSha256": "092b3e96258fd81e30f7ff6ee7fd43d3edb0f2c42c033131c5b3e16f6cbe5876",
+      "files": {
+        "src/numbers.js": {
+          "sha256": "b8f3a7b1429bf0bda7798a964bc46465998840f5ca5b16629c03ea93e5a32e45",
+          "bytes": 200,
+          "lines": 4
+        },
+        "test/numbers.test.js": {
+          "sha256": "6b343d434c209a17ca28bd160340e50cd20cccfeb352b81d06eeb1a52cc8e6d0",
+          "bytes": 481,
+          "lines": 10
+        }
+      }
+    },
+    {
+      "order": 2,
+      "caseId": "positive",
+      "arm": "legacy",
+      "repeat": 1,
+      "patch": "02-positive-legacy-1.patch",
+      "patchSha256": "b790794a8d223f27dfecea9b6d2659cb3c5587dd2f834846651402949be61bbc",
+      "files": {
+        "src/numbers.js": {
+          "sha256": "b8f3a7b1429bf0bda7798a964bc46465998840f5ca5b16629c03ea93e5a32e45",
+          "bytes": 200,
+          "lines": 4
+        },
+        "test/numbers.test.js": {
+          "sha256": "80199b7dafb7ffb012a791abc84597a001d924611028bcb6abccbb99ba1840d1",
+          "bytes": 648,
+          "lines": 15
+        }
+      }
+    },
+    {
+      "order": 3,
+      "caseId": "positive",
+      "arm": "optimized",
+      "repeat": 1,
+      "patch": "03-positive-optimized-1.patch",
+      "patchSha256": "50a1cd38facf858de9176b912c52f60a3ea53ebd40bf88fa4f6af1fdff7591a3",
+      "files": {
+        "src/numbers.js": {
+          "sha256": "b8f3a7b1429bf0bda7798a964bc46465998840f5ca5b16629c03ea93e5a32e45",
+          "bytes": 200,
+          "lines": 4
+        },
+        "test/numbers.test.js": {
+          "sha256": "250aab3a6684323aee578728a69bfb49cf9013ed92cd94d0d418ed2a7d9863d1",
+          "bytes": 503,
+          "lines": 11
+        }
+      }
+    },
+    {
+      "order": 4,
+      "caseId": "lru-cache",
+      "arm": "baseline",
+      "repeat": 1,
+      "patch": "04-lru-cache-baseline-1.patch",
+      "patchSha256": "05f63b58cc04ae3a3c6d1297f8cf3ddbd54db8ddd9ee4008593c9056c2d9bd66",
+      "files": {
+        "src/lru.js": {
+          "sha256": "998e22096b6eef7652d9fc10f6994aaee164491b8ff58a33d55fc44937e03af6",
+          "bytes": 679,
+          "lines": 24
+        },
+        "test/lru.test.js": {
+          "sha256": "252f1907e23a34b3cd816f8a2fb832cca81745d961e4eb96a84416ecd4c6521d",
+          "bytes": 1791,
+          "lines": 61
+        }
+      }
+    },
+    {
+      "order": 5,
+      "caseId": "lru-cache",
+      "arm": "optimized",
+      "repeat": 1,
+      "patch": "05-lru-cache-optimized-1.patch",
+      "patchSha256": "5fb2e37715b34792f5da0b7433733652783067c6b68e5c64314b92d14d51c752",
+      "files": {
+        "src/lru.js": {
+          "sha256": "320d81daaf37a959e7c869758e84e267370c5a850748e9b20c1488183d8eca2b",
+          "bytes": 831,
+          "lines": 42
+        },
+        "test/lru.test.js": {
+          "sha256": "178e22d446fff796fa959884a1e8c419fdb3512710a751382b58ac6023b5f428",
+          "bytes": 2167,
+          "lines": 72
+        }
+      }
+    },
+    {
+      "order": 6,
+      "caseId": "lru-cache",
+      "arm": "legacy",
+      "repeat": 1,
+      "patch": "06-lru-cache-legacy-1.patch",
+      "patchSha256": "ea9cb559c13ab910be3a5810c7a05de6b188a197a923b435c832bf05c960785f",
+      "files": {
+        "src/lru.js": {
+          "sha256": "c29aead5dc1a61afd7366acda3cc4ef1a94e52a22b59476a89083186822abeda",
+          "bytes": 651,
+          "lines": 24
+        },
+        "test/lru.test.js": {
+          "sha256": "929e6c92a89ce04d8499782e94ae210e0df01ec94474d07ddd77a547fd9cf113",
+          "bytes": 1787,
+          "lines": 52
+        }
+      }
+    },
+    {
+      "order": 7,
+      "caseId": "retry",
+      "arm": "legacy",
+      "repeat": 1,
+      "patch": "07-retry-legacy-1.patch",
+      "patchSha256": "e477dabbe6496d551c7170864ff5975fe24de10fe4e839d1796da7bdf091ba6e",
+      "files": {
+        "src/retry.js": {
+          "sha256": "7c194e64be9398b21c9761ecab42da85e61a7dbabf1efc70e0f3ef1e47cb4024",
+          "bytes": 621,
+          "lines": 25
+        },
+        "src/client.js": {
+          "sha256": "ca6b2c516218cb82412f489deee4aef43014cb7dcc1cf5cc5e6547ac4846325e",
+          "bytes": 246,
+          "lines": 5
+        },
+        "test/retry.test.js": {
+          "sha256": "991c6a2e602ef2a8b769d425d158a8cf2a7bcb88d604638c92ffa0977e1fa776",
+          "bytes": 2473,
+          "lines": 68
+        }
+      }
+    },
+    {
+      "order": 8,
+      "caseId": "retry",
+      "arm": "baseline",
+      "repeat": 1,
+      "patch": "08-retry-baseline-1.patch",
+      "patchSha256": "9c3deb5e66c7532e3a4cdd83541f6ccea3e5dd4afb32029f0c23f322dd3d0793",
+      "files": {
+        "src/retry.js": {
+          "sha256": "bc1df334ab849833fd71e3355d459dc51920cd82f3c382f9caac33779bf29d88",
+          "bytes": 674,
+          "lines": 31
+        },
+        "src/client.js": {
+          "sha256": "923bea3ab76cd5ba5b7831e4a09aaa2172ea055fdf56ac9e16d24ed38e668fe4",
+          "bytes": 275,
+          "lines": 13
+        },
+        "test/retry.test.js": {
+          "sha256": "71e953d13585309bab0a590c96a19a27bbae5f6840d21ebb9349c9371ff95acf",
+          "bytes": 3201,
+          "lines": 108
+        }
+      }
+    },
+    {
+      "order": 9,
+      "caseId": "retry",
+      "arm": "optimized",
+      "repeat": 1,
+      "patch": "09-retry-optimized-1.patch",
+      "patchSha256": "f4ed86725a11fa7c3898735abb1f6045b6a82a3f75f8974fe51b2f1e1b0d3a7c",
+      "files": {
+        "src/retry.js": {
+          "sha256": "5c14453b679d8d36d6b9e0e35f2f81e977af06cefbf830b0275bed40c872ae32",
+          "bytes": 663,
+          "lines": 31
+        },
+        "src/client.js": {
+          "sha256": "6166a3598f6079edeba96d397f312760d3b9b456988c4e8edf207696ba95f034",
+          "bytes": 255,
+          "lines": 9
+        },
+        "test/retry.test.js": {
+          "sha256": "9eda5018cd679cfd3973163ba79b263d2987ac5d66518a3c29b78467a000d3ec",
+          "bytes": 2562,
+          "lines": 79
+        }
+      }
+    },
+    {
+      "order": 10,
+      "caseId": "retry",
+      "arm": "legacy",
+      "repeat": 2,
+      "patch": "10-retry-legacy-2.patch",
+      "patchSha256": "a69296cf9959e79d33162f085062862566c77b8d2bf91559ac77c5ddd00443bf",
+      "files": {
+        "src/retry.js": {
+          "sha256": "29629ae570b70fcd709735d955a59c360ea50c8d3704cc8257c416db7b913565",
+          "bytes": 625,
+          "lines": 25
+        },
+        "src/client.js": {
+          "sha256": "58b9cae26dfab61ffbc22928fe4712804d9aa55efad43a72179bc274217cea0d",
+          "bytes": 262,
+          "lines": 9
+        },
+        "test/retry.test.js": {
+          "sha256": "0f8353eff76c6c2fabd0a1c8111dec331d5bc4e0d4a8a7e9240c9fcf9ff49410",
+          "bytes": 3592,
+          "lines": 112
+        }
+      }
+    },
+    {
+      "order": 11,
+      "caseId": "retry",
+      "arm": "optimized",
+      "repeat": 2,
+      "patch": "11-retry-optimized-2.patch",
+      "patchSha256": "780a807ffba9ce242e3bad7928943f6ab63ecb9548d8d3d8d346b581f7233bd1",
+      "files": {
+        "src/retry.js": {
+          "sha256": "9a37eeb0655ef6e45af4fea4abda16bae6909b593e992d6fcc3bd3ea88f90806",
+          "bytes": 663,
+          "lines": 26
+        },
+        "src/client.js": {
+          "sha256": "ca6b2c516218cb82412f489deee4aef43014cb7dcc1cf5cc5e6547ac4846325e",
+          "bytes": 246,
+          "lines": 5
+        },
+        "test/retry.test.js": {
+          "sha256": "5ea83a55100dc0c1849346d6ae76d0d4839cada3ed47c4e8783e3445c10c2954",
+          "bytes": 2643,
+          "lines": 69
+        }
+      }
+    },
+    {
+      "order": 12,
+      "caseId": "retry",
+      "arm": "baseline",
+      "repeat": 2,
+      "patch": "12-retry-baseline-2.patch",
+      "patchSha256": "24a70469705a7cf9ed67e721ccb5188f62267946bd7a18e08aa00fcbaeae7266",
+      "files": {
+        "src/retry.js": {
+          "sha256": "118e713e6814ee52333cf61efae98e7617eeb20949663a98a4aba2dfc6da9e36",
+          "bytes": 624,
+          "lines": 27
+        },
+        "src/client.js": {
+          "sha256": "5357a29ba3e56c514fa29f4091bfde23457eca0ebbf6be35d530c99c19a1dd07",
+          "bytes": 246,
+          "lines": 5
+        },
+        "test/retry.test.js": {
+          "sha256": "f11d3e8d85636e3150dc09e8b2a6301ba2bdd99e29808ea5931ee60557845c52",
+          "bytes": 3019,
+          "lines": 94
+        }
+      }
+    },
+    {
+      "order": 13,
+      "caseId": "lru-cache",
+      "arm": "optimized",
+      "repeat": 2,
+      "patch": "13-lru-cache-optimized-2.patch",
+      "patchSha256": "5a2c81cc5678389c1cc2693d5d052633b9a912ef689a4fc7b2a2018ab82f34d0",
+      "files": {
+        "src/lru.js": {
+          "sha256": "4e5454d1c39574816f16fdaae30b79b4d499f1dc71436a9f857c759099d0d6e2",
+          "bytes": 784,
+          "lines": 33
+        },
+        "test/lru.test.js": {
+          "sha256": "ae911024bf6eb434ef1d3f2d150bcc0661ffd6f482b759e70ba13d836988e28d",
+          "bytes": 1813,
+          "lines": 53
+        }
+      }
+    },
+    {
+      "order": 14,
+      "caseId": "lru-cache",
+      "arm": "baseline",
+      "repeat": 2,
+      "patch": "14-lru-cache-baseline-2.patch",
+      "patchSha256": "4f3be826d23a7e62d1b653e9151a76a8354c36e2d82294937633edcfc3227cca",
+      "files": {
+        "src/lru.js": {
+          "sha256": "c473206344cc6cbbbb1dbf2b08ce9cd4c3f540e951c2d9a72fc54aefd6a6230e",
+          "bytes": 685,
+          "lines": 24
+        },
+        "test/lru.test.js": {
+          "sha256": "3b9b799c3f68dd61285cfb46b7eaf3227d61766e38a32e22c3880e49bfbff34a",
+          "bytes": 1806,
+          "lines": 61
+        }
+      }
+    },
+    {
+      "order": 15,
+      "caseId": "lru-cache",
+      "arm": "legacy",
+      "repeat": 2,
+      "patch": "15-lru-cache-legacy-2.patch",
+      "patchSha256": "be6b8636c5192fc192dda799236ad0cb3537dfb5cc519f184917fe15df43ee23",
+      "files": {
+        "src/lru.js": {
+          "sha256": "c29aead5dc1a61afd7366acda3cc4ef1a94e52a22b59476a89083186822abeda",
+          "bytes": 651,
+          "lines": 24
+        },
+        "test/lru.test.js": {
+          "sha256": "c90c472d0230b344a8f70bd7ece6bd78bc94349efd85ebbf7ab1b2947c8feb98",
+          "bytes": 1782,
+          "lines": 56
+        }
+      }
+    },
+    {
+      "order": 16,
+      "caseId": "positive",
+      "arm": "optimized",
+      "repeat": 2,
+      "patch": "16-positive-optimized-2.patch",
+      "patchSha256": "c6ac2fb7a727f5bd4e10208a11f030206c6f880a5079726caeb757939cf30a29",
+      "files": {
+        "src/numbers.js": {
+          "sha256": "b8f3a7b1429bf0bda7798a964bc46465998840f5ca5b16629c03ea93e5a32e45",
+          "bytes": 200,
+          "lines": 4
+        },
+        "test/numbers.test.js": {
+          "sha256": "d87b8273ab429aae693bc1b0ffaf4134814b70352872531860b1df87fc3d1ce5",
+          "bytes": 499,
+          "lines": 9
+        }
+      }
+    },
+    {
+      "order": 17,
+      "caseId": "positive",
+      "arm": "legacy",
+      "repeat": 2,
+      "patch": "17-positive-legacy-2.patch",
+      "patchSha256": "53014b15d9bd1166ac0e23261e541bc5bb6bba3ea555c7bcf37a7d6ecf78e474",
+      "files": {
+        "src/numbers.js": {
+          "sha256": "b8f3a7b1429bf0bda7798a964bc46465998840f5ca5b16629c03ea93e5a32e45",
+          "bytes": 200,
+          "lines": 4
+        },
+        "test/numbers.test.js": {
+          "sha256": "db5f1ce556b9866083cf4a2599d78669d555c7b5ee6ddb47f6adf119d0f51dd4",
+          "bytes": 689,
+          "lines": 15
+        }
+      }
+    },
+    {
+      "order": 18,
+      "caseId": "positive",
+      "arm": "baseline",
+      "repeat": 2,
+      "patch": "18-positive-baseline-2.patch",
+      "patchSha256": "da3a02a5dc2cb91c5d6b061a561faafc656ed4c403a080ea40636b02dec0f67f",
+      "files": {
+        "src/numbers.js": {
+          "sha256": "b8f3a7b1429bf0bda7798a964bc46465998840f5ca5b16629c03ea93e5a32e45",
+          "bytes": 200,
+          "lines": 4
+        },
+        "test/numbers.test.js": {
+          "sha256": "6ee5ed1deb92e22ecb231bd4398f658ee77dac76ddd8f5fd6984a6f14a09d637",
+          "bytes": 532,
+          "lines": 13
+        }
+      }
+    }
+  ]
+}

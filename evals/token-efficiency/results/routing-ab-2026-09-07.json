@@ -1,0 +1,2813 @@
+{
+  "schema": "vulpora.routing-ab/v1",
+  "createdAt": "2026-09-07T12:52:23.135Z",
+  "runtime": "codex-cli 0.153.4",
+  "arms": [
+    "baseline",
+    "luna",
+    "routed"
+  ],
+  "repeats": 1,
+  "design": "Fresh matched fixture runs with equal prompts and repair allowances; arm permutations and reverse case order on repeat 2",
+  "scope": "production deterministic task-router/model-router at entry; one fresh primary Codex exec per attempt; not a full SKILL, Audit, or session-runner workflow evaluation",
+  "coordinator": {
+    "kind": "deterministic-node",
+    "paidRouterTurns": 0,
+    "primaryLaunchesPerAttempt": 1,
+    "nestedOrchestrators": 0
+  },
+  "source": {
+    "files": {
+      "evals/token-efficiency/run-routing-ab.js": "dfdedd0d42ef9dfef5e1494399fd5dbf7fcd85543637c167336217c843f722b3",
+      "evals/token-efficiency/run-economic-ab.js": "edfd4734c22dbb66f5bdbf195412a4bbbfae309f6afb85ad49ddcbfe1b84113b",
+      "evals/token-efficiency/routing-fixtures.cjs": "c7b98918ef4991c42f4dae47752ebee47a05638c6487d9f212b6dcd64b1b4a98",
+      "evals/token-efficiency/economic-fixtures.cjs": "3ca9f9efab8d1b9d20865b33eb95a0ef8eb3622ac477d7ac7f22485c24736c2e",
+      "evals/behavioral/adapters/provider-usage.cjs": "9bcaeaeb225b9af2f17d690ba70c10a6b3814c92f534b50eda8632075bb710db",
+      "skills/start-task/scripts/task-router.js": "b153703b0dfc835ddf05950e9f18c7fc46a64b0fee0eeb4022c05d7a03851cc5",
+      "skills/start-task/scripts/model-router.js": "04c18fa81e6da2d102fe5782784fd0a0b00b80a0c963f0bc457448bd5a7e561d",
+      "skills/start-task/scripts/model-routing-policy.json": "fd6ee18da98b01451dc4f1abd21943be166988bc2778afe4d9850b87615a4810",
+      "skills/start-task/scripts/model-routing-io.js": "bcc0458983fa2e41e748d844409e87731d885d436592efe78cdfb5fbaaee455b",
+      "skills/start-task/scripts/codex-model-catalog.js": "3f554d229406d2fa6556de1878e5b7bf617af491d44b0a31a75b14ca732c46c9"
+    },
+    "sha256": "2690bcc60c0151b018858d738b97f3ad06dc6d4d5ee5425865fd7648c2e1b851"
+  },
+  "policy": {
+    "schema": "vulpora.model-routing-policy/v1",
+    "id": "vulpora-default",
+    "maxCatalogAgeSeconds": 3600,
+    "profiles": {
+      "frugal": {
+        "effort": "low",
+        "relativeUnits": 1
+      },
+      "standard": {
+        "effort": "medium",
+        "relativeUnits": 10
+      },
+      "frontier": {
+        "effort": "high",
+        "relativeUnits": 30
+      }
+    },
+    "runtimes": {
+      "codex": {
+        "frugal": [
+          "gpt-5.6-luna"
+        ],
+        "standard": [
+          "gpt-5.6-terra"
+        ],
+        "frontier": [
+          "gpt-6-astra",
+          "gpt-5.6-sol",
+          "gpt-5.6"
+        ]
+      },
+      "claude-code": {
+        "frugal": [
+          "haiku"
+        ],
+        "standard": [
+          "sonnet"
+        ],
+        "frontier": [
+          "opus"
+        ]
+      }
+    }
+  },
+  "catalog": {
+    "schema": "vulpora.runtime-model-catalog/v1",
+    "runtime": "codex",
+    "source": "codex-app-server:model/list",
+    "observedAt": "2026-09-07T12:52:12.805Z",
+    "models": [
+      {
+        "id": "gpt-5.4-mini",
+        "reasoningEfforts": [
+          "high",
+          "low",
+          "medium",
+          "xhigh"
+        ]
+      },
+      {
+        "id": "gpt-5.5",
+        "reasoningEfforts": [
+          "high",
+          "low",
+          "medium",
+          "xhigh"
+        ]
+      },
+      {
+        "id": "gpt-5.6-luna",
+        "reasoningEfforts": [
+          "high",
+          "low",
+          "max",
+          "medium",
+          "xhigh"
+        ]
+      },
+      {
+        "id": "gpt-5.6-sol",
+        "reasoningEfforts": [
+          "high",
+          "low",
+          "max",
+          "medium",
+          "ultra",
+          "xhigh"
+        ]
+      },
+      {
+        "id": "gpt-5.6-terra",
+        "reasoningEfforts": [
+          "high",
+          "low",
+          "max",
+          "medium",
+          "ultra",
+          "xhigh"
+        ]
+      },
+      {
+        "id": "gpt-6-astra",
+        "reasoningEfforts": [
+          "high",
+          "low",
+          "max",
+          "medium",
+          "ultra",
+          "xhigh"
+        ]
+      }
+    ]
+  },
+  "limits": {
+    "attemptMs": 180000,
+    "suiteMs": 3600000,
+    "stdoutBytes": 8388608,
+    "stderrBytes": 1048576,
+    "maxAttempts": 2,
+    "maxRepeats": 2,
+    "defaultTokens": 1200000,
+    "maxTokens": 5000000,
+    "estimatedTokens": 4000,
+    "maxRelativeUnitsPerAttempt": 30,
+    "aggregateTokenGuard": 1200000,
+    "aggregateRelativeUnitsGuard": 720
+  },
+  "commonConfig": [
+    "-c",
+    "approval_policy=\"never\"",
+    "-c",
+    "web_search=\"disabled\"",
+    "-c",
+    "tool_output_token_limit=2000",
+    "--disable",
+    "multi_agent",
+    "--disable",
+    "multi_agent_v2"
+  ],
+  "installations": "All arms use plain fresh project workspaces without project Vulpora skills or agents",
+  "cases": [
+    {
+      "id": "positive",
+      "task": "Add isPositive(value) to src/numbers.js and regression tests to test/numbers.test.js. Return true exactly for finite numeric values strictly greater than zero; reject zero, negatives, NaN, infinities and every non-number. Preserve absolute(value). Only these two files may change. Work directly without delegation or other coding sessions. Do not commit, install dependencies, use the network or perform external writes. Preserve unrelated behavior. Run node --test, inspect your diff, and finish with a concise change summary and test result.",
+      "routing": {
+        "taskType": "implementation",
+        "difficulty": "simple",
+        "risk": "low"
+      },
+      "routingRationale": "Single pure predicate with explicit finite-number truth table.",
+      "allowedFiles": [
+        "src/numbers.js",
+        "test/numbers.test.js"
+      ],
+      "fixtureSha256": "2f9dad2530cb528b95adfff0980c96110990f4d7743d1b3694c427b4f82166ef"
+    },
+    {
+      "id": "query-encoding",
+      "task": "Fix query serialization in src/query.js and its wrapper src/search.js, adding regression tests to test/search.test.js. queryPairs(filters) must return [key,String(value)] pairs in Object.entries order; scalar string/number/boolean values are included, null and undefined are omitted. Array values expand to repeated keys in array order, omitting null/undefined elements. Other value types (objects, functions, symbols, BigInts, nested arrays) are ignored. Preserve 0, false and empty strings. Do not mutate filters or arrays. buildSearch(filters) must use queryPairs and URLSearchParams to return a leading ? plus the encoded query, or an empty string when no pairs remain. Preserve the existing export names. Only these three files may change. Work directly without delegation or other coding sessions. Do not commit, install dependencies, use the network or perform external writes. Run node --test, inspect your diff, and finish with a concise change summary and test result.",
+      "routing": {
+        "taskType": "implementation",
+        "difficulty": "simple",
+        "risk": "low"
+      },
+      "routingRationale": "Bounded pure conversion and thin wrapper; exhaustive table checks, no state, IO or unfamiliar dependencies.",
+      "allowedFiles": [
+        "src/query.js",
+        "src/search.js",
+        "test/search.test.js"
+      ],
+      "fixtureSha256": "a25f32e294f4c3031bf8291384c5ad549762772f0dcf2ca2740b7910b43baf1d"
+    },
+    {
+      "id": "lru-cache",
+      "task": "Repair src/lru.js and add regression tests to test/lru.test.js. LRUCache(capacity) must reject non-positive, fractional and non-number capacities with RangeError. set(key,value) stores any JS value (including false, 0, empty string, null and undefined), returns this, refreshes recency on insert/update and evicts only the least-recently-used key when capacity is exceeded. get(key) returns the stored value or undefined for a miss, refreshing recency only for a hit. has(key) and size must reflect membership without refreshing recency. Support arbitrary Map keys, including object identity. Updating an existing key must not evict another entry. Only these two files may change. Work directly without delegation or other coding sessions. Do not commit, install dependencies, use the network or perform external writes. Preserve unrelated behavior. Run node --test, inspect your diff, and finish with a concise change summary and test result.",
+      "routing": {
+        "taskType": "implementation",
+        "difficulty": "moderate",
+        "risk": "low"
+      },
+      "routingRationale": "Stateful ordering, eviction, updates, misses and arbitrary Map values must interact correctly.",
+      "allowedFiles": [
+        "src/lru.js",
+        "test/lru.test.js"
+      ],
+      "fixtureSha256": "fb8f765771dc7e7a7c9174b8182156bd5a7112416b6f253b386a3d656717cae4"
+    },
+    {
+      "id": "retry",
+      "task": "Implement retry behavior across src/retry.js and src/client.js, adding regression tests in test/retry.test.js. Export async retry(operation, options={}) with attempts default 3 (total calls, not retries), shouldRetry default ()=>true, and async wait default no-op. Reject invalid attempts (non-number, non-integer, <=0, non-finite) with RangeError before operation runs. Call operation with a one-based attempt number; return its first successful value unchanged. On failure, if this was the last attempt rethrow the exact error without calling shouldRetry or wait. Otherwise call shouldRetry(error, attempt); if false rethrow the exact error, else await wait(attempt,error) before the next call. Propagate predicate/wait errors and stop. Support synchronous throws and async rejections. In src/client.js, export fetchWithRetry(fetcher, url, options) that uses retry to call fetcher(url), forwarding options; preserve fetchOnce. No real network or timers are needed. Only these three files may change. Work directly without delegation or other coding sessions. Do not commit, install dependencies, use the network or perform external writes. Preserve unrelated behavior. Run node --test, inspect your diff, and finish with a concise change summary and test result.",
+      "routing": {
+        "taskType": "implementation",
+        "difficulty": "complex",
+        "risk": "low"
+      },
+      "routingRationale": "Async sequencing, stopping conditions, error identity and a coupled client contract; bounded implementation rather than open-ended design.",
+      "allowedFiles": [
+        "src/retry.js",
+        "src/client.js",
+        "test/retry.test.js"
+      ],
+      "fixtureSha256": "63d3a14a45d4cfd09655eaf95cb299396f6cc1d440c34894aaadbffca3cc9f2f"
+    }
+  ],
+  "reusedPaidAttempts": 0,
+  "sourceReports": [],
+  "accountingScope": "Every fresh primary attempt, including failed quality checks and repairs; deterministic routing and grading use no model",
+  "cacheControl": "shared provider cache and prior fixture exposure; cache not isolated; no previous paid results reused as paired observations",
+  "limitations": [
+    "Small synthetic pilot; arm order is rotated, not a randomized or population-representative quality study",
+    "Requested model/effort and launch arguments are recorded; backend identity and actual billing are not attested",
+    "Global runtime context may still be injected equally across arms; no full project harness bundle is installed",
+    "Retry feedback contains failed deterministic check names only; all arms retain the same original file scope and at most two attempts",
+    "Aggregate token guard is checked between bounded attempts and can overshoot by one attempt; estimates are not provider token caps",
+    "Task classifications are declared before model execution from fixture requirements; no LLM classification cost",
+    "Relative units are routing policy units, not USD; no previous experiment spend is included in this fresh suite",
+    "Raw prompts beyond public fixture tasks, commands, runtime output and final messages are discarded; hashes and parsed evidence retained"
+  ],
+  "runs": [
+    {
+      "order": 1,
+      "caseId": "positive",
+      "arm": "baseline",
+      "repeat": 1,
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 9460,
+        "renderedInputSha256": "c85d5e234dfea3ce1ec3becd7bdd71b5cecd6a36ea0088e44ee04cfcbad905fd",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "initialFilesSha256": "beb3d3bf7730dffbc9352f5a232d94d3535742097df568522269347a29ca98ff",
+      "initialFiles": {
+        "src/numbers.js": "663c0d91d349a41335bda393f463a3a0de5793e2b759167d6c2cddd4e4b2c538",
+        "test/numbers.test.js": "92e6a84f65a58069962d2287ca9689aa2a3378d06022dd8c784ef3109057be04"
+      },
+      "initialTaskFilesSha256": "2f9dad2530cb528b95adfff0980c96110990f4d7743d1b3694c427b4f82166ef",
+      "attempts": [
+        {
+          "number": 1,
+          "routingMode": "fixed-control",
+          "route": {
+            "schema": "vulpora.model-route/v1",
+            "status": "RESOLVED",
+            "runtime": "codex",
+            "profile": "standard",
+            "requestedProfile": "standard",
+            "riskFloorApplied": false,
+            "model": "gpt-5.6-terra",
+            "reasoning_effort": "medium",
+            "relativeUnits": 10,
+            "estimatedTokens": 4000,
+            "executionKind": "independent-session",
+            "nativeArguments": null,
+            "sessionArguments": {
+              "model": "gpt-5.6-terra",
+              "reasoning_effort": "medium",
+              "inheritHistory": false
+            },
+            "agentFileSettings": {
+              "model": "gpt-5.6-terra",
+              "model_reasoning_effort": "medium"
+            },
+            "inheritanceUsed": false,
+            "execution": "NOT_RUN",
+            "rejected": [],
+            "preflight": {
+              "status": "NOT_CHECKED"
+            },
+            "evidence": {
+              "requestSha256": "05610d6bbeb030abdc071c837feb8a77759b29569c5024e5f813c37ee6d75ee9",
+              "policySha256": "afb6c690f604b1b22602816d57737598706b2495205b1abc371fc389693c8234",
+              "catalogSha256": "af1cb31805d5fde8ca99569096c8b504ddea644b462bfa5a79240e7b447e2e9d",
+              "catalogSource": "codex-app-server:model/list",
+              "observedAt": "2026-09-07T12:52:12.805Z",
+              "taskRequestSha256": "3df4798a1799d9ba5dc96e59ccc56b3b041ad05d501f0121d3730f5d9e7644ea"
+            },
+            "budgetScope": "per-attempt-estimate-not-billing-enforcement",
+            "taskSelection": {
+              "schema": "vulpora.task-model-selection/v1",
+              "taskType": "implementation",
+              "difficulty": "simple",
+              "risk": "low",
+              "recommendedProfile": "frugal",
+              "selectedProfile": "standard",
+              "reason": "bounded_verifiable_task",
+              "explicitProfile": "standard",
+              "basis": "caller-supplied-task-facts-not-free-text-inference"
+            }
+          },
+          "selection": {
+            "action": "INITIAL",
+            "reason": "FIXED_CONTROL"
+          },
+          "promptSha256": "597e2df5baa1f1a10bc68441d24b86608f904ffebfaee646becd6eadad7bc4fc",
+          "promptBytes": 543,
+          "initialFiles": {
+            "completed": true,
+            "sha256": "beb3d3bf7730dffbc9352f5a232d94d3535742097df568522269347a29ca98ff",
+            "files": {
+              "src/numbers.js": "663c0d91d349a41335bda393f463a3a0de5793e2b759167d6c2cddd4e4b2c538",
+              "test/numbers.test.js": "92e6a84f65a58069962d2287ca9689aa2a3378d06022dd8c784ef3109057be04"
+            }
+          },
+          "afterFiles": {
+            "completed": true,
+            "sha256": "8754ffb94fc9121b23e7486ef3dba6404eb4e8923ec65296f6552d4f81bdf65f",
+            "files": {
+              "src/numbers.js": "b8f3a7b1429bf0bda7798a964bc46465998840f5ca5b16629c03ea93e5a32e45",
+              "test/numbers.test.js": "6b343d434c209a17ca28bd160340e50cd20cccfeb352b81d06eeb1a52cc8e6d0"
+            }
+          },
+          "runtime": {
+            "exitCode": 0,
+            "signal": null,
+            "reason": null,
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 45038,
+              "uncached_input_tokens": 10222,
+              "cached_input_tokens": 34816,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 787,
+              "reasoning_tokens": 66,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 45825,
+              "billing_amount": null
+            },
+            "elapsedMs": 23616,
+            "outputBytes": 4339,
+            "stderrBytes": 0,
+            "runtimeStreamSha256": "827a310dd87f77b744014f18a510aa310c24dc657c98cc6747abe6fd1b13d505",
+            "rawRuntimeRetained": false,
+            "streamTruncated": false,
+            "requestedModel": "gpt-5.6-terra",
+            "requestedEffort": "medium",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "commandSha256": "c0c007e974fb86c253b053dd36b53c273a917c3605ac0d54113313aeb1d41172",
+              "model": "gpt-5.6-terra",
+              "reasoning_effort": "medium",
+              "backendIdentity": "NOT_ATTESTED",
+              "primarySessions": 1,
+              "nestedOrchestrator": false
+            },
+            "commandEvidence": [
+              {
+                "commandSha256": "db9adf453a30e0405c266a81f7aa5346f6835607efb2dd19422dd844cf80ccc6",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/numbers.js",
+                  "test/numbers.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              },
+              {
+                "commandSha256": "3501c0a3b7310f2bee21bbc93d9e33ecee378a7165c78ec1d4c57327fd060525",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/numbers.js",
+                  "test/numbers.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              }
+            ],
+            "unexpectedChild": false,
+            "harnessEvidence": {
+              "entryRead": false,
+              "lightweightPathRead": false,
+              "selectorProfiles": [],
+              "selectorExecuted": false
+            }
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true
+            },
+            "changedFiles": [
+              "src/numbers.js",
+              "test/numbers.test.js"
+            ],
+            "checksPassed": 6,
+            "checksTotal": 6
+          },
+          "treatmentCompliant": true,
+          "accepted": true
+        }
+      ],
+      "accepted": true,
+      "finished": true
+    },
+    {
+      "order": 2,
+      "caseId": "positive",
+      "arm": "luna",
+      "repeat": 1,
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 6315,
+        "renderedInputSha256": "81c15eacf5eb1b7c8ffde6b61dfb8c445d2dbf4795477f7c2b610bc1aec386e0",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "initialFilesSha256": "beb3d3bf7730dffbc9352f5a232d94d3535742097df568522269347a29ca98ff",
+      "initialFiles": {
+        "src/numbers.js": "663c0d91d349a41335bda393f463a3a0de5793e2b759167d6c2cddd4e4b2c538",
+        "test/numbers.test.js": "92e6a84f65a58069962d2287ca9689aa2a3378d06022dd8c784ef3109057be04"
+      },
+      "initialTaskFilesSha256": "2f9dad2530cb528b95adfff0980c96110990f4d7743d1b3694c427b4f82166ef",
+      "attempts": [
+        {
+          "number": 1,
+          "routingMode": "fixed-control",
+          "route": {
+            "schema": "vulpora.model-route/v1",
+            "status": "RESOLVED",
+            "runtime": "codex",
+            "profile": "frugal",
+            "requestedProfile": "frugal",
+            "riskFloorApplied": false,
+            "model": "gpt-5.6-luna",
+            "reasoning_effort": "low",
+            "relativeUnits": 1,
+            "estimatedTokens": 4000,
+            "executionKind": "independent-session",
+            "nativeArguments": null,
+            "sessionArguments": {
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low",
+              "inheritHistory": false
+            },
+            "agentFileSettings": {
+              "model": "gpt-5.6-luna",
+              "model_reasoning_effort": "low"
+            },
+            "inheritanceUsed": false,
+            "execution": "NOT_RUN",
+            "rejected": [],
+            "preflight": {
+              "status": "NOT_CHECKED"
+            },
+            "evidence": {
+              "requestSha256": "2d36c899dc387717eff5dec179a3063ca1ab320b469b86c5e3f5f626b5ca9c2b",
+              "policySha256": "afb6c690f604b1b22602816d57737598706b2495205b1abc371fc389693c8234",
+              "catalogSha256": "af1cb31805d5fde8ca99569096c8b504ddea644b462bfa5a79240e7b447e2e9d",
+              "catalogSource": "codex-app-server:model/list",
+              "observedAt": "2026-09-07T12:52:12.805Z",
+              "taskRequestSha256": "1130484147870380db08d521772021e311ab63f408d7648d48958c3ca0eab657"
+            },
+            "budgetScope": "per-attempt-estimate-not-billing-enforcement",
+            "taskSelection": {
+              "schema": "vulpora.task-model-selection/v1",
+              "taskType": "implementation",
+              "difficulty": "simple",
+              "risk": "low",
+              "recommendedProfile": "frugal",
+              "selectedProfile": "frugal",
+              "reason": "bounded_verifiable_task",
+              "explicitProfile": "frugal",
+              "basis": "caller-supplied-task-facts-not-free-text-inference"
+            }
+          },
+          "selection": {
+            "action": "INITIAL",
+            "reason": "FIXED_CONTROL"
+          },
+          "promptSha256": "597e2df5baa1f1a10bc68441d24b86608f904ffebfaee646becd6eadad7bc4fc",
+          "promptBytes": 543,
+          "initialFiles": {
+            "completed": true,
+            "sha256": "beb3d3bf7730dffbc9352f5a232d94d3535742097df568522269347a29ca98ff",
+            "files": {
+              "src/numbers.js": "663c0d91d349a41335bda393f463a3a0de5793e2b759167d6c2cddd4e4b2c538",
+              "test/numbers.test.js": "92e6a84f65a58069962d2287ca9689aa2a3378d06022dd8c784ef3109057be04"
+            }
+          },
+          "afterFiles": {
+            "completed": true,
+            "sha256": "94c83d8c5b9b26c3bfb12af98c74f788eb4cc3b87855935caf3e289f698b6c38",
+            "files": {
+              "src/numbers.js": "b8f3a7b1429bf0bda7798a964bc46465998840f5ca5b16629c03ea93e5a32e45",
+              "test/numbers.test.js": "9d69d0c4e69c50ab3ee313713315e6ed07ca119e16c506ef45bef94b30ee24e6"
+            }
+          },
+          "runtime": {
+            "exitCode": 0,
+            "signal": null,
+            "reason": null,
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 38670,
+              "uncached_input_tokens": 13838,
+              "cached_input_tokens": 24832,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 920,
+              "reasoning_tokens": 69,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 39590,
+              "billing_amount": null
+            },
+            "elapsedMs": 27295,
+            "outputBytes": 3564,
+            "stderrBytes": 0,
+            "runtimeStreamSha256": "a123654fa53234060379288aad451642e091f6ad54501976347ea19bd6f27841",
+            "rawRuntimeRetained": false,
+            "streamTruncated": false,
+            "requestedModel": "gpt-5.6-luna",
+            "requestedEffort": "low",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "commandSha256": "3ed585d5740ca5ad762731add0fae65839b791f2e8e183cd6266a0124d4d872e",
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low",
+              "backendIdentity": "NOT_ATTESTED",
+              "primarySessions": 1,
+              "nestedOrchestrator": false
+            },
+            "commandEvidence": [
+              {
+                "commandSha256": "4beb4d57732982ac0279e0024059a2efa1cf52535d87b608e0ffa9cf0a0188c1",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/numbers.js",
+                  "test/numbers.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              },
+              {
+                "commandSha256": "63aa92647ad968dc950bcce23540fb2ce7cfe77a8642e4acabd8f3fc4666efe4",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/numbers.js",
+                  "test/numbers.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              }
+            ],
+            "unexpectedChild": false,
+            "harnessEvidence": {
+              "entryRead": false,
+              "lightweightPathRead": false,
+              "selectorProfiles": [],
+              "selectorExecuted": false
+            }
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true
+            },
+            "changedFiles": [
+              "src/numbers.js",
+              "test/numbers.test.js"
+            ],
+            "checksPassed": 6,
+            "checksTotal": 6
+          },
+          "treatmentCompliant": true,
+          "accepted": true
+        }
+      ],
+      "accepted": true,
+      "finished": true
+    },
+    {
+      "order": 3,
+      "caseId": "positive",
+      "arm": "routed",
+      "repeat": 1,
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 6315,
+        "renderedInputSha256": "0305be23334d79c1e1f2d4ed46c84d7fe46229cfd0440c8a0c9de4ecfddeda45",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "initialFilesSha256": "beb3d3bf7730dffbc9352f5a232d94d3535742097df568522269347a29ca98ff",
+      "initialFiles": {
+        "src/numbers.js": "663c0d91d349a41335bda393f463a3a0de5793e2b759167d6c2cddd4e4b2c538",
+        "test/numbers.test.js": "92e6a84f65a58069962d2287ca9689aa2a3378d06022dd8c784ef3109057be04"
+      },
+      "initialTaskFilesSha256": "2f9dad2530cb528b95adfff0980c96110990f4d7743d1b3694c427b4f82166ef",
+      "attempts": [
+        {
+          "number": 1,
+          "routingMode": "production-task-router",
+          "route": {
+            "schema": "vulpora.model-route/v1",
+            "status": "RESOLVED",
+            "runtime": "codex",
+            "profile": "frugal",
+            "requestedProfile": "frugal",
+            "riskFloorApplied": false,
+            "model": "gpt-5.6-luna",
+            "reasoning_effort": "low",
+            "relativeUnits": 1,
+            "estimatedTokens": 4000,
+            "executionKind": "independent-session",
+            "nativeArguments": null,
+            "sessionArguments": {
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low",
+              "inheritHistory": false
+            },
+            "agentFileSettings": {
+              "model": "gpt-5.6-luna",
+              "model_reasoning_effort": "low"
+            },
+            "inheritanceUsed": false,
+            "execution": "NOT_RUN",
+            "rejected": [],
+            "preflight": {
+              "status": "NOT_CHECKED"
+            },
+            "evidence": {
+              "requestSha256": "edbe5164fc54f062f1c4951b4caa1fa35c2132486faf5ac1a9ad4091fa8891cf",
+              "policySha256": "afb6c690f604b1b22602816d57737598706b2495205b1abc371fc389693c8234",
+              "catalogSha256": "af1cb31805d5fde8ca99569096c8b504ddea644b462bfa5a79240e7b447e2e9d",
+              "catalogSource": "codex-app-server:model/list",
+              "observedAt": "2026-09-07T12:52:12.805Z",
+              "taskRequestSha256": "bb352ccb433fbb41f603724e2f28521eda55b8ff3a77615e604543f1a4b192c4"
+            },
+            "budgetScope": "per-attempt-estimate-not-billing-enforcement",
+            "taskSelection": {
+              "schema": "vulpora.task-model-selection/v1",
+              "taskType": "implementation",
+              "difficulty": "simple",
+              "risk": "low",
+              "recommendedProfile": "frugal",
+              "selectedProfile": "frugal",
+              "reason": "bounded_verifiable_task",
+              "explicitProfile": null,
+              "basis": "caller-supplied-task-facts-not-free-text-inference"
+            }
+          },
+          "selection": {
+            "action": "INITIAL",
+            "reason": "PRODUCTION_TASK_CLASSIFICATION"
+          },
+          "promptSha256": "597e2df5baa1f1a10bc68441d24b86608f904ffebfaee646becd6eadad7bc4fc",
+          "promptBytes": 543,
+          "initialFiles": {
+            "completed": true,
+            "sha256": "beb3d3bf7730dffbc9352f5a232d94d3535742097df568522269347a29ca98ff",
+            "files": {
+              "src/numbers.js": "663c0d91d349a41335bda393f463a3a0de5793e2b759167d6c2cddd4e4b2c538",
+              "test/numbers.test.js": "92e6a84f65a58069962d2287ca9689aa2a3378d06022dd8c784ef3109057be04"
+            }
+          },
+          "afterFiles": {
+            "completed": true,
+            "sha256": "198e399b7b21538ad7f7af51c1629ff4f0192b80c1e71cfddeb967bcec7856d6",
+            "files": {
+              "src/numbers.js": "b8f3a7b1429bf0bda7798a964bc46465998840f5ca5b16629c03ea93e5a32e45",
+              "test/numbers.test.js": "8e1be2a63f3d815d851feb1bc6ae1024d12bbdcbacd03a8c17e951a83b06778c"
+            }
+          },
+          "runtime": {
+            "exitCode": 0,
+            "signal": null,
+            "reason": null,
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 38596,
+              "uncached_input_tokens": 13764,
+              "cached_input_tokens": 24832,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 823,
+              "reasoning_tokens": 76,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 39419,
+              "billing_amount": null
+            },
+            "elapsedMs": 23500,
+            "outputBytes": 4715,
+            "stderrBytes": 0,
+            "runtimeStreamSha256": "c6df9106ea63139eb8654c8f66f69ceb90b7f65c8b4a95237d7a0ff30ace7964",
+            "rawRuntimeRetained": false,
+            "streamTruncated": false,
+            "requestedModel": "gpt-5.6-luna",
+            "requestedEffort": "low",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "commandSha256": "47feec54d409d19c6bef7c7aac74f22e417f8f8a4cc1770f24936aaf69610c32",
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low",
+              "backendIdentity": "NOT_ATTESTED",
+              "primarySessions": 1,
+              "nestedOrchestrator": false
+            },
+            "commandEvidence": [
+              {
+                "commandSha256": "4beb4d57732982ac0279e0024059a2efa1cf52535d87b608e0ffa9cf0a0188c1",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/numbers.js",
+                  "test/numbers.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              },
+              {
+                "commandSha256": "62b4f83632dd62ce5f78048248053d5ff4abb6752d0c55e43fbba05594186e1e",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/numbers.js",
+                  "test/numbers.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              }
+            ],
+            "unexpectedChild": false,
+            "harnessEvidence": {
+              "entryRead": false,
+              "lightweightPathRead": false,
+              "selectorProfiles": [],
+              "selectorExecuted": false
+            }
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true
+            },
+            "changedFiles": [
+              "src/numbers.js",
+              "test/numbers.test.js"
+            ],
+            "checksPassed": 6,
+            "checksTotal": 6
+          },
+          "treatmentCompliant": true,
+          "accepted": true
+        }
+      ],
+      "accepted": true,
+      "finished": true
+    },
+    {
+      "order": 4,
+      "caseId": "query-encoding",
+      "arm": "baseline",
+      "repeat": 1,
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 9895,
+        "renderedInputSha256": "96df78083ae2f33805e278f948d6bc968dd40b5b7d8a885dab4480c824bc7fe3",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "initialFilesSha256": "c5ee0bd4af73c801349dbc14fe764c2358105d5b842c6873937acbd2346bb457",
+      "initialFiles": {
+        "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+        "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+        "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+      },
+      "initialTaskFilesSha256": "a25f32e294f4c3031bf8291384c5ad549762772f0dcf2ca2740b7910b43baf1d",
+      "attempts": [
+        {
+          "number": 1,
+          "routingMode": "fixed-control",
+          "route": {
+            "schema": "vulpora.model-route/v1",
+            "status": "RESOLVED",
+            "runtime": "codex",
+            "profile": "standard",
+            "requestedProfile": "standard",
+            "riskFloorApplied": false,
+            "model": "gpt-5.6-terra",
+            "reasoning_effort": "medium",
+            "relativeUnits": 10,
+            "estimatedTokens": 4000,
+            "executionKind": "independent-session",
+            "nativeArguments": null,
+            "sessionArguments": {
+              "model": "gpt-5.6-terra",
+              "reasoning_effort": "medium",
+              "inheritHistory": false
+            },
+            "agentFileSettings": {
+              "model": "gpt-5.6-terra",
+              "model_reasoning_effort": "medium"
+            },
+            "inheritanceUsed": false,
+            "execution": "NOT_RUN",
+            "rejected": [],
+            "preflight": {
+              "status": "NOT_CHECKED"
+            },
+            "evidence": {
+              "requestSha256": "664dc2c0782e7e6ab2e00cfef480826ba17fb512a8e2bc55ba4e499262b8005d",
+              "policySha256": "afb6c690f604b1b22602816d57737598706b2495205b1abc371fc389693c8234",
+              "catalogSha256": "af1cb31805d5fde8ca99569096c8b504ddea644b462bfa5a79240e7b447e2e9d",
+              "catalogSource": "codex-app-server:model/list",
+              "observedAt": "2026-09-07T12:52:12.805Z",
+              "taskRequestSha256": "6422dd292e2703b405c9173836569852a38ac6d1f40288f9d9e54b1e860f831e"
+            },
+            "budgetScope": "per-attempt-estimate-not-billing-enforcement",
+            "taskSelection": {
+              "schema": "vulpora.task-model-selection/v1",
+              "taskType": "implementation",
+              "difficulty": "simple",
+              "risk": "low",
+              "recommendedProfile": "frugal",
+              "selectedProfile": "standard",
+              "reason": "bounded_verifiable_task",
+              "explicitProfile": "standard",
+              "basis": "caller-supplied-task-facts-not-free-text-inference"
+            }
+          },
+          "selection": {
+            "action": "INITIAL",
+            "reason": "FIXED_CONTROL"
+          },
+          "promptSha256": "54afe52d39787899a22049b63ad7b1fbe5bc4b70c73eea32039b2c7316e6dca8",
+          "promptBytes": 978,
+          "initialFiles": {
+            "completed": true,
+            "sha256": "c5ee0bd4af73c801349dbc14fe764c2358105d5b842c6873937acbd2346bb457",
+            "files": {
+              "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+              "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+              "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+            }
+          },
+          "afterFiles": {
+            "completed": true,
+            "sha256": "736cebe93733573d6c33572e4e6cf4e4efbabc35e3f71b742f078a8131ad3c94",
+            "files": {
+              "src/query.js": "43882e21dc25e516b84356a7a40f5a3437d320fa3bc362d6d10bedd9233fe41d",
+              "src/search.js": "e152e8c1c63f43d896b2d29a76a4e83bb372ef3c671f7d2cc91e9515fd13e9fd",
+              "test/search.test.js": "028e3972c8608a4de3520c974a454c34e38b71a0ca5ef0cd479a14bac42ccd59"
+            }
+          },
+          "runtime": {
+            "exitCode": 0,
+            "signal": null,
+            "reason": null,
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 47391,
+              "uncached_input_tokens": 10527,
+              "cached_input_tokens": 36864,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 1449,
+              "reasoning_tokens": 58,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 48840,
+              "billing_amount": null
+            },
+            "elapsedMs": 37202,
+            "outputBytes": 7319,
+            "stderrBytes": 0,
+            "runtimeStreamSha256": "9c533129462a04466d4b1222a87c71834d39ae89a5d9f956c90fbab2a954bc99",
+            "rawRuntimeRetained": false,
+            "streamTruncated": false,
+            "requestedModel": "gpt-5.6-terra",
+            "requestedEffort": "medium",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "commandSha256": "86aeb60a60b40c09c6001c8f103f871c7c540cb96c508381610b2c7d5593d492",
+              "model": "gpt-5.6-terra",
+              "reasoning_effort": "medium",
+              "backendIdentity": "NOT_ATTESTED",
+              "primarySessions": 1,
+              "nestedOrchestrator": false
+            },
+            "commandEvidence": [
+              {
+                "commandSha256": "81dbea41f12519567e97138bb5aa5ccc1293bd4cd2b01f05227f23f8425dce97",
+                "exitCode": 1,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/query.js",
+                  "src/search.js",
+                  "test/search.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              },
+              {
+                "commandSha256": "0581585ff5ea77081c7e44c5b50442da8f326349fae90daa84a76526354ab100",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/query.js",
+                  "src/search.js",
+                  "test/search.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              }
+            ],
+            "unexpectedChild": false,
+            "harnessEvidence": {
+              "entryRead": false,
+              "lightweightPathRead": false,
+              "selectorProfiles": [],
+              "selectorExecuted": false
+            }
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true
+            },
+            "changedFiles": [
+              "src/query.js",
+              "src/search.js",
+              "test/search.test.js"
+            ],
+            "checksPassed": 6,
+            "checksTotal": 6
+          },
+          "treatmentCompliant": true,
+          "accepted": true
+        }
+      ],
+      "accepted": true,
+      "finished": true
+    },
+    {
+      "order": 5,
+      "caseId": "query-encoding",
+      "arm": "routed",
+      "repeat": 1,
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 6750,
+        "renderedInputSha256": "806cd7fded837d2423dc2795fb84121def25926bf888d8f74337ba3b16c74bbd",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "initialFilesSha256": "c5ee0bd4af73c801349dbc14fe764c2358105d5b842c6873937acbd2346bb457",
+      "initialFiles": {
+        "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+        "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+        "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+      },
+      "initialTaskFilesSha256": "a25f32e294f4c3031bf8291384c5ad549762772f0dcf2ca2740b7910b43baf1d",
+      "attempts": [
+        {
+          "number": 1,
+          "routingMode": "production-task-router",
+          "route": {
+            "schema": "vulpora.model-route/v1",
+            "status": "RESOLVED",
+            "runtime": "codex",
+            "profile": "frugal",
+            "requestedProfile": "frugal",
+            "riskFloorApplied": false,
+            "model": "gpt-5.6-luna",
+            "reasoning_effort": "low",
+            "relativeUnits": 1,
+            "estimatedTokens": 4000,
+            "executionKind": "independent-session",
+            "nativeArguments": null,
+            "sessionArguments": {
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low",
+              "inheritHistory": false
+            },
+            "agentFileSettings": {
+              "model": "gpt-5.6-luna",
+              "model_reasoning_effort": "low"
+            },
+            "inheritanceUsed": false,
+            "execution": "NOT_RUN",
+            "rejected": [],
+            "preflight": {
+              "status": "NOT_CHECKED"
+            },
+            "evidence": {
+              "requestSha256": "ab457c20d505a78e91d98df42b978cf20822e0d9d77f59ff029fca670df2c9c5",
+              "policySha256": "afb6c690f604b1b22602816d57737598706b2495205b1abc371fc389693c8234",
+              "catalogSha256": "af1cb31805d5fde8ca99569096c8b504ddea644b462bfa5a79240e7b447e2e9d",
+              "catalogSource": "codex-app-server:model/list",
+              "observedAt": "2026-09-07T12:52:12.805Z",
+              "taskRequestSha256": "e7a437811edf750fb1407968a34df201c351eea331cbc4473967ed87a152681a"
+            },
+            "budgetScope": "per-attempt-estimate-not-billing-enforcement",
+            "taskSelection": {
+              "schema": "vulpora.task-model-selection/v1",
+              "taskType": "implementation",
+              "difficulty": "simple",
+              "risk": "low",
+              "recommendedProfile": "frugal",
+              "selectedProfile": "frugal",
+              "reason": "bounded_verifiable_task",
+              "explicitProfile": null,
+              "basis": "caller-supplied-task-facts-not-free-text-inference"
+            }
+          },
+          "selection": {
+            "action": "INITIAL",
+            "reason": "PRODUCTION_TASK_CLASSIFICATION"
+          },
+          "promptSha256": "54afe52d39787899a22049b63ad7b1fbe5bc4b70c73eea32039b2c7316e6dca8",
+          "promptBytes": 978,
+          "initialFiles": {
+            "completed": true,
+            "sha256": "c5ee0bd4af73c801349dbc14fe764c2358105d5b842c6873937acbd2346bb457",
+            "files": {
+              "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+              "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+              "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+            }
+          },
+          "afterFiles": {
+            "completed": true,
+            "sha256": "2eafcf5cb418e0c396444d0ec8590bdad65ea48367aec1dd86aa6d9a857224bc",
+            "files": {
+              "src/query.js": "ab9d217be9a067c0df2b65b9b27a2e27290cfe95da5e8ce869e09a1ff20de371",
+              "src/search.js": "64b14177175f7023fed458e0b41d2caf624f7a291ba7a7ca6df3f9c2d9ef8e23",
+              "test/search.test.js": "af5eb7242929fecbb01ea702ee81caea048046431ae146853216462151cd4ab5"
+            }
+          },
+          "runtime": {
+            "exitCode": 0,
+            "signal": null,
+            "reason": null,
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 51300,
+              "uncached_input_tokens": 13412,
+              "cached_input_tokens": 37888,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 1421,
+              "reasoning_tokens": 138,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 52721,
+              "billing_amount": null
+            },
+            "elapsedMs": 35136,
+            "outputBytes": 6785,
+            "stderrBytes": 0,
+            "runtimeStreamSha256": "9e098ebd70f6fb57692d51030b441fbe87210b0958d5922330579aa45e99bd24",
+            "rawRuntimeRetained": false,
+            "streamTruncated": false,
+            "requestedModel": "gpt-5.6-luna",
+            "requestedEffort": "low",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "commandSha256": "69eb60d452352f0bfaf9c2cd720d4257463969e2f5c8e73cb76ccf111c5337f1",
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low",
+              "backendIdentity": "NOT_ATTESTED",
+              "primarySessions": 1,
+              "nestedOrchestrator": false
+            },
+            "commandEvidence": [
+              {
+                "commandSha256": "07539fd695b4e0289b7f5e3bf8adbd7be742477691f18306de3a56b3ac2eb770",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/query.js",
+                  "src/search.js",
+                  "test/search.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              },
+              {
+                "commandSha256": "88cdd8ce75a1e6c0ffda5eb0641a9f6c4d16642c6007377fe27c99ea9ede8616",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              },
+              {
+                "commandSha256": "a38b982970c241b1ab3c6725a2c11e23a7485aed71f1add5f73cc10b61bb1507",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/query.js",
+                  "src/search.js",
+                  "test/search.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              }
+            ],
+            "unexpectedChild": false,
+            "harnessEvidence": {
+              "entryRead": false,
+              "lightweightPathRead": false,
+              "selectorProfiles": [],
+              "selectorExecuted": false
+            }
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true
+            },
+            "changedFiles": [
+              "src/query.js",
+              "src/search.js",
+              "test/search.test.js"
+            ],
+            "checksPassed": 6,
+            "checksTotal": 6
+          },
+          "treatmentCompliant": true,
+          "accepted": true
+        }
+      ],
+      "accepted": true,
+      "finished": true
+    },
+    {
+      "order": 6,
+      "caseId": "query-encoding",
+      "arm": "luna",
+      "repeat": 1,
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 6750,
+        "renderedInputSha256": "ce0df649e946947793d81609b75283efebba6f855e78d46e729042f40c408132",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "initialFilesSha256": "c5ee0bd4af73c801349dbc14fe764c2358105d5b842c6873937acbd2346bb457",
+      "initialFiles": {
+        "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+        "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+        "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+      },
+      "initialTaskFilesSha256": "a25f32e294f4c3031bf8291384c5ad549762772f0dcf2ca2740b7910b43baf1d",
+      "attempts": [
+        {
+          "number": 1,
+          "routingMode": "fixed-control",
+          "route": {
+            "schema": "vulpora.model-route/v1",
+            "status": "RESOLVED",
+            "runtime": "codex",
+            "profile": "frugal",
+            "requestedProfile": "frugal",
+            "riskFloorApplied": false,
+            "model": "gpt-5.6-luna",
+            "reasoning_effort": "low",
+            "relativeUnits": 1,
+            "estimatedTokens": 4000,
+            "executionKind": "independent-session",
+            "nativeArguments": null,
+            "sessionArguments": {
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low",
+              "inheritHistory": false
+            },
+            "agentFileSettings": {
+              "model": "gpt-5.6-luna",
+              "model_reasoning_effort": "low"
+            },
+            "inheritanceUsed": false,
+            "execution": "NOT_RUN",
+            "rejected": [],
+            "preflight": {
+              "status": "NOT_CHECKED"
+            },
+            "evidence": {
+              "requestSha256": "892593c90306b46e5d0e5ddbd361f27c0f90baf6a5c66871add72a0543b54a6b",
+              "policySha256": "afb6c690f604b1b22602816d57737598706b2495205b1abc371fc389693c8234",
+              "catalogSha256": "af1cb31805d5fde8ca99569096c8b504ddea644b462bfa5a79240e7b447e2e9d",
+              "catalogSource": "codex-app-server:model/list",
+              "observedAt": "2026-09-07T12:52:12.805Z",
+              "taskRequestSha256": "dc75f820bde16b1fb36c4665b4b9f3e1a6a5edec2fb9505a88f77b92ac220d7f"
+            },
+            "budgetScope": "per-attempt-estimate-not-billing-enforcement",
+            "taskSelection": {
+              "schema": "vulpora.task-model-selection/v1",
+              "taskType": "implementation",
+              "difficulty": "simple",
+              "risk": "low",
+              "recommendedProfile": "frugal",
+              "selectedProfile": "frugal",
+              "reason": "bounded_verifiable_task",
+              "explicitProfile": "frugal",
+              "basis": "caller-supplied-task-facts-not-free-text-inference"
+            }
+          },
+          "selection": {
+            "action": "INITIAL",
+            "reason": "FIXED_CONTROL"
+          },
+          "promptSha256": "54afe52d39787899a22049b63ad7b1fbe5bc4b70c73eea32039b2c7316e6dca8",
+          "promptBytes": 978,
+          "initialFiles": {
+            "completed": true,
+            "sha256": "c5ee0bd4af73c801349dbc14fe764c2358105d5b842c6873937acbd2346bb457",
+            "files": {
+              "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+              "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+              "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+            }
+          },
+          "afterFiles": {
+            "completed": true,
+            "sha256": "9b9b38d41d7128a2429b3cd466cb3b9181bde94619cc68757ef809603c174d13",
+            "files": {
+              "src/query.js": "ab9d217be9a067c0df2b65b9b27a2e27290cfe95da5e8ce869e09a1ff20de371",
+              "src/search.js": "dc18a2d0cc44cd0805a414f23ea0915a68eacad6a51a4fb411a764e9382aa3b6",
+              "test/search.test.js": "991b3d91b5527d0edc297926d16f390d3dd8891ec0fe9872a8dd5ded6be69e05"
+            }
+          },
+          "runtime": {
+            "exitCode": 0,
+            "signal": null,
+            "reason": null,
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 52477,
+              "uncached_input_tokens": 19709,
+              "cached_input_tokens": 32768,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 1631,
+              "reasoning_tokens": 145,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 54108,
+              "billing_amount": null
+            },
+            "elapsedMs": 43275,
+            "outputBytes": 8934,
+            "stderrBytes": 0,
+            "runtimeStreamSha256": "364cb6f51d601938671c4a51df52f8bfeca491e410050ca26cf0c23cdf6e984d",
+            "rawRuntimeRetained": false,
+            "streamTruncated": false,
+            "requestedModel": "gpt-5.6-luna",
+            "requestedEffort": "low",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "commandSha256": "5bf25ceb94170d41bbb1e1cbbc0ec81522792229d889b71b8b087a92b13e5155",
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low",
+              "backendIdentity": "NOT_ATTESTED",
+              "primarySessions": 1,
+              "nestedOrchestrator": false
+            },
+            "commandEvidence": [
+              {
+                "commandSha256": "0a486af0b0947210ca747609ad5c864a27ce575c0223f9882331567025197790",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/query.js",
+                  "src/search.js",
+                  "test/search.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              },
+              {
+                "commandSha256": "88cdd8ce75a1e6c0ffda5eb0641a9f6c4d16642c6007377fe27c99ea9ede8616",
+                "exitCode": 1,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              },
+              {
+                "commandSha256": "e7802be86d2ea5c4dc0083b01305fa1a0c95655e053b9312fffcb0d806fb15c7",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/query.js",
+                  "src/search.js",
+                  "test/search.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              }
+            ],
+            "unexpectedChild": false,
+            "harnessEvidence": {
+              "entryRead": false,
+              "lightweightPathRead": false,
+              "selectorProfiles": [],
+              "selectorExecuted": false
+            }
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true
+            },
+            "changedFiles": [
+              "src/query.js",
+              "src/search.js",
+              "test/search.test.js"
+            ],
+            "checksPassed": 6,
+            "checksTotal": 6
+          },
+          "treatmentCompliant": true,
+          "accepted": true
+        }
+      ],
+      "accepted": true,
+      "finished": true
+    },
+    {
+      "order": 7,
+      "caseId": "lru-cache",
+      "arm": "luna",
+      "repeat": 1,
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 6715,
+        "renderedInputSha256": "93e5445520eff8ac4de66c69d6e341bd9056a10a98828dfec464a1ad07c35199",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "initialFilesSha256": "e32151f068a7d600bd6d3512249ddbb7b11c5d9aa38bc5983eeecc7659f0c082",
+      "initialFiles": {
+        "src/lru.js": "f582cecb2367009a4f9b883230ed53f46e495a2a4f1f79574eb53075381988aa",
+        "test/lru.test.js": "c3b3ddb8b47be5b61d7dc9a52adc4b3c4b4172adec162e09c979e87b818a2253"
+      },
+      "initialTaskFilesSha256": "fb8f765771dc7e7a7c9174b8182156bd5a7112416b6f253b386a3d656717cae4",
+      "attempts": [
+        {
+          "number": 1,
+          "routingMode": "fixed-control",
+          "route": {
+            "schema": "vulpora.model-route/v1",
+            "status": "RESOLVED",
+            "runtime": "codex",
+            "profile": "frugal",
+            "requestedProfile": "frugal",
+            "riskFloorApplied": false,
+            "model": "gpt-5.6-luna",
+            "reasoning_effort": "low",
+            "relativeUnits": 1,
+            "estimatedTokens": 4000,
+            "executionKind": "independent-session",
+            "nativeArguments": null,
+            "sessionArguments": {
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low",
+              "inheritHistory": false
+            },
+            "agentFileSettings": {
+              "model": "gpt-5.6-luna",
+              "model_reasoning_effort": "low"
+            },
+            "inheritanceUsed": false,
+            "execution": "NOT_RUN",
+            "rejected": [],
+            "preflight": {
+              "status": "NOT_CHECKED"
+            },
+            "evidence": {
+              "requestSha256": "9381be403d7b43a7779979ce2d570de175468ab48ccf9a35b76e4864dd984301",
+              "policySha256": "afb6c690f604b1b22602816d57737598706b2495205b1abc371fc389693c8234",
+              "catalogSha256": "af1cb31805d5fde8ca99569096c8b504ddea644b462bfa5a79240e7b447e2e9d",
+              "catalogSource": "codex-app-server:model/list",
+              "observedAt": "2026-09-07T12:52:12.805Z",
+              "taskRequestSha256": "443b57dca72e8306d435714d8b2e696add7db020ba3996ebf2bdbdbab77b7bd5"
+            },
+            "budgetScope": "per-attempt-estimate-not-billing-enforcement",
+            "taskSelection": {
+              "schema": "vulpora.task-model-selection/v1",
+              "taskType": "implementation",
+              "difficulty": "moderate",
+              "risk": "low",
+              "recommendedProfile": "standard",
+              "selectedProfile": "frugal",
+              "reason": "implementation_or_open_ended_analysis",
+              "explicitProfile": "frugal",
+              "basis": "caller-supplied-task-facts-not-free-text-inference"
+            }
+          },
+          "selection": {
+            "action": "INITIAL",
+            "reason": "FIXED_CONTROL"
+          },
+          "promptSha256": "f53706e218059266c222f1dca406adfa4257c1c584d7a452c5d14b4e2cb33107",
+          "promptBytes": 943,
+          "initialFiles": {
+            "completed": true,
+            "sha256": "e32151f068a7d600bd6d3512249ddbb7b11c5d9aa38bc5983eeecc7659f0c082",
+            "files": {
+              "src/lru.js": "f582cecb2367009a4f9b883230ed53f46e495a2a4f1f79574eb53075381988aa",
+              "test/lru.test.js": "c3b3ddb8b47be5b61d7dc9a52adc4b3c4b4172adec162e09c979e87b818a2253"
+            }
+          },
+          "afterFiles": {
+            "completed": true,
+            "sha256": "a2834b74db91a97ba9f1e847e9dd322181cb9a62c05c088b83628601bcf04651",
+            "files": {
+              "src/lru.js": "56e922e946947f22a3b8578dbcf01ced646a5fe55f30d0634fa1cc969c699d33",
+              "test/lru.test.js": "5132a1ca9fd2f6c1536bb859905f580a3c7ef4f7ccbb35c19938c5c95f2c037a"
+            }
+          },
+          "runtime": {
+            "exitCode": 0,
+            "signal": null,
+            "reason": null,
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 42104,
+              "uncached_input_tokens": 14200,
+              "cached_input_tokens": 27904,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 1881,
+              "reasoning_tokens": 112,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 43985,
+              "billing_amount": null
+            },
+            "elapsedMs": 41866,
+            "outputBytes": 7621,
+            "stderrBytes": 0,
+            "runtimeStreamSha256": "718cb70179583243854d0771cff161247096f315ddb95ecb5e29e1ebe0de827f",
+            "rawRuntimeRetained": false,
+            "streamTruncated": false,
+            "requestedModel": "gpt-5.6-luna",
+            "requestedEffort": "low",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "commandSha256": "86d69ee5dc0b2370663d22259608ab5edc3c4a44d0ee26c212a601ca1bff33df",
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low",
+              "backendIdentity": "NOT_ATTESTED",
+              "primarySessions": 1,
+              "nestedOrchestrator": false
+            },
+            "commandEvidence": [
+              {
+                "commandSha256": "d35334208851781e3311447d7c9b8b9266fd88cf2d1b85815ef9eacfa448f3a7",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/lru.js",
+                  "test/lru.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              },
+              {
+                "commandSha256": "c709491000add1f08580bb006d6b2a9086031fc5c105848f88fe19b1935e8066",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/lru.js",
+                  "test/lru.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              }
+            ],
+            "unexpectedChild": false,
+            "harnessEvidence": {
+              "entryRead": false,
+              "lightweightPathRead": false,
+              "selectorProfiles": [],
+              "selectorExecuted": false
+            }
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true
+            },
+            "changedFiles": [
+              "src/lru.js",
+              "test/lru.test.js"
+            ],
+            "checksPassed": 6,
+            "checksTotal": 6
+          },
+          "treatmentCompliant": true,
+          "accepted": true
+        }
+      ],
+      "accepted": true,
+      "finished": true
+    },
+    {
+      "order": 8,
+      "caseId": "lru-cache",
+      "arm": "baseline",
+      "repeat": 1,
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 9860,
+        "renderedInputSha256": "cf85e73528030aab7db27d33d64af17d2025e4ff4fcbcd8d8af326a3e8127713",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "initialFilesSha256": "e32151f068a7d600bd6d3512249ddbb7b11c5d9aa38bc5983eeecc7659f0c082",
+      "initialFiles": {
+        "src/lru.js": "f582cecb2367009a4f9b883230ed53f46e495a2a4f1f79574eb53075381988aa",
+        "test/lru.test.js": "c3b3ddb8b47be5b61d7dc9a52adc4b3c4b4172adec162e09c979e87b818a2253"
+      },
+      "initialTaskFilesSha256": "fb8f765771dc7e7a7c9174b8182156bd5a7112416b6f253b386a3d656717cae4",
+      "attempts": [
+        {
+          "number": 1,
+          "routingMode": "fixed-control",
+          "route": {
+            "schema": "vulpora.model-route/v1",
+            "status": "RESOLVED",
+            "runtime": "codex",
+            "profile": "standard",
+            "requestedProfile": "standard",
+            "riskFloorApplied": false,
+            "model": "gpt-5.6-terra",
+            "reasoning_effort": "medium",
+            "relativeUnits": 10,
+            "estimatedTokens": 4000,
+            "executionKind": "independent-session",
+            "nativeArguments": null,
+            "sessionArguments": {
+              "model": "gpt-5.6-terra",
+              "reasoning_effort": "medium",
+              "inheritHistory": false
+            },
+            "agentFileSettings": {
+              "model": "gpt-5.6-terra",
+              "model_reasoning_effort": "medium"
+            },
+            "inheritanceUsed": false,
+            "execution": "NOT_RUN",
+            "rejected": [],
+            "preflight": {
+              "status": "NOT_CHECKED"
+            },
+            "evidence": {
+              "requestSha256": "fac779688fa0127b6581a0ee9431d0af1008c3b4eafd6d2f4708f5c4b8802477",
+              "policySha256": "afb6c690f604b1b22602816d57737598706b2495205b1abc371fc389693c8234",
+              "catalogSha256": "af1cb31805d5fde8ca99569096c8b504ddea644b462bfa5a79240e7b447e2e9d",
+              "catalogSource": "codex-app-server:model/list",
+              "observedAt": "2026-09-07T12:52:12.805Z",
+              "taskRequestSha256": "18efece23198cd8ffb5714654273d49650cc48360a644b4834239c2b3fbac9d7"
+            },
+            "budgetScope": "per-attempt-estimate-not-billing-enforcement",
+            "taskSelection": {
+              "schema": "vulpora.task-model-selection/v1",
+              "taskType": "implementation",
+              "difficulty": "moderate",
+              "risk": "low",
+              "recommendedProfile": "standard",
+              "selectedProfile": "standard",
+              "reason": "implementation_or_open_ended_analysis",
+              "explicitProfile": "standard",
+              "basis": "caller-supplied-task-facts-not-free-text-inference"
+            }
+          },
+          "selection": {
+            "action": "INITIAL",
+            "reason": "FIXED_CONTROL"
+          },
+          "promptSha256": "f53706e218059266c222f1dca406adfa4257c1c584d7a452c5d14b4e2cb33107",
+          "promptBytes": 943,
+          "initialFiles": {
+            "completed": true,
+            "sha256": "e32151f068a7d600bd6d3512249ddbb7b11c5d9aa38bc5983eeecc7659f0c082",
+            "files": {
+              "src/lru.js": "f582cecb2367009a4f9b883230ed53f46e495a2a4f1f79574eb53075381988aa",
+              "test/lru.test.js": "c3b3ddb8b47be5b61d7dc9a52adc4b3c4b4172adec162e09c979e87b818a2253"
+            }
+          },
+          "afterFiles": {
+            "completed": true,
+            "sha256": "85d7a31b561b15cd759016f9048d34e6344beb8c39a9e254c2e9ab69d9180930",
+            "files": {
+              "src/lru.js": "c29aead5dc1a61afd7366acda3cc4ef1a94e52a22b59476a89083186822abeda",
+              "test/lru.test.js": "090718f845be69b69507a49d46f92cbe6376ce42bde8207cb5990c95ed7eea51"
+            }
+          },
+          "runtime": {
+            "exitCode": 0,
+            "signal": null,
+            "reason": null,
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 47440,
+              "uncached_input_tokens": 10576,
+              "cached_input_tokens": 36864,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 1478,
+              "reasoning_tokens": 117,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 48918,
+              "billing_amount": null
+            },
+            "elapsedMs": 37607,
+            "outputBytes": 7397,
+            "stderrBytes": 0,
+            "runtimeStreamSha256": "a310355beebbf5af845039174837e507715fa1b686c93ff730ac9d5681f5ad5c",
+            "rawRuntimeRetained": false,
+            "streamTruncated": false,
+            "requestedModel": "gpt-5.6-terra",
+            "requestedEffort": "medium",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "commandSha256": "18338ac42b919e9292cd425247d1b1831ab833a43251388b454853531b1ccda4",
+              "model": "gpt-5.6-terra",
+              "reasoning_effort": "medium",
+              "backendIdentity": "NOT_ATTESTED",
+              "primarySessions": 1,
+              "nestedOrchestrator": false
+            },
+            "commandEvidence": [
+              {
+                "commandSha256": "1cd61602a06278d1ede243e276f0b73edcea61306b225bd5522cfbe5b7891aec",
+                "exitCode": 1,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/lru.js",
+                  "test/lru.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              },
+              {
+                "commandSha256": "14c0374d5f6d1990bd01f2b61fa42edb379b643b8440307991e0f3f8e3ab61a8",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/lru.js",
+                  "test/lru.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              }
+            ],
+            "unexpectedChild": false,
+            "harnessEvidence": {
+              "entryRead": false,
+              "lightweightPathRead": false,
+              "selectorProfiles": [],
+              "selectorExecuted": false
+            }
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true
+            },
+            "changedFiles": [
+              "src/lru.js",
+              "test/lru.test.js"
+            ],
+            "checksPassed": 6,
+            "checksTotal": 6
+          },
+          "treatmentCompliant": true,
+          "accepted": true
+        }
+      ],
+      "accepted": true,
+      "finished": true
+    },
+    {
+      "order": 9,
+      "caseId": "lru-cache",
+      "arm": "routed",
+      "repeat": 1,
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 9856,
+        "renderedInputSha256": "55cc751f93386e61a9415503dce4f608b51ec1c544fda4c89ee436b998179bcc",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "initialFilesSha256": "e32151f068a7d600bd6d3512249ddbb7b11c5d9aa38bc5983eeecc7659f0c082",
+      "initialFiles": {
+        "src/lru.js": "f582cecb2367009a4f9b883230ed53f46e495a2a4f1f79574eb53075381988aa",
+        "test/lru.test.js": "c3b3ddb8b47be5b61d7dc9a52adc4b3c4b4172adec162e09c979e87b818a2253"
+      },
+      "initialTaskFilesSha256": "fb8f765771dc7e7a7c9174b8182156bd5a7112416b6f253b386a3d656717cae4",
+      "attempts": [
+        {
+          "number": 1,
+          "routingMode": "production-task-router",
+          "route": {
+            "schema": "vulpora.model-route/v1",
+            "status": "RESOLVED",
+            "runtime": "codex",
+            "profile": "standard",
+            "requestedProfile": "standard",
+            "riskFloorApplied": false,
+            "model": "gpt-5.6-terra",
+            "reasoning_effort": "medium",
+            "relativeUnits": 10,
+            "estimatedTokens": 4000,
+            "executionKind": "independent-session",
+            "nativeArguments": null,
+            "sessionArguments": {
+              "model": "gpt-5.6-terra",
+              "reasoning_effort": "medium",
+              "inheritHistory": false
+            },
+            "agentFileSettings": {
+              "model": "gpt-5.6-terra",
+              "model_reasoning_effort": "medium"
+            },
+            "inheritanceUsed": false,
+            "execution": "NOT_RUN",
+            "rejected": [],
+            "preflight": {
+              "status": "NOT_CHECKED"
+            },
+            "evidence": {
+              "requestSha256": "7635233b954ff32e3a5181a814a9e3d0a2a36331acd7e6dca81669d217d96888",
+              "policySha256": "afb6c690f604b1b22602816d57737598706b2495205b1abc371fc389693c8234",
+              "catalogSha256": "af1cb31805d5fde8ca99569096c8b504ddea644b462bfa5a79240e7b447e2e9d",
+              "catalogSource": "codex-app-server:model/list",
+              "observedAt": "2026-09-07T12:52:12.805Z",
+              "taskRequestSha256": "17dfcafa351d6b1315d2da835b619315df1e71dd24baf24f18c25ee8c3796afc"
+            },
+            "budgetScope": "per-attempt-estimate-not-billing-enforcement",
+            "taskSelection": {
+              "schema": "vulpora.task-model-selection/v1",
+              "taskType": "implementation",
+              "difficulty": "moderate",
+              "risk": "low",
+              "recommendedProfile": "standard",
+              "selectedProfile": "standard",
+              "reason": "implementation_or_open_ended_analysis",
+              "explicitProfile": null,
+              "basis": "caller-supplied-task-facts-not-free-text-inference"
+            }
+          },
+          "selection": {
+            "action": "INITIAL",
+            "reason": "PRODUCTION_TASK_CLASSIFICATION"
+          },
+          "promptSha256": "f53706e218059266c222f1dca406adfa4257c1c584d7a452c5d14b4e2cb33107",
+          "promptBytes": 943,
+          "initialFiles": {
+            "completed": true,
+            "sha256": "e32151f068a7d600bd6d3512249ddbb7b11c5d9aa38bc5983eeecc7659f0c082",
+            "files": {
+              "src/lru.js": "f582cecb2367009a4f9b883230ed53f46e495a2a4f1f79574eb53075381988aa",
+              "test/lru.test.js": "c3b3ddb8b47be5b61d7dc9a52adc4b3c4b4172adec162e09c979e87b818a2253"
+            }
+          },
+          "afterFiles": {
+            "completed": true,
+            "sha256": "45d46f90f4464fe8364efa525e8e9c25481286e3b760ab9dc3e895edbc62f59b",
+            "files": {
+              "src/lru.js": "998e22096b6eef7652d9fc10f6994aaee164491b8ff58a33d55fc44937e03af6",
+              "test/lru.test.js": "517765378a1c0c9192467c9b483b205919f0bd6cefd82d759d20e1885aca7224"
+            }
+          },
+          "runtime": {
+            "exitCode": 0,
+            "signal": null,
+            "reason": null,
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 48121,
+              "uncached_input_tokens": 12281,
+              "cached_input_tokens": 35840,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 1757,
+              "reasoning_tokens": 184,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 49878,
+              "billing_amount": null
+            },
+            "elapsedMs": 42396,
+            "outputBytes": 7918,
+            "stderrBytes": 0,
+            "runtimeStreamSha256": "a8a603e0ee890727ed707ef624e9b94941f4b96186f0a9a1ddb96b63200cc196",
+            "rawRuntimeRetained": false,
+            "streamTruncated": false,
+            "requestedModel": "gpt-5.6-terra",
+            "requestedEffort": "medium",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "commandSha256": "df145a47d8c64df7a2f1b726cd063336bce8d4464dae65e73f2ba9a7c6e8aed5",
+              "model": "gpt-5.6-terra",
+              "reasoning_effort": "medium",
+              "backendIdentity": "NOT_ATTESTED",
+              "primarySessions": 1,
+              "nestedOrchestrator": false
+            },
+            "commandEvidence": [
+              {
+                "commandSha256": "84e539bbcda9de0cb259350cdd9036dbd620280d0fa185d40eac42fce2a69269",
+                "exitCode": 1,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/lru.js",
+                  "test/lru.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              },
+              {
+                "commandSha256": "14c0374d5f6d1990bd01f2b61fa42edb379b643b8440307991e0f3f8e3ab61a8",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/lru.js",
+                  "test/lru.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              }
+            ],
+            "unexpectedChild": false,
+            "harnessEvidence": {
+              "entryRead": false,
+              "lightweightPathRead": false,
+              "selectorProfiles": [],
+              "selectorExecuted": false
+            }
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true
+            },
+            "changedFiles": [
+              "src/lru.js",
+              "test/lru.test.js"
+            ],
+            "checksPassed": 6,
+            "checksTotal": 6
+          },
+          "treatmentCompliant": true,
+          "accepted": true
+        }
+      ],
+      "accepted": true,
+      "finished": true
+    },
+    {
+      "order": 10,
+      "caseId": "retry",
+      "arm": "luna",
+      "repeat": 1,
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 7037,
+        "renderedInputSha256": "25eb5ed4f9cb9868c937d75bd1616873678051b057e8071ea4e69dee621615c9",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "initialFilesSha256": "dd92780954cac4aa58eb4fb3e283fc2aab25e894fee0d03263b6a000fe47cf69",
+      "initialFiles": {
+        "src/client.js": "7a8f8d76e47c522b2991bbf628b8101790fa9af413a3215422ef48ad1b159898",
+        "src/retry.js": "599eba53238c3368ae140fad4e4bd791c947851bc1dbe4d3582040fbaf8103f0",
+        "test/retry.test.js": "064afaca133b3cd9477d3c3ccdcc60ac738537fa858bb46cc8575ae2fb55d3d3"
+      },
+      "initialTaskFilesSha256": "63d3a14a45d4cfd09655eaf95cb299396f6cc1d440c34894aaadbffca3cc9f2f",
+      "attempts": [
+        {
+          "number": 1,
+          "routingMode": "fixed-control",
+          "route": {
+            "schema": "vulpora.model-route/v1",
+            "status": "RESOLVED",
+            "runtime": "codex",
+            "profile": "frugal",
+            "requestedProfile": "frugal",
+            "riskFloorApplied": false,
+            "model": "gpt-5.6-luna",
+            "reasoning_effort": "low",
+            "relativeUnits": 1,
+            "estimatedTokens": 4000,
+            "executionKind": "independent-session",
+            "nativeArguments": null,
+            "sessionArguments": {
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low",
+              "inheritHistory": false
+            },
+            "agentFileSettings": {
+              "model": "gpt-5.6-luna",
+              "model_reasoning_effort": "low"
+            },
+            "inheritanceUsed": false,
+            "execution": "NOT_RUN",
+            "rejected": [],
+            "preflight": {
+              "status": "NOT_CHECKED"
+            },
+            "evidence": {
+              "requestSha256": "6aa9b07a6e4c5ba20123db4ded6d16ed518e7db75418ccace6e85744638c7038",
+              "policySha256": "afb6c690f604b1b22602816d57737598706b2495205b1abc371fc389693c8234",
+              "catalogSha256": "af1cb31805d5fde8ca99569096c8b504ddea644b462bfa5a79240e7b447e2e9d",
+              "catalogSource": "codex-app-server:model/list",
+              "observedAt": "2026-09-07T12:52:12.805Z",
+              "taskRequestSha256": "78b9aa2fe082ac64ad17c7f6c14c74984d9f1fdb4534149b24fc888058b52ab0"
+            },
+            "budgetScope": "per-attempt-estimate-not-billing-enforcement",
+            "taskSelection": {
+              "schema": "vulpora.task-model-selection/v1",
+              "taskType": "implementation",
+              "difficulty": "complex",
+              "risk": "low",
+              "recommendedProfile": "standard",
+              "selectedProfile": "frugal",
+              "reason": "complex_work_decompose_before_escalation",
+              "explicitProfile": "frugal",
+              "basis": "caller-supplied-task-facts-not-free-text-inference"
+            }
+          },
+          "selection": {
+            "action": "INITIAL",
+            "reason": "FIXED_CONTROL"
+          },
+          "promptSha256": "8d80c6ce80be7a8d5b0d1eb59be7c53bb8d94d4c528af9a80f2700c1109d2020",
+          "promptBytes": 1264,
+          "initialFiles": {
+            "completed": true,
+            "sha256": "dd92780954cac4aa58eb4fb3e283fc2aab25e894fee0d03263b6a000fe47cf69",
+            "files": {
+              "src/client.js": "7a8f8d76e47c522b2991bbf628b8101790fa9af413a3215422ef48ad1b159898",
+              "src/retry.js": "599eba53238c3368ae140fad4e4bd791c947851bc1dbe4d3582040fbaf8103f0",
+              "test/retry.test.js": "064afaca133b3cd9477d3c3ccdcc60ac738537fa858bb46cc8575ae2fb55d3d3"
+            }
+          },
+          "afterFiles": {
+            "completed": true,
+            "sha256": "94eededa1a59c8d7092484c8b3729919e640a4a8edbac215f494e2752ae55858",
+            "files": {
+              "src/client.js": "6da1d074f33261786abfd2fa59aed0357e13488a8328543c184ccedefca2afea",
+              "src/retry.js": "79264b2970b99427b720361b03ff04019b7b6187dc134ccea4f33a7aa90b095a",
+              "test/retry.test.js": "b06a24a7efac2fbfe307d524fe76e9bcb888f126450373f4e8fe07da630a7a1e"
+            }
+          },
+          "runtime": {
+            "exitCode": 0,
+            "signal": null,
+            "reason": null,
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 43261,
+              "uncached_input_tokens": 9469,
+              "cached_input_tokens": 33792,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 2146,
+              "reasoning_tokens": 167,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 45407,
+              "billing_amount": null
+            },
+            "elapsedMs": 49810,
+            "outputBytes": 9679,
+            "stderrBytes": 0,
+            "runtimeStreamSha256": "f07bf064cdee93040669d4c37d1520130a62d14ee57fe6309a5eb2efee787d5e",
+            "rawRuntimeRetained": false,
+            "streamTruncated": false,
+            "requestedModel": "gpt-5.6-luna",
+            "requestedEffort": "low",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "commandSha256": "cb090ea726aad7b0d54338ec83401d78acb0107f5f90d292d52952ceab19f996",
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low",
+              "backendIdentity": "NOT_ATTESTED",
+              "primarySessions": 1,
+              "nestedOrchestrator": false
+            },
+            "commandEvidence": [
+              {
+                "commandSha256": "fa8ad2e756acdc8de028c8c2f728614a5b83db77e6e79a2df211ceacf11bb5fc",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/retry.js",
+                  "src/client.js",
+                  "test/retry.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              },
+              {
+                "commandSha256": "2c2e4d3d75f65f0333c4f284c4ae7232a1f28da861d9bc64ece1dc119a7bf4ae",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/retry.js",
+                  "src/client.js",
+                  "test/retry.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              }
+            ],
+            "unexpectedChild": false,
+            "harnessEvidence": {
+              "entryRead": false,
+              "lightweightPathRead": false,
+              "selectorProfiles": [],
+              "selectorExecuted": false
+            }
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true
+            },
+            "changedFiles": [
+              "src/client.js",
+              "src/retry.js",
+              "test/retry.test.js"
+            ],
+            "checksPassed": 6,
+            "checksTotal": 6
+          },
+          "treatmentCompliant": true,
+          "accepted": true
+        }
+      ],
+      "accepted": true,
+      "finished": true
+    },
+    {
+      "order": 11,
+      "caseId": "retry",
+      "arm": "routed",
+      "repeat": 1,
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 10182,
+        "renderedInputSha256": "51c2a3e2878e0bb94be7ee7033974c206a55eadae27b1e6b186dfac279e3201d",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "initialFilesSha256": "dd92780954cac4aa58eb4fb3e283fc2aab25e894fee0d03263b6a000fe47cf69",
+      "initialFiles": {
+        "src/client.js": "7a8f8d76e47c522b2991bbf628b8101790fa9af413a3215422ef48ad1b159898",
+        "src/retry.js": "599eba53238c3368ae140fad4e4bd791c947851bc1dbe4d3582040fbaf8103f0",
+        "test/retry.test.js": "064afaca133b3cd9477d3c3ccdcc60ac738537fa858bb46cc8575ae2fb55d3d3"
+      },
+      "initialTaskFilesSha256": "63d3a14a45d4cfd09655eaf95cb299396f6cc1d440c34894aaadbffca3cc9f2f",
+      "attempts": [
+        {
+          "number": 1,
+          "routingMode": "production-task-router",
+          "route": {
+            "schema": "vulpora.model-route/v1",
+            "status": "RESOLVED",
+            "runtime": "codex",
+            "profile": "standard",
+            "requestedProfile": "standard",
+            "riskFloorApplied": false,
+            "model": "gpt-5.6-terra",
+            "reasoning_effort": "medium",
+            "relativeUnits": 10,
+            "estimatedTokens": 4000,
+            "executionKind": "independent-session",
+            "nativeArguments": null,
+            "sessionArguments": {
+              "model": "gpt-5.6-terra",
+              "reasoning_effort": "medium",
+              "inheritHistory": false
+            },
+            "agentFileSettings": {
+              "model": "gpt-5.6-terra",
+              "model_reasoning_effort": "medium"
+            },
+            "inheritanceUsed": false,
+            "execution": "NOT_RUN",
+            "rejected": [],
+            "preflight": {
+              "status": "NOT_CHECKED"
+            },
+            "evidence": {
+              "requestSha256": "7656bdc893b4d648c8d0ae92be1d1c500de95bc7854a82af4e6739b346b9f831",
+              "policySha256": "afb6c690f604b1b22602816d57737598706b2495205b1abc371fc389693c8234",
+              "catalogSha256": "af1cb31805d5fde8ca99569096c8b504ddea644b462bfa5a79240e7b447e2e9d",
+              "catalogSource": "codex-app-server:model/list",
+              "observedAt": "2026-09-07T12:52:12.805Z",
+              "taskRequestSha256": "09507531411777c00f94a6223c67b0d0a6b108c386942eba77496e8e0e08de3e"
+            },
+            "budgetScope": "per-attempt-estimate-not-billing-enforcement",
+            "taskSelection": {
+              "schema": "vulpora.task-model-selection/v1",
+              "taskType": "implementation",
+              "difficulty": "complex",
+              "risk": "low",
+              "recommendedProfile": "standard",
+              "selectedProfile": "standard",
+              "reason": "complex_work_decompose_before_escalation",
+              "explicitProfile": null,
+              "basis": "caller-supplied-task-facts-not-free-text-inference"
+            }
+          },
+          "selection": {
+            "action": "INITIAL",
+            "reason": "PRODUCTION_TASK_CLASSIFICATION"
+          },
+          "promptSha256": "8d80c6ce80be7a8d5b0d1eb59be7c53bb8d94d4c528af9a80f2700c1109d2020",
+          "promptBytes": 1264,
+          "initialFiles": {
+            "completed": true,
+            "sha256": "dd92780954cac4aa58eb4fb3e283fc2aab25e894fee0d03263b6a000fe47cf69",
+            "files": {
+              "src/client.js": "7a8f8d76e47c522b2991bbf628b8101790fa9af413a3215422ef48ad1b159898",
+              "src/retry.js": "599eba53238c3368ae140fad4e4bd791c947851bc1dbe4d3582040fbaf8103f0",
+              "test/retry.test.js": "064afaca133b3cd9477d3c3ccdcc60ac738537fa858bb46cc8575ae2fb55d3d3"
+            }
+          },
+          "afterFiles": {
+            "completed": true,
+            "sha256": "7f5e24ce26ef987fea812c5155aa9b01d2bfd4ab807ef3ea2021b9de220ff3a3",
+            "files": {
+              "src/client.js": "ca6b2c516218cb82412f489deee4aef43014cb7dcc1cf5cc5e6547ac4846325e",
+              "src/retry.js": "5c14453b679d8d36d6b9e0e35f2f81e977af06cefbf830b0275bed40c872ae32",
+              "test/retry.test.js": "7449021581e58fcc1298c4dcdbf15174d4216bdde569c8e04c9d8b08eb54e265"
+            }
+          },
+          "runtime": {
+            "exitCode": 0,
+            "signal": null,
+            "reason": null,
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 65229,
+              "uncached_input_tokens": 14285,
+              "cached_input_tokens": 50944,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 2536,
+              "reasoning_tokens": 281,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 67765,
+              "billing_amount": null
+            },
+            "elapsedMs": 58796,
+            "outputBytes": 10795,
+            "stderrBytes": 0,
+            "runtimeStreamSha256": "abb1b6773b09c94399f183df0ae0c411063bd839a95596e7d51b45840ab4d6e8",
+            "rawRuntimeRetained": false,
+            "streamTruncated": false,
+            "requestedModel": "gpt-5.6-terra",
+            "requestedEffort": "medium",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "commandSha256": "218aa2da1656c3bb2ac1d24567b85160bfd4364bf120945613fe319f8421e7e6",
+              "model": "gpt-5.6-terra",
+              "reasoning_effort": "medium",
+              "backendIdentity": "NOT_ATTESTED",
+              "primarySessions": 1,
+              "nestedOrchestrator": false
+            },
+            "commandEvidence": [
+              {
+                "commandSha256": "dc0120b5e93b1feffb58ea1f176b2918fb53564e5fd7e64b90b4baf7f61f4d63",
+                "exitCode": 1,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/retry.js",
+                  "src/client.js",
+                  "test/retry.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              },
+              {
+                "commandSha256": "58d1f884d3f9f8935184e2c0aa22130cf8427d2dac6f5e02e8ffa05e5b09fc90",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/retry.js",
+                  "src/client.js",
+                  "test/retry.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              },
+              {
+                "commandSha256": "be5abfdf1b4495999636d1f5b0fc73142a4485e9b74044e008d567665fed47f3",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              }
+            ],
+            "unexpectedChild": false,
+            "harnessEvidence": {
+              "entryRead": false,
+              "lightweightPathRead": false,
+              "selectorProfiles": [],
+              "selectorExecuted": false
+            }
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true
+            },
+            "changedFiles": [
+              "src/client.js",
+              "src/retry.js",
+              "test/retry.test.js"
+            ],
+            "checksPassed": 6,
+            "checksTotal": 6
+          },
+          "treatmentCompliant": true,
+          "accepted": true
+        }
+      ],
+      "accepted": true,
+      "finished": true
+    },
+    {
+      "order": 12,
+      "caseId": "retry",
+      "arm": "baseline",
+      "repeat": 1,
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 10180,
+        "renderedInputSha256": "dc8acd78ae571371cc722974bfc1cee7b93aa2d55e8c0a2bba2989f856beea79",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "initialFilesSha256": "dd92780954cac4aa58eb4fb3e283fc2aab25e894fee0d03263b6a000fe47cf69",
+      "initialFiles": {
+        "src/client.js": "7a8f8d76e47c522b2991bbf628b8101790fa9af413a3215422ef48ad1b159898",
+        "src/retry.js": "599eba53238c3368ae140fad4e4bd791c947851bc1dbe4d3582040fbaf8103f0",
+        "test/retry.test.js": "064afaca133b3cd9477d3c3ccdcc60ac738537fa858bb46cc8575ae2fb55d3d3"
+      },
+      "initialTaskFilesSha256": "63d3a14a45d4cfd09655eaf95cb299396f6cc1d440c34894aaadbffca3cc9f2f",
+      "attempts": [
+        {
+          "number": 1,
+          "routingMode": "fixed-control",
+          "route": {
+            "schema": "vulpora.model-route/v1",
+            "status": "RESOLVED",
+            "runtime": "codex",
+            "profile": "standard",
+            "requestedProfile": "standard",
+            "riskFloorApplied": false,
+            "model": "gpt-5.6-terra",
+            "reasoning_effort": "medium",
+            "relativeUnits": 10,
+            "estimatedTokens": 4000,
+            "executionKind": "independent-session",
+            "nativeArguments": null,
+            "sessionArguments": {
+              "model": "gpt-5.6-terra",
+              "reasoning_effort": "medium",
+              "inheritHistory": false
+            },
+            "agentFileSettings": {
+              "model": "gpt-5.6-terra",
+              "model_reasoning_effort": "medium"
+            },
+            "inheritanceUsed": false,
+            "execution": "NOT_RUN",
+            "rejected": [],
+            "preflight": {
+              "status": "NOT_CHECKED"
+            },
+            "evidence": {
+              "requestSha256": "16b0bc65d94af2bcf22d0514d4b24b0bb01da0029fb2cfa339c10d8457c95af9",
+              "policySha256": "afb6c690f604b1b22602816d57737598706b2495205b1abc371fc389693c8234",
+              "catalogSha256": "af1cb31805d5fde8ca99569096c8b504ddea644b462bfa5a79240e7b447e2e9d",
+              "catalogSource": "codex-app-server:model/list",
+              "observedAt": "2026-09-07T12:52:12.805Z",
+              "taskRequestSha256": "0a7e9f5a036cde133562edd20e272d46da46f92d658b80b4c7aac5b27a41999b"
+            },
+            "budgetScope": "per-attempt-estimate-not-billing-enforcement",
+            "taskSelection": {
+              "schema": "vulpora.task-model-selection/v1",
+              "taskType": "implementation",
+              "difficulty": "complex",
+              "risk": "low",
+              "recommendedProfile": "standard",
+              "selectedProfile": "standard",
+              "reason": "complex_work_decompose_before_escalation",
+              "explicitProfile": "standard",
+              "basis": "caller-supplied-task-facts-not-free-text-inference"
+            }
+          },
+          "selection": {
+            "action": "INITIAL",
+            "reason": "FIXED_CONTROL"
+          },
+          "promptSha256": "8d80c6ce80be7a8d5b0d1eb59be7c53bb8d94d4c528af9a80f2700c1109d2020",
+          "promptBytes": 1264,
+          "initialFiles": {
+            "completed": true,
+            "sha256": "dd92780954cac4aa58eb4fb3e283fc2aab25e894fee0d03263b6a000fe47cf69",
+            "files": {
+              "src/client.js": "7a8f8d76e47c522b2991bbf628b8101790fa9af413a3215422ef48ad1b159898",
+              "src/retry.js": "599eba53238c3368ae140fad4e4bd791c947851bc1dbe4d3582040fbaf8103f0",
+              "test/retry.test.js": "064afaca133b3cd9477d3c3ccdcc60ac738537fa858bb46cc8575ae2fb55d3d3"
+            }
+          },
+          "afterFiles": {
+            "completed": true,
+            "sha256": "48b8c71e0cbfc42812d24c058ad8136565af26c8eeb1a5183decd1169fe5a460",
+            "files": {
+              "src/client.js": "eda4b4f03ef2538ef2b52529e9e64fe43df8e2f20e2e7ef39bdce07fc784ad1e",
+              "src/retry.js": "8376d97e82fee5c734d2f8aeaf6ccdcf29db79c67ba593d5f11b25faa9c5f47b",
+              "test/retry.test.js": "9e144a0dac82fcab8d410e46857f62f8e39e2dbf967f7bc2ed862dc6dd1e2c83"
+            }
+          },
+          "runtime": {
+            "exitCode": 0,
+            "signal": null,
+            "reason": null,
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 49009,
+              "uncached_input_tokens": 8049,
+              "cached_input_tokens": 40960,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 1951,
+              "reasoning_tokens": 141,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 50960,
+              "billing_amount": null
+            },
+            "elapsedMs": 48385,
+            "outputBytes": 9374,
+            "stderrBytes": 0,
+            "runtimeStreamSha256": "97239785af4ee53f048e331be6f7e826934d902253afe74d3cc2de949a15f2f4",
+            "rawRuntimeRetained": false,
+            "streamTruncated": false,
+            "requestedModel": "gpt-5.6-terra",
+            "requestedEffort": "medium",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "commandSha256": "e4dfe9e17cd9c6decdb28b2f571bfbc496830eb9c5f731b0f3753d86d9893f2c",
+              "model": "gpt-5.6-terra",
+              "reasoning_effort": "medium",
+              "backendIdentity": "NOT_ATTESTED",
+              "primarySessions": 1,
+              "nestedOrchestrator": false
+            },
+            "commandEvidence": [
+              {
+                "commandSha256": "fa3b0289af2407f706cff31d96ef04db054edfde0fa7ab9919d31343a1ec0a19",
+                "exitCode": 1,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/retry.js",
+                  "src/client.js",
+                  "test/retry.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              },
+              {
+                "commandSha256": "1b4a5dc1f9b087325971e7a3d2a1b7a5fc43e9389dd01bc0ff57697edb7e968e",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/retry.js",
+                  "src/client.js",
+                  "test/retry.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              }
+            ],
+            "unexpectedChild": false,
+            "harnessEvidence": {
+              "entryRead": false,
+              "lightweightPathRead": false,
+              "selectorProfiles": [],
+              "selectorExecuted": false
+            }
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true
+            },
+            "changedFiles": [
+              "src/client.js",
+              "src/retry.js",
+              "test/retry.test.js"
+            ],
+            "checksPassed": 6,
+            "checksTotal": 6
+          },
+          "treatmentCompliant": true,
+          "accepted": true
+        }
+      ],
+      "accepted": true,
+      "finished": true
+    }
+  ],
+  "summary": {
+    "baseline": {
+      "planned": 4,
+      "completed": 4,
+      "attempts": 4,
+      "accepted": 4,
+      "firstPasses": 4,
+      "repairs": 0,
+      "complete": true,
+      "usageComplete": true,
+      "observedTokensLowerBound": 194543,
+      "totals": {
+        "input_tokens": 188878,
+        "cached_input_tokens": 149504,
+        "uncached_input_tokens": 39374,
+        "output_tokens": 5665,
+        "input_output_tokens": 194543
+      },
+      "firstPassRate": 1,
+      "eventualPassRate": 1,
+      "tokensPerAccepted": 48635.75,
+      "uncachedInputPlusOutputPerAccepted": 11259.75,
+      "meanTokensPerTask": 48635.75,
+      "treatmentCompliant": 4
+    },
+    "luna": {
+      "planned": 4,
+      "completed": 4,
+      "attempts": 4,
+      "accepted": 4,
+      "firstPasses": 4,
+      "repairs": 0,
+      "complete": true,
+      "usageComplete": true,
+      "observedTokensLowerBound": 183090,
+      "totals": {
+        "input_tokens": 176512,
+        "cached_input_tokens": 119296,
+        "uncached_input_tokens": 57216,
+        "output_tokens": 6578,
+        "input_output_tokens": 183090
+      },
+      "firstPassRate": 1,
+      "eventualPassRate": 1,
+      "tokensPerAccepted": 45772.5,
+      "uncachedInputPlusOutputPerAccepted": 15948.5,
+      "meanTokensPerTask": 45772.5,
+      "treatmentCompliant": 4
+    },
+    "routed": {
+      "planned": 4,
+      "completed": 4,
+      "attempts": 4,
+      "accepted": 4,
+      "firstPasses": 4,
+      "repairs": 0,
+      "complete": true,
+      "usageComplete": true,
+      "observedTokensLowerBound": 209783,
+      "totals": {
+        "input_tokens": 203246,
+        "cached_input_tokens": 149504,
+        "uncached_input_tokens": 53742,
+        "output_tokens": 6537,
+        "input_output_tokens": 209783
+      },
+      "firstPassRate": 1,
+      "eventualPassRate": 1,
+      "tokensPerAccepted": 52445.75,
+      "uncachedInputPlusOutputPerAccepted": 15069.75,
+      "meanTokensPerTask": 52445.75,
+      "treatmentCompliant": 4
+    }
+  },
+  "stopped": null,
+  "completedAt": "2026-09-07T13:00:18.094Z",
+  "elapsedMs": 474904,
+  "finalSource": {
+    "files": {
+      "evals/token-efficiency/run-routing-ab.js": "dfdedd0d42ef9dfef5e1494399fd5dbf7fcd85543637c167336217c843f722b3",
+      "evals/token-efficiency/run-economic-ab.js": "edfd4734c22dbb66f5bdbf195412a4bbbfae309f6afb85ad49ddcbfe1b84113b",
+      "evals/token-efficiency/routing-fixtures.cjs": "c7b98918ef4991c42f4dae47752ebee47a05638c6487d9f212b6dcd64b1b4a98",
+      "evals/token-efficiency/economic-fixtures.cjs": "3ca9f9efab8d1b9d20865b33eb95a0ef8eb3622ac477d7ac7f22485c24736c2e",
+      "evals/behavioral/adapters/provider-usage.cjs": "9bcaeaeb225b9af2f17d690ba70c10a6b3814c92f534b50eda8632075bb710db",
+      "skills/start-task/scripts/task-router.js": "b153703b0dfc835ddf05950e9f18c7fc46a64b0fee0eeb4022c05d7a03851cc5",
+      "skills/start-task/scripts/model-router.js": "04c18fa81e6da2d102fe5782784fd0a0b00b80a0c963f0bc457448bd5a7e561d",
+      "skills/start-task/scripts/model-routing-policy.json": "fd6ee18da98b01451dc4f1abd21943be166988bc2778afe4d9850b87615a4810",
+      "skills/start-task/scripts/model-routing-io.js": "bcc0458983fa2e41e748d844409e87731d885d436592efe78cdfb5fbaaee455b",
+      "skills/start-task/scripts/codex-model-catalog.js": "3f554d229406d2fa6556de1878e5b7bf617af491d44b0a31a75b14ca732c46c9"
+    },
+    "sha256": "2690bcc60c0151b018858d738b97f3ad06dc6d4d5ee5425865fd7648c2e1b851"
+  },
+  "sourceUnchanged": true,
+  "complete": true,
+  "comparable": true
+}

@@ -1,0 +1,389 @@
+{
+  "schema": "vulpora.economic-cost/v1",
+  "model": "gpt-5.6-terra",
+  "pricingAvailable": true,
+  "billingAttested": false,
+  "pricing": {
+    "model": "gpt-5.6-terra",
+    "verifiedOn": "2026-09-07",
+    "currency": "USD",
+    "unit": "per 1,000,000 tokens",
+    "sources": [
+      "https://developers.openai.com/api/docs/models/gpt-5.6-terra",
+      "https://developers.openai.com/api/docs/pricing",
+      "https://developers.openai.com/api/docs/guides/prompt-caching"
+    ],
+    "standard": {
+      "input": 2,
+      "cachedInput": 0.2,
+      "cacheWrite": 2.5,
+      "output": 12
+    },
+    "fast": {
+      "input": 4,
+      "cachedInput": 0.4,
+      "cacheWrite": 5,
+      "output": 24
+    },
+    "assumptions": [
+      "Every underlying request has at most 272,000 input tokens; cumulative turn tokens do not establish request context length.",
+      "Cache-write tokens are a subset of noncached input; their rate replaces the ordinary input rate for those tokens.",
+      "Unknown cache writes range from zero to all noncached input tokens; these are sensitivity bounds under this assumption.",
+      "No region uplift, tool fees, subscription or account-specific pricing is included.",
+      "Requested model and actual service tier are not attested; standard and Fast are alternative scenarios."
+    ]
+  },
+  "accounting": "All recorded attempts, including failed attempts and repairs, contribute to spend. Missing usage is never zero.",
+  "breakEvenEquation": "candidate mean spend / candidate success rate < reference mean spend / reference success rate",
+  "paybackEquation": "ceil(all recorded suite attempt spend / savings per accepted task)",
+  "limitations": [
+    "USD values are API pricing scenarios, not observed charges or subscription savings.",
+    "Payback recoups only this recorded evaluation suite, excluding development, coordinator, installation and human time.",
+    "Acceptance rates describe the recorded task sample; repeated fixed tasks do not establish general quality or future savings.",
+    "Context length, served model, service tier and cache-write accounting must be independently verified for billing use."
+  ],
+  "suite": {
+    "taskRuns": 3,
+    "unstartedRuns": 0,
+    "unfinishedRuns": 0,
+    "attemptCount": 3,
+    "repairAttempts": 0,
+    "firstPassAcceptedTasks": 3,
+    "acceptedTasks": 3,
+    "firstPassAcceptanceRate": 1,
+    "acceptanceRate": 1,
+    "treatmentNoncompliantAttempts": 1,
+    "observedUsageAttempts": 3,
+    "unknownUsageAttempts": 0,
+    "completeUsage": true,
+    "observedSubtotalTokens": 294594,
+    "totalTokens": 294594,
+    "tokensPerAcceptedTask": 98198,
+    "standard": {
+      "observedSubtotalUsd": {
+        "baseUsd": 0.21198680000000003,
+        "cacheWriteSurchargeMinUsd": 0,
+        "cacheWriteSurchargeMaxUsd": 0.0281065,
+        "minUsd": 0.21198680000000003,
+        "maxUsd": 0.2400933
+      },
+      "totalUsd": {
+        "baseUsd": 0.21198680000000003,
+        "cacheWriteSurchargeMinUsd": 0,
+        "cacheWriteSurchargeMaxUsd": 0.0281065,
+        "minUsd": 0.21198680000000003,
+        "maxUsd": 0.2400933
+      },
+      "meanCostPerStartedTaskUsd": {
+        "minUsd": 0.07066226666666668,
+        "maxUsd": 0.08003110000000001
+      },
+      "costPerAcceptedTaskUsd": {
+        "minUsd": 0.07066226666666668,
+        "maxUsd": 0.08003110000000001
+      }
+    },
+    "fast": {
+      "observedSubtotalUsd": {
+        "baseUsd": 0.42397360000000006,
+        "cacheWriteSurchargeMinUsd": 0,
+        "cacheWriteSurchargeMaxUsd": 0.056213,
+        "minUsd": 0.42397360000000006,
+        "maxUsd": 0.4801866
+      },
+      "totalUsd": {
+        "baseUsd": 0.42397360000000006,
+        "cacheWriteSurchargeMinUsd": 0,
+        "cacheWriteSurchargeMaxUsd": 0.056213,
+        "minUsd": 0.42397360000000006,
+        "maxUsd": 0.4801866
+      },
+      "meanCostPerStartedTaskUsd": {
+        "minUsd": 0.14132453333333336,
+        "maxUsd": 0.16006220000000002
+      },
+      "costPerAcceptedTaskUsd": {
+        "minUsd": 0.14132453333333336,
+        "maxUsd": 0.16006220000000002
+      }
+    }
+  },
+  "arms": {
+    "baseline": {
+      "taskRuns": 1,
+      "unstartedRuns": 0,
+      "unfinishedRuns": 0,
+      "attemptCount": 1,
+      "repairAttempts": 0,
+      "firstPassAcceptedTasks": 1,
+      "acceptedTasks": 1,
+      "firstPassAcceptanceRate": 1,
+      "acceptanceRate": 1,
+      "treatmentNoncompliantAttempts": 0,
+      "observedUsageAttempts": 1,
+      "unknownUsageAttempts": 0,
+      "completeUsage": true,
+      "observedSubtotalTokens": 45699,
+      "totalTokens": 45699,
+      "tokensPerAcceptedTask": 45699,
+      "standard": {
+        "observedSubtotalUsd": {
+          "baseUsd": 0.028826400000000002,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.00302,
+          "minUsd": 0.028826400000000002,
+          "maxUsd": 0.031846400000000004
+        },
+        "totalUsd": {
+          "baseUsd": 0.028826400000000002,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.00302,
+          "minUsd": 0.028826400000000002,
+          "maxUsd": 0.031846400000000004
+        },
+        "meanCostPerStartedTaskUsd": {
+          "minUsd": 0.028826400000000002,
+          "maxUsd": 0.031846400000000004
+        },
+        "costPerAcceptedTaskUsd": {
+          "minUsd": 0.028826400000000002,
+          "maxUsd": 0.031846400000000004
+        }
+      },
+      "fast": {
+        "observedSubtotalUsd": {
+          "baseUsd": 0.057652800000000004,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.00604,
+          "minUsd": 0.057652800000000004,
+          "maxUsd": 0.06369280000000001
+        },
+        "totalUsd": {
+          "baseUsd": 0.057652800000000004,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.00604,
+          "minUsd": 0.057652800000000004,
+          "maxUsd": 0.06369280000000001
+        },
+        "meanCostPerStartedTaskUsd": {
+          "minUsd": 0.057652800000000004,
+          "maxUsd": 0.06369280000000001
+        },
+        "costPerAcceptedTaskUsd": {
+          "minUsd": 0.057652800000000004,
+          "maxUsd": 0.06369280000000001
+        }
+      }
+    },
+    "legacy": {
+      "taskRuns": 1,
+      "unstartedRuns": 0,
+      "unfinishedRuns": 0,
+      "attemptCount": 1,
+      "repairAttempts": 0,
+      "firstPassAcceptedTasks": 1,
+      "acceptedTasks": 1,
+      "firstPassAcceptanceRate": 1,
+      "acceptanceRate": 1,
+      "treatmentNoncompliantAttempts": 1,
+      "observedUsageAttempts": 1,
+      "unknownUsageAttempts": 0,
+      "completeUsage": true,
+      "observedSubtotalTokens": 143067,
+      "totalTokens": 143067,
+      "tokensPerAcceptedTask": 143067,
+      "standard": {
+        "observedSubtotalUsd": {
+          "baseUsd": 0.08665880000000001,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.0106695,
+          "minUsd": 0.08665880000000001,
+          "maxUsd": 0.0973283
+        },
+        "totalUsd": {
+          "baseUsd": 0.08665880000000001,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.0106695,
+          "minUsd": 0.08665880000000001,
+          "maxUsd": 0.0973283
+        },
+        "meanCostPerStartedTaskUsd": {
+          "minUsd": 0.08665880000000001,
+          "maxUsd": 0.0973283
+        },
+        "costPerAcceptedTaskUsd": {
+          "minUsd": 0.08665880000000001,
+          "maxUsd": 0.0973283
+        }
+      },
+      "fast": {
+        "observedSubtotalUsd": {
+          "baseUsd": 0.17331760000000002,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.021339,
+          "minUsd": 0.17331760000000002,
+          "maxUsd": 0.1946566
+        },
+        "totalUsd": {
+          "baseUsd": 0.17331760000000002,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.021339,
+          "minUsd": 0.17331760000000002,
+          "maxUsd": 0.1946566
+        },
+        "meanCostPerStartedTaskUsd": {
+          "minUsd": 0.17331760000000002,
+          "maxUsd": 0.1946566
+        },
+        "costPerAcceptedTaskUsd": {
+          "minUsd": 0.17331760000000002,
+          "maxUsd": 0.1946566
+        }
+      }
+    },
+    "optimized": {
+      "taskRuns": 1,
+      "unstartedRuns": 0,
+      "unfinishedRuns": 0,
+      "attemptCount": 1,
+      "repairAttempts": 0,
+      "firstPassAcceptedTasks": 1,
+      "acceptedTasks": 1,
+      "firstPassAcceptanceRate": 1,
+      "acceptanceRate": 1,
+      "treatmentNoncompliantAttempts": 0,
+      "observedUsageAttempts": 1,
+      "unknownUsageAttempts": 0,
+      "completeUsage": true,
+      "observedSubtotalTokens": 105828,
+      "totalTokens": 105828,
+      "tokensPerAcceptedTask": 105828,
+      "standard": {
+        "observedSubtotalUsd": {
+          "baseUsd": 0.0965016,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.014417,
+          "minUsd": 0.0965016,
+          "maxUsd": 0.1109186
+        },
+        "totalUsd": {
+          "baseUsd": 0.0965016,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.014417,
+          "minUsd": 0.0965016,
+          "maxUsd": 0.1109186
+        },
+        "meanCostPerStartedTaskUsd": {
+          "minUsd": 0.0965016,
+          "maxUsd": 0.1109186
+        },
+        "costPerAcceptedTaskUsd": {
+          "minUsd": 0.0965016,
+          "maxUsd": 0.1109186
+        }
+      },
+      "fast": {
+        "observedSubtotalUsd": {
+          "baseUsd": 0.1930032,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.028834,
+          "minUsd": 0.1930032,
+          "maxUsd": 0.2218372
+        },
+        "totalUsd": {
+          "baseUsd": 0.1930032,
+          "cacheWriteSurchargeMinUsd": 0,
+          "cacheWriteSurchargeMaxUsd": 0.028834,
+          "minUsd": 0.1930032,
+          "maxUsd": 0.2218372
+        },
+        "meanCostPerStartedTaskUsd": {
+          "minUsd": 0.1930032,
+          "maxUsd": 0.2218372
+        },
+        "costPerAcceptedTaskUsd": {
+          "minUsd": 0.1930032,
+          "maxUsd": 0.2218372
+        }
+      }
+    }
+  },
+  "comparisons": {
+    "optimizedVsLegacy": {
+      "status": "observed_sample_only",
+      "candidateAcceptanceRate": 1,
+      "referenceAcceptanceRate": 1,
+      "tokenSavingsPerAcceptedTask": 37239,
+      "standard": {
+        "requiredSuccessRateRatio": {
+          "min": 0.9915060676082907,
+          "max": 1.2799461797301601
+        },
+        "requiredCandidateSuccessRate": {
+          "min": 0.9915060676082907,
+          "max": 1.2799461797301601
+        },
+        "savingsPerAcceptedTaskUsd": {
+          "minUsd": -0.024259799999999998,
+          "maxUsd": 0.0008266999999999997
+        },
+        "suiteEvaluationPaybackAcceptedTasks": null,
+        "paybackStatus": "nonpositive_or_uncertain_savings"
+      },
+      "fast": {
+        "requiredSuccessRateRatio": {
+          "min": 0.9915060676082907,
+          "max": 1.2799461797301601
+        },
+        "requiredCandidateSuccessRate": {
+          "min": 0.9915060676082907,
+          "max": 1.2799461797301601
+        },
+        "savingsPerAcceptedTaskUsd": {
+          "minUsd": -0.048519599999999996,
+          "maxUsd": 0.0016533999999999993
+        },
+        "suiteEvaluationPaybackAcceptedTasks": null,
+        "paybackStatus": "nonpositive_or_uncertain_savings"
+      }
+    },
+    "optimizedVsBaseline": {
+      "status": "observed_sample_only",
+      "candidateAcceptanceRate": 1,
+      "referenceAcceptanceRate": 1,
+      "tokenSavingsPerAcceptedTask": -60129,
+      "standard": {
+        "requiredSuccessRateRatio": {
+          "min": 3.0302200562700965,
+          "max": 3.8478131157550024
+        },
+        "requiredCandidateSuccessRate": {
+          "min": 3.0302200562700965,
+          "max": 3.8478131157550024
+        },
+        "savingsPerAcceptedTaskUsd": {
+          "minUsd": -0.0820922,
+          "maxUsd": -0.0646552
+        },
+        "suiteEvaluationPaybackAcceptedTasks": null,
+        "paybackStatus": "nonpositive_or_uncertain_savings"
+      },
+      "fast": {
+        "requiredSuccessRateRatio": {
+          "min": 3.0302200562700965,
+          "max": 3.8478131157550024
+        },
+        "requiredCandidateSuccessRate": {
+          "min": 3.0302200562700965,
+          "max": 3.8478131157550024
+        },
+        "savingsPerAcceptedTaskUsd": {
+          "minUsd": -0.1641844,
+          "maxUsd": -0.1293104
+        },
+        "suiteEvaluationPaybackAcceptedTasks": null,
+        "paybackStatus": "nonpositive_or_uncertain_savings"
+      }
+    }
+  }
+}

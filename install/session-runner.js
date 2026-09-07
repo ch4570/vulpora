@@ -7,7 +7,7 @@ if (require.main === module) {
     if (result !== undefined) process.stdout.write(JSON.stringify(result) + '\n');
     if (result && ['failed', 'blocked'].includes(result.status)) process.exitCode = 3;
   }).catch(error => {
-    process.stderr.write(JSON.stringify({ status: 'BLOCKED', reason: /^[A-Z_]+$/.test(error.message) ? error.message : 'INVALID_INPUT' }) + '\n');
+    process.stderr.write(JSON.stringify(runner.errorResult(error)) + '\n');
     process.exitCode = 2;
   });
 }

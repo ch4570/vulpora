@@ -29,6 +29,7 @@ Create a task JSON using [`session-task.schema.json`](../../scripts/session-task
   "taskType": "review",
   "difficulty": "moderate",
   "risk": "low",
+  "delegation": "auto",
   "cwd": "/absolute/project",
   "files": ["src/search.ts", "test/search.test.ts"],
   "acceptance": ["Each finding cites a file and explains an observable failure."],
@@ -47,12 +48,19 @@ and the files whose contents are fingerprinted. It is not an operating-system fi
 From the source checkout, use an existing parent directory for the new attempt:
 
 ```sh
+./vulpora session budget-init --out /absolute/shared-budget.json --tokens 100000 --units 60
 ./vulpora models --runtime codex > /absolute/runtime-models.json
-./vulpora session prepare --task /absolute/task.json --catalog /absolute/runtime-models.json --out /absolute/attempt-001
+./vulpora session prepare --task /absolute/task.json --catalog /absolute/runtime-models.json \
+  --budget /absolute/shared-budget.json --out /absolute/attempt-001
 ./vulpora session status --capsule /absolute/attempt-001/capsule.json
 ./vulpora session run --capsule /absolute/attempt-001/capsule.json
 ./vulpora session status --capsule /absolute/attempt-001/capsule.json
+./vulpora session budget-status --budget /absolute/shared-budget.json
 ```
+
+Reuse the same budget file across related attempts, including parallel sessions. Keep it outside the task's
+`cwd` so budget updates do not invalidate workspace fingerprints. Model-backed preparation requires `--catalog`,
+`--budget`, and `--out`; older capsules prepared without a budget must be prepared again.
 
 Use `--policy /absolute/model-routing-policy.json` on `prepare` for an explicit operator policy. Preparation is
 read-only with respect to the target workspace and starts no model turn. It creates an exclusive attempt
@@ -62,9 +70,45 @@ Inspect that result before execution. Calling `run` starts the model work.
 
 `taskType` accepts `deterministic`, `lookup`, `documentation`, `implementation`, `review`, `testing`,
 `architecture`, and `research`. Difficulty is `simple`, `moderate`, or `complex`; risk is `low` or `high`.
-Defaults are `implementation`, `moderate`, `low`, and `read-only`. The task router maps those observations to
-the existing model policy. A `deterministic` task returns `NO_MODEL` and
-`PRIMARY_DETERMINISTIC_EXECUTION_REQUIRED`; arbitrary shell commands are never executed from task JSON.
+Defaults are `implementation`, `moderate`, `low`, `delegation: "auto"`, and `read-only`. Simple low-risk lookup,
+documentation, implementation, review, or testing across one or two declared files returns `PRIMARY_OWNED`;
+the primary completes that work. Set task-level `delegation: "independent-session"` to explicitly request a session.
+Missing/empty scope, broader work, architecture, research, and high risk do not use the tiny-task shortcut.
+A `deterministic` task always returns `NO_MODEL` and `PRIMARY_DETERMINISTIC_EXECUTION_REQUIRED`.
+These two paths need only `prepare --task /absolute/task.json`: no catalog, budget, attempt directory, or model
+execution is needed. Arbitrary shell commands are never executed from task JSON. Delegated simple low-risk
+implementation and inspection use frugal/Luna; moderate and bounded complex work use standard/Terra with a
+decomposition recommendation for complex work. Complex architecture/research and high risk use frontier.
+
+Optional task `profile: "auto"|"frugal"|"standard"|"frontier"` pins a model tier for an explicit operator choice
+or a parent-verified retry. It does not request delegation, bypass the high-risk floor, or increase the budget.
+For automatic escalation, retain the original unpinned request, call `resolveTaskEscalation()` with independently
+verified failure and settled usage/budget, then prepare a new task using its returned profile. The transport does
+not retry automatically. See [model routing](model-routing.md) for the stop conditions and attempt cap.
+
+## Shared budget
+
+Preparation checks the shared budget without reserving it. Immediately before execution, the runner reserves
+the task's token estimate and the selected route's relative units under an exclusive budget update. Parallel
+attempts share those reservations. Observed input plus output tokens settle the reservation after execution;
+cached input and reasoning counts are already included and are not added again. Relative units are policy
+weights, not currency. Task-level estimates and limits remain additional per-attempt checks.
+
+Missing or invalid runtime usage retains the reservation and blocks further launches. Observed usage beyond the
+shared allowance is recorded and also blocks new launches. This is admission control and accounting, not a
+provider billing or total-token hard cap. Do not replace the shared budget or supply manual usage to clear a block.
+
+Budget errors and settlement failures remain explicit in the result. If settlement was busy after the result
+was persisted, retry accounting from that result with:
+
+```sh
+./vulpora session reconcile --capsule /absolute/attempt-001/capsule.json
+```
+
+If an interrupted launcher left a reservation without a result, `reconcile` marks that bound reservation's usage
+unavailable, retains its charge, and blocks new launches. A later genuine result can settle it. Reconciliation
+starts no model work and cannot manufacture missing usage. Inspect `budget-status` before the next launch;
+use the persisted result and actual workspace state to resolve execution uncertainty.
 
 ## What reaches the worker
 
@@ -113,6 +157,9 @@ fingerprints before saving `result.json` and printing one result envelope. The e
 `verification: NOT_VERIFIED`; the primary must inspect actual artifacts/diffs and relevant checks before accepting
 the result. Worker-provided verification claims remain candidate evidence.
 
+`run` prints the full result once. Repeated `status` calls return a compact summary with artifact references;
+use `status --capsule /absolute/attempt-001/capsule.json --detail` when the full persisted result is needed.
+
 Runtime usage is separate from the worker's answer. Exactly one top-level Codex `turn.completed` usage event
 can supply observed input, cached-input, and output counts. Cached input is part of input; reasoning counts, when
 reported, are preserved separately and are not added again. Missing, malformed, or duplicated usage is
@@ -130,14 +177,16 @@ Optional task `limits` override these defaults:
 | Limit | Default | Maximum |
 |---|---:|---:|
 | `timeoutMs` | 300,000 | 3,600,000 |
-| `maxPromptBytes` | 16,384 | 65,536 |
-| `maxResultBytes` | 16,384 | 65,536 |
+| `maxPromptBytes` | 8,192 | 65,536 |
+| `maxResultBytes` | 4,096 | 65,536 |
 | `maxOutputBytes` | 4,194,304 | 16,777,216 |
+| `toolOutputTokens` | 2,000 | 12,000 |
 
-These byte/time limits are enforced by the transport. Token estimates and relative policy units are checked
-before dispatch; they do not impose a provider billing or total-token hard cap. A fresh session can reduce the
-primary's context while increasing total tokens through repeated repository discovery. Measure both before
-claiming savings.
+The transport enforces byte/time limits and passes `toolOutputTokens` as Codex's `tool_output_token_limit`.
+That setting bounds individual tool outputs retained in history; it is not a billing limit.
+See the [official Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference).
+A fresh session can reduce the primary's context while increasing total tokens through repeated repository
+discovery. Measure both before claiming savings.
 
 An exclusive `launch.json` prevents the same prepared attempt from starting twice. The runner rejects a changed
 executable, edited capsule/schema, expired route, or changed workspace before dispatch. A Git workspace snapshot
@@ -148,10 +197,11 @@ Timeout, cancellation, output overflow, missing/mismatched output, and other exe
 mutation state. The runner attempts to stop its owned process group, but does not attest cleanup of every
 possible descendant. A process exit alone is not proof that the workspace is unchanged.
 
-`status` reports `STARTED_OUTCOME_UNKNOWN` when a launch exists without a final result. It does not infer that
-the process is still running, and does not restart it. Reconcile the actual process and workspace before creating
-a new attempt. No automatic retry, `resume --last`, session forking, or implicit model escalation is performed.
-Use the existing routing-attempt classifier when deciding whether evidence justifies a retry or capability change.
+`status` includes the current shared budget for pending attempts and reports `STARTED_OUTCOME_UNKNOWN` when a
+launch exists without a final result. It cannot infer whether the process is alive and does not restart it.
+Reconcile the actual process and workspace before creating a new attempt. Stale processes and budget locks are
+not reclaimed automatically. No automatic retry, `resume --last`, session forking, or implicit model escalation is performed.
+Use `resolveTaskEscalation()` when deciding whether independently verified evidence justifies a capability change.
 
 ## Standard and audit boundaries
 
@@ -167,5 +217,6 @@ receipt. Audit adoption requires a versioned execution/evidence extension and co
 Codex is the implemented transport. Claude Code tasks fail explicitly with `UNSUPPORTED_SESSION_RUNTIME`;
 there is no unverified fallback to another provider. The legacy disabled runtime skill remains disabled.
 
-Offline regression coverage is in [`install/test-session-runner.sh`](../../../../install/test-session-runner.sh).
+Run `npm run test:routing` for offline routing, catalog, agent compatibility, evidence, session budget, I/O, and
+transport coverage, including [`install/test-session-runner.sh`](../../../../install/test-session-runner.sh).
 Those fake-runtime tests verify transport behavior, not a live model's task quality or sandbox enforcement.

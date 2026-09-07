@@ -1,0 +1,165 @@
+diff --git a/src/client.js b/src/client.js
+index 3379a1c..35ff1c3 100644
+--- a/src/client.js
++++ b/src/client.js
+@@ -1,3 +1,5 @@
+ 'use strict';
++const {retry}=require('./retry.js');
+ async function fetchOnce(fetcher,url){return fetcher(url);}
+-module.exports={fetchOnce};
++async function fetchWithRetry(fetcher,url,options){return retry(()=>fetcher(url),options);}
++module.exports={fetchOnce,fetchWithRetry};
+diff --git a/src/retry.js b/src/retry.js
+index 91d1837..1f48b13 100644
+--- a/src/retry.js
++++ b/src/retry.js
+@@ -1,3 +1,31 @@
+ 'use strict';
+-async function retry(operation){return operation(1);}
++
++async function retry(operation, options = {}) {
++  const {
++    attempts = 3,
++    shouldRetry = () => true,
++    wait = async () => {},
++  } = options;
++
++  if (!Number.isFinite(attempts) || !Number.isInteger(attempts) || attempts <= 0) {
++    throw new RangeError('attempts must be a positive integer');
++  }
++
++  for (let attempt = 1; attempt <= attempts; attempt += 1) {
++    try {
++      return await operation(attempt);
++    } catch (error) {
++      if (attempt === attempts) {
++        throw error;
++      }
++
++      if (!await shouldRetry(error, attempt)) {
++        throw error;
++      }
++
++      await wait(attempt, error);
++    }
++  }
++}
++
+ module.exports={retry};
+diff --git a/test/retry.test.js b/test/retry.test.js
+index fc01914..f86a6f2 100644
+--- a/test/retry.test.js
++++ b/test/retry.test.js
+@@ -2,6 +2,111 @@
+ const test=require('node:test');
+ const assert=require('node:assert/strict');
+ const {retry}=require('../src/retry.js');
+-const {fetchOnce}=require('../src/client.js');
++const {fetchOnce,fetchWithRetry}=require('../src/client.js');
+ test('immediate success',async()=>assert.equal(await retry(()=>7),7));
+ test('fetchOnce',async()=>assert.equal(await fetchOnce(x=>x,'local'), 'local'));
++
++test('retries failures up to the default total attempts',async()=>{
++  const seen=[];
++  await assert.rejects(
++    retry(attempt=>{seen.push(attempt);throw new Error('nope');}),
++    /nope/
++  );
++  assert.deepEqual(seen,[1,2,3]);
++});
++
++test('returns the first successful value and passes one-based attempts',async()=>{
++  const seen=[];
++  const value=await retry(attempt=>{
++    seen.push(attempt);
++    if(attempt<3) throw new Error('temporary');
++    return {attempt};
++  });
++  assert.deepEqual(value,{attempt:3});
++  assert.deepEqual(seen,[1,2,3]);
++});
++
++test('rejects invalid attempts before invoking the operation',async()=>{
++  for(const attempts of [0,-1,1.5,NaN,Infinity,'3']){
++    let called=false;
++    await assert.rejects(retry(()=>{called=true;}, {attempts}),RangeError);
++    assert.equal(called,false);
++  }
++});
++
++test('calls predicate and wait between failed attempts in order',async()=>{
++  const events=[];
++  const result=await retry(attempt=>{
++    events.push(`operation:${attempt}`);
++    if(attempt===1) throw new Error('retry me');
++    return 'done';
++  },{
++    attempts:2,
++    shouldRetry:(error,attempt)=>{events.push(`predicate:${attempt}:${error.message}`);return true;},
++    wait:async(attempt,error)=>{events.push(`wait:${attempt}:${error.message}`);},
++  });
++  assert.equal(result,'done');
++  assert.deepEqual(events,[
++    'operation:1','predicate:1:retry me','wait:1:retry me','operation:2',
++  ]);
++});
++
++test('does not call predicate or wait after the final failure',async()=>{
++  const error=new Error('final');
++  let predicateCalls=0;
++  let waitCalls=0;
++  await assert.rejects(
++    retry(()=>{throw error;},{
++      attempts:1,
++      shouldRetry:()=>{predicateCalls+=1;return true;},
++      wait:()=>{waitCalls+=1;},
++    }),
++    caught=>caught===error
++  );
++  assert.equal(predicateCalls,0);
++  assert.equal(waitCalls,0);
++});
++
++test('stops with the original error when predicate declines',async()=>{
++  const error=new Error('stop');
++  let calls=0;
++  await assert.rejects(
++    retry(()=>{calls+=1;throw error;},{attempts:3,shouldRetry:()=>false}),
++    caught=>caught===error
++  );
++  assert.equal(calls,1);
++});
++
++test('propagates predicate and wait errors without another operation',async()=>{
++  const predicateError=new Error('predicate failure');
++  let predicateOperations=0;
++  await assert.rejects(
++    retry(()=>{predicateOperations+=1;throw new Error('operation failure');},{
++      shouldRetry:()=>{throw predicateError;},
++    }),
++    caught=>caught===predicateError
++  );
++  assert.equal(predicateOperations,1);
++
++  const waitError=new Error('wait failure');
++  let waitOperations=0;
++  await assert.rejects(
++    retry(()=>{waitOperations+=1;return Promise.reject(new Error('operation failure'));},{
++      shouldRetry:async()=>true,
++      wait:async()=>{throw waitError;},
++    }),
++    caught=>caught===waitError
++  );
++  assert.equal(waitOperations,1);
++});
++
++test('fetchWithRetry retries fetcher(url) and forwards options',async()=>{
++  const urls=[];
++  const value=await fetchWithRetry(url=>{
++    urls.push(url);
++    if(urls.length===1) throw new Error('retry');
++    return 'response';
++  },'local',{attempts:2});
++  assert.equal(value,'response');
++  assert.deepEqual(urls,['local','local']);
++});

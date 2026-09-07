@@ -1,0 +1,673 @@
+{
+  "schema": "vulpora.economic-ab/v1",
+  "createdAt": "2026-09-07T10:13:23.389Z",
+  "runtime": "codex-cli 0.153.4",
+  "model": "gpt-5.6-terra",
+  "effort": "medium",
+  "design": "matched fixtures; six arm permutations across three cases and two repeats; reverse case order on second repeat; fresh primary session per attempt",
+  "arms": [
+    "baseline",
+    "legacy",
+    "optimized"
+  ],
+  "repeats": 1,
+  "limits": {
+    "attemptMs": 180000,
+    "suiteMs": 3600000,
+    "stdoutBytes": 8388608,
+    "stderrBytes": 1048576,
+    "maxAttempts": 2,
+    "maxRepeats": 3,
+    "defaultTokens": 2000000,
+    "maxTokens": 5000000,
+    "aggregateTokenGuard": 2000000
+  },
+  "commonConfig": [
+    "-c",
+    "approval_policy=\"never\"",
+    "-c",
+    "web_search=\"disabled\"",
+    "-c",
+    "tool_output_token_limit=2000",
+    "--disable",
+    "multi_agent",
+    "--disable",
+    "multi_agent_v2"
+  ],
+  "fixtureModuleSha256": "3ca9f9efab8d1b9d20865b33eb95a0ef8eb3622ac477d7ac7f22485c24736c2e",
+  "cases": [
+    {
+      "id": "positive",
+      "task": "Add isPositive(value) to src/numbers.js and regression tests to test/numbers.test.js. Return true exactly for finite numeric values strictly greater than zero; reject zero, negatives, NaN, infinities and every non-number. Preserve absolute(value). Only these two files may change. Work directly without delegation or other coding sessions. Do not commit, install dependencies, use the network or perform external writes. Preserve unrelated behavior. Run node --test, inspect your diff, and finish with a concise change summary and test result.",
+      "allowedFiles": [
+        "src/numbers.js",
+        "test/numbers.test.js"
+      ],
+      "fixtureSha256": "2f9dad2530cb528b95adfff0980c96110990f4d7743d1b3694c427b4f82166ef"
+    }
+  ],
+  "installations": {
+    "baseline": "plain Codex; no project Vulpora assets",
+    "legacy": "frozen checkout: all-agents all-skills",
+    "optimized": "frozen current checkout: supported start-task installation including declared dependencies"
+  },
+  "legacySourceSha256": "bcb257341ec9ecd7db5f630df9da6b92534896f44fa602fb5feaec6c29d736fc",
+  "optimizedSourceSha256": "0c0ddae384c11a7d8054352724b18c4fbdbacfad357f27e1c086b7b937f6f792",
+  "accountingScope": "all isolated primary attempts, including failed quality checks and one repair; deterministic coordinator and verifier use no model",
+  "cacheControl": "shared provider cache; order counterbalanced, cache not isolated",
+  "limitations": [
+    "small synthetic fixture suite; requested model and effort, backend identity not attested",
+    "aggregate guard is checked between attempts and can overshoot by one bounded attempt; no hard provider token cap",
+    "cache is a subset of input; uncached-plus-output is a token proxy, not a monetary cost",
+    "fresh repair session rereads current workspace and original task; only failed check names are supplied",
+    "full installation versus targeted supported installation and optimized instructions is a bundled treatment; individual changes are not isolated",
+    "raw runtime output and final messages discarded; command hashes, recognized paths, and parsed evidence retained"
+  ],
+  "runs": [
+    {
+      "order": 1,
+      "caseId": "positive",
+      "arm": "baseline",
+      "repeat": 1,
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 9462,
+        "renderedInputSha256": "eb2912fc39de46bdd42f0614180ed15d75535c8fd6f92824cd3a6e368b4716ef",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "initialFilesSha256": "beb3d3bf7730dffbc9352f5a232d94d3535742097df568522269347a29ca98ff",
+      "initialTaskFilesSha256": "2f9dad2530cb528b95adfff0980c96110990f4d7743d1b3694c427b4f82166ef",
+      "attempts": [
+        {
+          "number": 1,
+          "promptBytes": 543,
+          "runtime": {
+            "exitCode": 0,
+            "signal": null,
+            "reason": null,
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 44952,
+              "uncached_input_tokens": 6040,
+              "cached_input_tokens": 38912,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 747,
+              "reasoning_tokens": 30,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 45699,
+              "billing_amount": null
+            },
+            "elapsedMs": 24252,
+            "outputBytes": 4373,
+            "stderrBytes": 0,
+            "runtimeStreamSha256": "0131722e16306d804ab078e1bb66b7d26ade196b14d1116fccdb8b2916fdb71b",
+            "rawRuntimeRetained": false,
+            "streamTruncated": false,
+            "commandEvidence": [
+              {
+                "commandSha256": "c1de57e32f1588dc9740243da0582a7051065b88f825bd7f4f417af04549e4d6",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/numbers.js",
+                  "test/numbers.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              },
+              {
+                "commandSha256": "3501c0a3b7310f2bee21bbc93d9e33ecee378a7165c78ec1d4c57327fd060525",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/numbers.js",
+                  "test/numbers.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              }
+            ],
+            "unexpectedChild": false,
+            "harnessEvidence": {
+              "entryRead": false,
+              "lightweightPathRead": false,
+              "selectorProfiles": [],
+              "selectorExecuted": false
+            }
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true
+            },
+            "changedFiles": [
+              "src/numbers.js",
+              "test/numbers.test.js"
+            ],
+            "checksPassed": 6,
+            "checksTotal": 6
+          },
+          "treatmentCompliant": true,
+          "accepted": true
+        }
+      ],
+      "accepted": true,
+      "finished": true
+    },
+    {
+      "order": 2,
+      "caseId": "positive",
+      "arm": "legacy",
+      "repeat": 1,
+      "discovery": {
+        "skillIds": [
+          "agent-eval",
+          "architecture-review-workflow",
+          "backend-code-review-workflow",
+          "code-authoring-router",
+          "code-diagram-extract",
+          "codex-agent-runtime",
+          "design-pattern-apply",
+          "diagram-styler",
+          "document-designer",
+          "e2e-report-renderer",
+          "e2e-runner",
+          "e2e-scenario-author",
+          "e2e-test-workflow",
+          "entity",
+          "enum",
+          "flyway",
+          "git-flow",
+          "harness-propose",
+          "imagegen",
+          "java-spring-review-workflow",
+          "knowledge-audit",
+          "korean-dev-writer",
+          "kotlin-code-authoring",
+          "kotlin-spring-review",
+          "kotlin-spring-review-workflow",
+          "learn",
+          "mapper",
+          "markdown-publisher",
+          "mermaid-diagrams",
+          "mssql-code-authoring",
+          "nl-sql-query",
+          "notion-domain-context",
+          "oop-design-review",
+          "openai-docs",
+          "opensearch-code-authoring",
+          "opensearch-optimization",
+          "opensearch-query-review",
+          "opensearch-review-workflow",
+          "opensearch-schema-review",
+          "pdf-qa",
+          "playwright-e2e",
+          "plugin-creator",
+          "postgres-code-authoring",
+          "postgres-query-review",
+          "postgres-review-workflow",
+          "postgres-risk-check",
+          "postgres-schema-design",
+          "product-requirements",
+          "product-ui-design",
+          "refactoring-catalog",
+          "repository",
+          "request",
+          "response",
+          "retro",
+          "schema-doc-extract",
+          "service",
+          "skill-creator",
+          "skill-installer",
+          "skill-updater",
+          "start-task",
+          "test-authoring",
+          "test-quality-refactoring-workflow",
+          "test-quality-review",
+          "test-refactoring",
+          "visual-artifact-router",
+          "vulpora-init",
+          "vulpora-installer"
+        ],
+        "projectSkillIds": [
+          "agent-eval",
+          "architecture-review-workflow",
+          "backend-code-review-workflow",
+          "code-authoring-router",
+          "code-diagram-extract",
+          "codex-agent-runtime",
+          "design-pattern-apply",
+          "diagram-styler",
+          "document-designer",
+          "e2e-report-renderer",
+          "e2e-runner",
+          "e2e-scenario-author",
+          "e2e-test-workflow",
+          "entity",
+          "enum",
+          "flyway",
+          "git-flow",
+          "harness-propose",
+          "java-spring-review-workflow",
+          "knowledge-audit",
+          "korean-dev-writer",
+          "kotlin-code-authoring",
+          "kotlin-spring-review",
+          "kotlin-spring-review-workflow",
+          "learn",
+          "mapper",
+          "markdown-publisher",
+          "mermaid-diagrams",
+          "mssql-code-authoring",
+          "nl-sql-query",
+          "notion-domain-context",
+          "oop-design-review",
+          "opensearch-code-authoring",
+          "opensearch-optimization",
+          "opensearch-query-review",
+          "opensearch-review-workflow",
+          "opensearch-schema-review",
+          "pdf-qa",
+          "playwright-e2e",
+          "postgres-code-authoring",
+          "postgres-query-review",
+          "postgres-review-workflow",
+          "postgres-risk-check",
+          "postgres-schema-design",
+          "product-requirements",
+          "product-ui-design",
+          "refactoring-catalog",
+          "repository",
+          "request",
+          "response",
+          "retro",
+          "schema-doc-extract",
+          "service",
+          "skill-updater",
+          "start-task",
+          "test-authoring",
+          "test-quality-refactoring-workflow",
+          "test-quality-review",
+          "test-refactoring",
+          "visual-artifact-router",
+          "vulpora-init",
+          "vulpora-installer"
+        ],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 29256,
+        "renderedInputSha256": "2bf418f68c3c03fa50c26beb2262a482cd82086661abfc676b6dcf9c5997a99c",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "initialFilesSha256": "14c71c49515030cb7bc852eb47f3ddb4ec5e8f5c9c4b9306a959a3712342a769",
+      "initialTaskFilesSha256": "2f9dad2530cb528b95adfff0980c96110990f4d7743d1b3694c427b4f82166ef",
+      "attempts": [
+        {
+          "number": 1,
+          "promptBytes": 555,
+          "runtime": {
+            "exitCode": 0,
+            "signal": null,
+            "reason": null,
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 141403,
+              "uncached_input_tokens": 21339,
+              "cached_input_tokens": 120064,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 1664,
+              "reasoning_tokens": 212,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 143067,
+              "billing_amount": null
+            },
+            "elapsedMs": 45200,
+            "outputBytes": 19441,
+            "stderrBytes": 0,
+            "runtimeStreamSha256": "072c4f44f1833bc78284edc5b1f5fd66c37de76e0357c32437cdadf19806cf09",
+            "rawRuntimeRetained": false,
+            "streamTruncated": false,
+            "commandEvidence": [
+              {
+                "commandSha256": "6bc48df86dd53c1a3fc60f11bab9e6494d9de887f50c3873b508c4d086cdee45",
+                "exitCode": 2,
+                "referencedHarnessPaths": [
+                  "lightweight-path.md",
+                  "select-execution-profile.js"
+                ],
+                "referencedFixturePaths": [],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              },
+              {
+                "commandSha256": "44630023e122ed898329e9cd512c5d6e8dccaf49059489ba79a166b7f79eae14",
+                "exitCode": 1,
+                "referencedHarnessPaths": [
+                  "select-execution-profile.js"
+                ],
+                "referencedFixturePaths": [
+                  "src/numbers.js",
+                  "test/numbers.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              },
+              {
+                "commandSha256": "f943ea848e8850fbbd1ec4381efa76a1488c857b26a1e400f46fa77e1dc12aaa",
+                "exitCode": 0,
+                "referencedHarnessPaths": [
+                  "select-execution-profile.js"
+                ],
+                "referencedFixturePaths": [],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": [
+                  "lightweight"
+                ]
+              },
+              {
+                "commandSha256": "3501c0a3b7310f2bee21bbc93d9e33ecee378a7165c78ec1d4c57327fd060525",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/numbers.js",
+                  "test/numbers.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              }
+            ],
+            "unexpectedChild": false,
+            "harnessEvidence": {
+              "entryRead": false,
+              "lightweightPathRead": false,
+              "selectorProfiles": [
+                "lightweight"
+              ],
+              "selectorExecuted": true
+            }
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true
+            },
+            "changedFiles": [
+              "src/numbers.js",
+              "test/numbers.test.js"
+            ],
+            "checksPassed": 6,
+            "checksTotal": 6
+          },
+          "treatmentCompliant": false,
+          "accepted": true
+        }
+      ],
+      "accepted": true,
+      "finished": true
+    },
+    {
+      "order": 3,
+      "caseId": "positive",
+      "arm": "optimized",
+      "repeat": 1,
+      "discovery": {
+        "skillIds": [
+          "code-authoring-router",
+          "imagegen",
+          "korean-dev-writer",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer",
+          "start-task"
+        ],
+        "projectSkillIds": [
+          "code-authoring-router",
+          "korean-dev-writer",
+          "start-task"
+        ],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 10473,
+        "renderedInputSha256": "184ecdda047f9f8bd97342585b7e2b1563ac8be62611517ab66640a50034fa3c",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "initialFilesSha256": "c729ae4814efd09ce7f4e044e747d676f1f0c9f7331638473b06934f242b4caf",
+      "initialTaskFilesSha256": "2f9dad2530cb528b95adfff0980c96110990f4d7743d1b3694c427b4f82166ef",
+      "attempts": [
+        {
+          "number": 1,
+          "promptBytes": 555,
+          "runtime": {
+            "exitCode": 0,
+            "signal": null,
+            "reason": null,
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 103842,
+              "uncached_input_tokens": 28834,
+              "cached_input_tokens": 75008,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 1986,
+              "reasoning_tokens": 363,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 105828,
+              "billing_amount": null
+            },
+            "elapsedMs": 50619,
+            "outputBytes": 16698,
+            "stderrBytes": 0,
+            "runtimeStreamSha256": "129f3a72ceee84b06a9bd6b2becc7f3e240a6bdad9935a7738b36198e4c671e8",
+            "rawRuntimeRetained": false,
+            "streamTruncated": false,
+            "commandEvidence": [
+              {
+                "commandSha256": "cbb8a7fea3ccc9119df14a830bd48e9c922f0d7cbfedca49b50d194f3240d391",
+                "exitCode": 0,
+                "referencedHarnessPaths": [
+                  "start-task/SKILL.md"
+                ],
+                "referencedFixturePaths": [],
+                "entryRendered": true,
+                "pathRendered": false,
+                "selectorProfiles": []
+              },
+              {
+                "commandSha256": "a02e951c76fe53bb54089662ad5a148c17e7f0dad9794bd6834bdd7369c600bd",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/numbers.js",
+                  "test/numbers.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              },
+              {
+                "commandSha256": "c2fca4da9b44feec709f1e6a3c571f130ea17444c7568ce4ce02c6f491f190d0",
+                "exitCode": 0,
+                "referencedHarnessPaths": [
+                  "select-execution-profile.js"
+                ],
+                "referencedFixturePaths": [],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": [
+                  "lightweight"
+                ]
+              },
+              {
+                "commandSha256": "c6de769c71d3d076ca4f0846995963c31793add40329374a4f35fad3fafb94e1",
+                "exitCode": 0,
+                "referencedHarnessPaths": [],
+                "referencedFixturePaths": [
+                  "src/numbers.js",
+                  "test/numbers.test.js"
+                ],
+                "entryRendered": false,
+                "pathRendered": false,
+                "selectorProfiles": []
+              }
+            ],
+            "unexpectedChild": false,
+            "harnessEvidence": {
+              "entryRead": true,
+              "lightweightPathRead": false,
+              "selectorProfiles": [
+                "lightweight"
+              ],
+              "selectorExecuted": true
+            }
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true
+            },
+            "changedFiles": [
+              "src/numbers.js",
+              "test/numbers.test.js"
+            ],
+            "checksPassed": 6,
+            "checksTotal": 6
+          },
+          "treatmentCompliant": true,
+          "accepted": true
+        }
+      ],
+      "accepted": true,
+      "finished": true
+    }
+  ],
+  "summary": {
+    "baseline": {
+      "planned": 1,
+      "completed": 1,
+      "attempts": 1,
+      "accepted": 1,
+      "firstPasses": 1,
+      "repairs": 0,
+      "complete": true,
+      "usageComplete": true,
+      "observedTokensLowerBound": 45699,
+      "totals": {
+        "input_tokens": 44952,
+        "cached_input_tokens": 38912,
+        "uncached_input_tokens": 6040,
+        "output_tokens": 747,
+        "input_output_tokens": 45699
+      },
+      "firstPassRate": 1,
+      "eventualPassRate": 1,
+      "tokensPerAccepted": 45699,
+      "uncachedInputPlusOutputPerAccepted": 6787,
+      "meanTokensPerTask": 45699,
+      "treatmentCompliant": 1
+    },
+    "legacy": {
+      "planned": 1,
+      "completed": 1,
+      "attempts": 1,
+      "accepted": 1,
+      "firstPasses": 1,
+      "repairs": 0,
+      "complete": true,
+      "usageComplete": true,
+      "observedTokensLowerBound": 143067,
+      "totals": {
+        "input_tokens": 141403,
+        "cached_input_tokens": 120064,
+        "uncached_input_tokens": 21339,
+        "output_tokens": 1664,
+        "input_output_tokens": 143067
+      },
+      "firstPassRate": 1,
+      "eventualPassRate": 1,
+      "tokensPerAccepted": 143067,
+      "uncachedInputPlusOutputPerAccepted": 23003,
+      "meanTokensPerTask": 143067,
+      "treatmentCompliant": 0
+    },
+    "optimized": {
+      "planned": 1,
+      "completed": 1,
+      "attempts": 1,
+      "accepted": 1,
+      "firstPasses": 1,
+      "repairs": 0,
+      "complete": true,
+      "usageComplete": true,
+      "observedTokensLowerBound": 105828,
+      "totals": {
+        "input_tokens": 103842,
+        "cached_input_tokens": 75008,
+        "uncached_input_tokens": 28834,
+        "output_tokens": 1986,
+        "input_output_tokens": 105828
+      },
+      "firstPassRate": 1,
+      "eventualPassRate": 1,
+      "tokensPerAccepted": 105828,
+      "uncachedInputPlusOutputPerAccepted": 30820,
+      "meanTokensPerTask": 105828,
+      "treatmentCompliant": 1
+    }
+  },
+  "stopped": null,
+  "completedAt": "2026-09-07T10:16:00.925Z",
+  "elapsedMs": 121226,
+  "complete": true,
+  "comparable": false
+}

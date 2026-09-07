@@ -1,0 +1,106 @@
+diff --git a/src/lru.js b/src/lru.js
+index e501deb..d37bda0 100644
+--- a/src/lru.js
++++ b/src/lru.js
+@@ -1,9 +1,33 @@
+ 'use strict';
++
+ class LRUCache {
+-constructor(capacity){this.capacity=capacity;this.items=new Map();}
+-set(key,value){if(this.items.size>=this.capacity)this.items.delete(this.items.keys().next().value);this.items.set(key,value);return this;}
+-get(key){return this.items.get(key)||undefined;}
+-has(key){return this.items.has(key);}
+-get size(){return this.items.size;}
++  constructor(capacity) {
++    if (!Number.isInteger(capacity) || capacity <= 0) {
++      throw new RangeError('capacity must be a positive integer');
++    }
++    this.capacity = capacity;
++    this.items = new Map();
++  }
++
++  set(key, value) {
++    if (this.items.has(key)) this.items.delete(key);
++    this.items.set(key, value);
++    if (this.items.size > this.capacity) {
++      this.items.delete(this.items.keys().next().value);
++    }
++    return this;
++  }
++
++  get(key) {
++    if (!this.items.has(key)) return undefined;
++    const value = this.items.get(key);
++    this.items.delete(key);
++    this.items.set(key, value);
++    return value;
++  }
++
++  has(key) { return this.items.has(key); }
++  get size() { return this.items.size; }
+ }
+-module.exports={LRUCache};
++
++module.exports = { LRUCache };
+diff --git a/test/lru.test.js b/test/lru.test.js
+index 04e9b01..c6aa9b2 100644
+--- a/test/lru.test.js
++++ b/test/lru.test.js
+@@ -1,5 +1,53 @@
+ 'use strict';
+-const test=require('node:test');
+-const assert=require('node:assert/strict');
+-const {LRUCache}=require('../src/lru.js');
+-test('stores a value',()=>{const c=new LRUCache(2);c.set('a',1);assert.equal(c.get('a'),1);});
++
++const test = require('node:test');
++const assert = require('node:assert/strict');
++const { LRUCache } = require('../src/lru.js');
++
++test('rejects capacities that are not positive integers', () => {
++  for (const capacity of [0, -1, 1.5, NaN, Infinity, '2', null, undefined]) {
++    assert.throws(() => new LRUCache(capacity), RangeError);
++  }
++});
++
++test('stores every JavaScript value and returns itself from set', () => {
++  const cache = new LRUCache(5);
++  const entries = [['false', false], ['zero', 0], ['empty', ''], ['null', null], ['undefined', undefined]];
++
++  for (const [key, value] of entries) assert.equal(cache.set(key, value), cache);
++  for (const [key, value] of entries) assert.strictEqual(cache.get(key), value);
++  assert.equal(cache.size, entries.length);
++  assert.equal(cache.has('undefined'), true);
++});
++
++test('get and set refresh recency while has and size do not', () => {
++  const cache = new LRUCache(2);
++  cache.set('a', 1).set('b', 2);
++  assert.equal(cache.get('a'), 1);
++  cache.set('c', 3);
++  assert.equal(cache.has('a'), true);
++  assert.equal(cache.has('b'), false);
++
++  cache.has('a');
++  void cache.size;
++  cache.set('d', 4);
++  assert.equal(cache.has('a'), false);
++  assert.equal(cache.has('c'), true);
++  assert.equal(cache.has('d'), true);
++});
++
++test('updates an existing key without eviction and treats object keys by identity', () => {
++  const cache = new LRUCache(2);
++  const first = {};
++  const second = {};
++  const equivalentButDistinct = {};
++
++  cache.set(first, 'first').set(second, 'second');
++  cache.set(first, 'updated');
++  cache.set('third', 3);
++  assert.equal(cache.size, 2);
++  assert.equal(cache.get(first), 'updated');
++  assert.equal(cache.has(second), false);
++  assert.equal(cache.get(equivalentButDistinct), undefined);
++  assert.equal(cache.has(first), true);
++});

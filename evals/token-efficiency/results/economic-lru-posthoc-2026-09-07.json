@@ -1,0 +1,109 @@
+{
+  "schema": "vulpora.posthoc-test-diagnostic/v1",
+  "scope": "Three selected mutations on first-repeat LRU submissions, selected after reviewing output. This is not the fixed acceptance gate or a general mutation score. No model calls.",
+  "sourceArtifacts": "economic-confirmation-2026-09-07-artifacts/manifest.json",
+  "method": "Restore original source for each mutation, apply exactly one regex substitution, run node --test in an isolated source/test copy. Original tests must pass; detected requires an assertion failure.",
+  "mutations": [
+    {
+      "id": "set-does-not-refresh",
+      "pattern": "if\\s*\\(this\\.items\\.has\\(key\\)\\)\\s*this\\.items\\.delete\\(key\\);",
+      "replacement": "",
+      "count": 1
+    },
+    {
+      "id": "miss-inserts-undefined",
+      "pattern": "get\\(key\\)\\s*\\{",
+      "replacement": "get(key){if(!this.items.has(key))this.items.set(key,undefined);",
+      "count": 1
+    },
+    {
+      "id": "undefined-membership-lost",
+      "pattern": "has\\(key\\)\\s*\\{\\s*return this\\.items\\.has\\(key\\);\\s*\\}",
+      "replacement": "has(key){return this.items.has(key)&&this.items.get(key)!==undefined;}",
+      "count": 1
+    }
+  ],
+  "runs": [
+    {
+      "order": 4,
+      "arm": "baseline",
+      "mutation": "set-does-not-refresh",
+      "testDetected": true,
+      "exitCode": 1,
+      "originalSourceSha256": "998e22096b6eef7652d9fc10f6994aaee164491b8ff58a33d55fc44937e03af6",
+      "mutatedSourceSha256": "1e6705022f379a4b4da07f9ea4c72c2ad1428b9bea4853d752beea9e954775fe"
+    },
+    {
+      "order": 4,
+      "arm": "baseline",
+      "mutation": "miss-inserts-undefined",
+      "testDetected": false,
+      "exitCode": 0,
+      "originalSourceSha256": "998e22096b6eef7652d9fc10f6994aaee164491b8ff58a33d55fc44937e03af6",
+      "mutatedSourceSha256": "ef2cf77020b5fbe43849d28385f46a74b4b6b97f4f1e231a544d626e41280002"
+    },
+    {
+      "order": 4,
+      "arm": "baseline",
+      "mutation": "undefined-membership-lost",
+      "testDetected": false,
+      "exitCode": 0,
+      "originalSourceSha256": "998e22096b6eef7652d9fc10f6994aaee164491b8ff58a33d55fc44937e03af6",
+      "mutatedSourceSha256": "5e80f0a8afb99d4bfa52fd8273c3849ed3b7a6441c8d3fecf3bba9104a497776"
+    },
+    {
+      "order": 5,
+      "arm": "optimized",
+      "mutation": "set-does-not-refresh",
+      "testDetected": false,
+      "exitCode": 0,
+      "originalSourceSha256": "320d81daaf37a959e7c869758e84e267370c5a850748e9b20c1488183d8eca2b",
+      "mutatedSourceSha256": "11f4578a0a8f22cd963ce10d9b9f1de1d7e0723306af813c1635d9cb6b8eb0e5"
+    },
+    {
+      "order": 5,
+      "arm": "optimized",
+      "mutation": "miss-inserts-undefined",
+      "testDetected": false,
+      "exitCode": 0,
+      "originalSourceSha256": "320d81daaf37a959e7c869758e84e267370c5a850748e9b20c1488183d8eca2b",
+      "mutatedSourceSha256": "48459e5534757639dd77d57e7f11ff3230c6fc62ac48c80b439a6a6715c0231d"
+    },
+    {
+      "order": 5,
+      "arm": "optimized",
+      "mutation": "undefined-membership-lost",
+      "testDetected": true,
+      "exitCode": 1,
+      "originalSourceSha256": "320d81daaf37a959e7c869758e84e267370c5a850748e9b20c1488183d8eca2b",
+      "mutatedSourceSha256": "0740749ff6473347b2656170d0a26e102a7cc65159fab1d4909e1d4c764cc9e8"
+    },
+    {
+      "order": 6,
+      "arm": "legacy",
+      "mutation": "set-does-not-refresh",
+      "testDetected": true,
+      "exitCode": 1,
+      "originalSourceSha256": "c29aead5dc1a61afd7366acda3cc4ef1a94e52a22b59476a89083186822abeda",
+      "mutatedSourceSha256": "9cc81412c597d89e726cc10f0cfeccfdb3326ad6dd718c307339808614a433c0"
+    },
+    {
+      "order": 6,
+      "arm": "legacy",
+      "mutation": "miss-inserts-undefined",
+      "testDetected": true,
+      "exitCode": 1,
+      "originalSourceSha256": "c29aead5dc1a61afd7366acda3cc4ef1a94e52a22b59476a89083186822abeda",
+      "mutatedSourceSha256": "ecce665c3016e2803101b9c0f6a6f4dc39f576a4e582ce04c1add5e35ea7896c"
+    },
+    {
+      "order": 6,
+      "arm": "legacy",
+      "mutation": "undefined-membership-lost",
+      "testDetected": true,
+      "exitCode": 1,
+      "originalSourceSha256": "c29aead5dc1a61afd7366acda3cc4ef1a94e52a22b59476a89083186822abeda",
+      "mutatedSourceSha256": "c540e1e159aee5ec9fb0fc67ceb8174f48b47056d132db18c7a32808466bca9e"
+    }
+  ]
+}

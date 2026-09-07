@@ -1,0 +1,25 @@
+diff --git a/src/numbers.js b/src/numbers.js
+index b136978..459d4d5 100644
+--- a/src/numbers.js
++++ b/src/numbers.js
+@@ -1,3 +1,4 @@
+ 'use strict';
+ function absolute(value){return value<0?-value:value;}
+-module.exports={absolute};
++function isPositive(value){return typeof value==='number'&&Number.isFinite(value)&&value>0;}
++module.exports={absolute,isPositive};
+diff --git a/test/numbers.test.js b/test/numbers.test.js
+index a87097c..f336113 100644
+--- a/test/numbers.test.js
++++ b/test/numbers.test.js
+@@ -1,5 +1,9 @@
+ 'use strict';
+ const test=require('node:test');
+ const assert=require('node:assert/strict');
+-const {absolute}=require('../src/numbers.js');
++const {absolute,isPositive}=require('../src/numbers.js');
+ test('absolute',()=>assert.equal(absolute(-2),2));
++test('isPositive accepts only finite numbers greater than zero',()=>{
++  for(const value of [Number.MIN_VALUE,0.5,2])assert.equal(isPositive(value),true);
++  for(const value of [0,-0,-Number.MIN_VALUE,-2,NaN,Infinity,-Infinity,'2',null,undefined,true,{},[]])assert.equal(isPositive(value),false);
++});
