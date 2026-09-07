@@ -1,0 +1,71 @@
+{
+  "schema": "vulpora.efficiency-experiment-spend/v1",
+  "scope": "All live evaluation attempts for context-roundtrip-efficiency branch; excludes prior routing studies and development/review conversation",
+  "reports": [
+    {
+      "file": "context-ab-2026-09-07.json",
+      "sha256": "f9131f7246c6d2ec6ccb5585750fc1ccae9af984e37fbea00dd65707a4f14c9e",
+      "assessment": "SAMPLE_CRITERIA_NOT_MET",
+      "attempts": 8,
+      "observedUsageAttempts": 8,
+      "unknownUsageAttempts": 0,
+      "observedSubtotalTokens": 443419,
+      "standardKnownUsageCostScenario": {
+        "baseUsd": 0.29589087999999997,
+        "cacheWriteSurchargeMinUsd": 0,
+        "cacheWriteSurchargeMaxUsd": 0.0324202,
+        "minUsd": 0.29589087999999997,
+        "maxUsd": 0.32831108
+      }
+    },
+    {
+      "file": "proposal-ab-2026-09-07.json",
+      "sha256": "59c73efb95f260ef84583526ee27cb9be962a1998ac944feadbdfa8326512dd8",
+      "assessment": "INCONCLUSIVE",
+      "attempts": 2,
+      "observedUsageAttempts": 1,
+      "unknownUsageAttempts": 1,
+      "observedSubtotalTokens": 54500,
+      "standardKnownUsageCostScenario": {
+        "baseUsd": 0.00810016,
+        "cacheWriteSurchargeMinUsd": 0,
+        "cacheWriteSurchargeMaxUsd": 0.0013847999999999998,
+        "minUsd": 0.00810016,
+        "maxUsd": 0.00948496
+      }
+    },
+    {
+      "file": "proposal-confirmation-2026-09-07.json",
+      "sha256": "6168517ded5ce47e9e0c8b32f34a5fb638e8fec9c7fcb0833fcbd0dd70c06c7b",
+      "assessment": "SAMPLE_CRITERIA_MET",
+      "attempts": 8,
+      "observedUsageAttempts": 8,
+      "unknownUsageAttempts": 0,
+      "observedSubtotalTokens": 309072,
+      "standardKnownUsageCostScenario": {
+        "baseUsd": 0.26158248,
+        "cacheWriteSurchargeMinUsd": 0,
+        "cacheWriteSurchargeMaxUsd": 0.0341408,
+        "minUsd": 0.26158248,
+        "maxUsd": 0.29572328
+      }
+    }
+  ],
+  "attempts": 18,
+  "observedSubtotalTokens": 806991,
+  "unknownUsageAttempts": 1,
+  "totalTokens": null,
+  "standardKnownUsageCostScenario": {
+    "baseUsd": 0.56557352,
+    "minUsd": 0.56557352,
+    "maxUsd": 0.63351932
+  },
+  "totalCost": null,
+  "billingAttested": false,
+  "netEconomicBenefit": "NOT_ESTABLISHED",
+  "limitations": [
+    "One interrupted proposal invocation has unknown usage and its original budget reservation remains unresolved.",
+    "Known subtotal cost is an API pricing scenario, not a bill or a bound on complete study cost.",
+    "Sample workload savings do not establish realized future savings or recovery of development/evaluation costs."
+  ]
+}

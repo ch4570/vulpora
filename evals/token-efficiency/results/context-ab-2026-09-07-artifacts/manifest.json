@@ -1,0 +1,335 @@
+{
+  "schema": "vulpora.context-ab-artifacts/v1",
+  "report": "context-ab-2026-09-07.json",
+  "sourceSha256": "d464123cee01e05ce91a3673a8a75a8ef3cd0d942bf8358437e29f5443da2510",
+  "runs": [
+    {
+      "order": 1,
+      "caseId": "query-encoding",
+      "arm": "read",
+      "repeat": 1,
+      "artifact": {
+        "saved": true,
+        "path": "01-query-encoding-read-1.patch",
+        "sha256": "31a59f338e83459fcd4569139479d930bce8443a6e0c642c2d49d618425cc71d",
+        "bytes": 2616,
+        "accepted": true,
+        "initialFiles": {
+          "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+          "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+          "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+        },
+        "finalFiles": {
+          "src/query.js": "c4da811b9555df80993741afe75ceb1359ae35fcd10f158f39f93b0313ccf9f6",
+          "src/search.js": "64b14177175f7023fed458e0b41d2caf624f7a291ba7a7ca6df3f9c2d9ef8e23",
+          "test/search.test.js": "9d3eb4331ba95464188b0fc6ef2cdc60de67178ebd04f6e9ae6552b74de62bae"
+        },
+        "quality": {
+          "passed": true,
+          "checks": {
+            "testsPassed": true,
+            "oraclePassed": true,
+            "mutantChecksPassed": true,
+            "verifierCompleted": true,
+            "onlyAllowedFilesChanged": true,
+            "noSymlinksOrSpecialFiles": true
+          },
+          "changedFiles": [
+            "src/query.js",
+            "src/search.js",
+            "test/search.test.js"
+          ],
+          "checksPassed": 6,
+          "checksTotal": 6
+        }
+      }
+    },
+    {
+      "order": 2,
+      "caseId": "query-encoding",
+      "arm": "inline",
+      "repeat": 1,
+      "artifact": {
+        "saved": true,
+        "path": "02-query-encoding-inline-1.patch",
+        "sha256": "80c4c718d23475e978fc28e8856fb933bb59237e9e03b5076012c34b0d90be7e",
+        "bytes": 2557,
+        "accepted": true,
+        "initialFiles": {
+          "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+          "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+          "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+        },
+        "finalFiles": {
+          "src/query.js": "e4f120b74ae19c39f6c67142af502cca27a467fcf8292ccc05211cf3e855e699",
+          "src/search.js": "5a5a9a06e07a699980676eca00409302016314b3b45921e69945400a52df2b78",
+          "test/search.test.js": "e3474ab936551b85db5e4e28bb7ae70852cdd82359db792c09264bbd9e0f670f"
+        },
+        "quality": {
+          "passed": true,
+          "checks": {
+            "testsPassed": true,
+            "oraclePassed": true,
+            "mutantChecksPassed": true,
+            "verifierCompleted": true,
+            "onlyAllowedFilesChanged": true,
+            "noSymlinksOrSpecialFiles": true
+          },
+          "changedFiles": [
+            "src/query.js",
+            "src/search.js",
+            "test/search.test.js"
+          ],
+          "checksPassed": 6,
+          "checksTotal": 6
+        }
+      }
+    },
+    {
+      "order": 3,
+      "caseId": "retry",
+      "arm": "inline",
+      "repeat": 1,
+      "artifact": {
+        "saved": true,
+        "path": "03-retry-inline-1.patch",
+        "sha256": "42bfb68c3af435ceea0fe01b92f1da0ec9eb39373ec7176a94409d822f4f397f",
+        "bytes": 5108,
+        "accepted": true,
+        "initialFiles": {
+          "src/client.js": "7a8f8d76e47c522b2991bbf628b8101790fa9af413a3215422ef48ad1b159898",
+          "src/retry.js": "599eba53238c3368ae140fad4e4bd791c947851bc1dbe4d3582040fbaf8103f0",
+          "test/retry.test.js": "064afaca133b3cd9477d3c3ccdcc60ac738537fa858bb46cc8575ae2fb55d3d3"
+        },
+        "finalFiles": {
+          "src/client.js": "21e0a729a5554d18749abaa9a26e613c148afec8ca2f0447090d1e271762f0f0",
+          "src/retry.js": "2649910dd3e5f975f5b6f7b46570d1aa73da4d8a676b6be0af2654ac0d883bb9",
+          "test/retry.test.js": "16bfc612413e6195fc31c041434923e7087aa28f84012664060ae4b001f8bc0f"
+        },
+        "quality": {
+          "passed": true,
+          "checks": {
+            "testsPassed": true,
+            "oraclePassed": true,
+            "mutantChecksPassed": true,
+            "verifierCompleted": true,
+            "onlyAllowedFilesChanged": true,
+            "noSymlinksOrSpecialFiles": true
+          },
+          "changedFiles": [
+            "src/client.js",
+            "src/retry.js",
+            "test/retry.test.js"
+          ],
+          "checksPassed": 6,
+          "checksTotal": 6
+        }
+      }
+    },
+    {
+      "order": 4,
+      "caseId": "retry",
+      "arm": "read",
+      "repeat": 1,
+      "artifact": {
+        "saved": true,
+        "path": "04-retry-read-1.patch",
+        "sha256": "40363573111c3d091b3a02aa2f5f1b8619bb56d362f79cd2e11f0d585054fbe0",
+        "bytes": 4615,
+        "accepted": true,
+        "initialFiles": {
+          "src/client.js": "7a8f8d76e47c522b2991bbf628b8101790fa9af413a3215422ef48ad1b159898",
+          "src/retry.js": "599eba53238c3368ae140fad4e4bd791c947851bc1dbe4d3582040fbaf8103f0",
+          "test/retry.test.js": "064afaca133b3cd9477d3c3ccdcc60ac738537fa858bb46cc8575ae2fb55d3d3"
+        },
+        "finalFiles": {
+          "src/client.js": "ca6b2c516218cb82412f489deee4aef43014cb7dcc1cf5cc5e6547ac4846325e",
+          "src/retry.js": "ac3e08792d26538a28dda7ead3c97a8cff1defafd7ff2759fcdce4454019e772",
+          "test/retry.test.js": "93c8000d9cfc0fbac594b705dad514f17581edc60a9678c047473ae4d23506bd"
+        },
+        "quality": {
+          "passed": true,
+          "checks": {
+            "testsPassed": true,
+            "oraclePassed": true,
+            "mutantChecksPassed": true,
+            "verifierCompleted": true,
+            "onlyAllowedFilesChanged": true,
+            "noSymlinksOrSpecialFiles": true
+          },
+          "changedFiles": [
+            "src/client.js",
+            "src/retry.js",
+            "test/retry.test.js"
+          ],
+          "checksPassed": 6,
+          "checksTotal": 6
+        }
+      }
+    },
+    {
+      "order": 5,
+      "caseId": "retry",
+      "arm": "read",
+      "repeat": 2,
+      "artifact": {
+        "saved": true,
+        "path": "05-retry-read-2.patch",
+        "sha256": "b3d7c0a0ad71238843c38e1ea4b693cebf8c1d5208125e9a9cae0db6e3557fe6",
+        "bytes": 4085,
+        "accepted": true,
+        "initialFiles": {
+          "src/client.js": "7a8f8d76e47c522b2991bbf628b8101790fa9af413a3215422ef48ad1b159898",
+          "src/retry.js": "599eba53238c3368ae140fad4e4bd791c947851bc1dbe4d3582040fbaf8103f0",
+          "test/retry.test.js": "064afaca133b3cd9477d3c3ccdcc60ac738537fa858bb46cc8575ae2fb55d3d3"
+        },
+        "finalFiles": {
+          "src/client.js": "6166a3598f6079edeba96d397f312760d3b9b456988c4e8edf207696ba95f034",
+          "src/retry.js": "2c9ea88ac34bf732ff34e8e608bbfdcebe9f5fc00794565d40fdeec5645caba0",
+          "test/retry.test.js": "a03a1b523bb57efa59ba49b49c969c499d584b50c918b6c1f35f6a357c58882e"
+        },
+        "quality": {
+          "passed": true,
+          "checks": {
+            "testsPassed": true,
+            "oraclePassed": true,
+            "mutantChecksPassed": true,
+            "verifierCompleted": true,
+            "onlyAllowedFilesChanged": true,
+            "noSymlinksOrSpecialFiles": true
+          },
+          "changedFiles": [
+            "src/client.js",
+            "src/retry.js",
+            "test/retry.test.js"
+          ],
+          "checksPassed": 6,
+          "checksTotal": 6
+        }
+      }
+    },
+    {
+      "order": 6,
+      "caseId": "retry",
+      "arm": "inline",
+      "repeat": 2,
+      "artifact": {
+        "saved": true,
+        "path": "06-retry-inline-2.patch",
+        "sha256": "189b59cedefa8582db4566269c48e8da41993222ebde5352d580664d72593fdf",
+        "bytes": 4585,
+        "accepted": true,
+        "initialFiles": {
+          "src/client.js": "7a8f8d76e47c522b2991bbf628b8101790fa9af413a3215422ef48ad1b159898",
+          "src/retry.js": "599eba53238c3368ae140fad4e4bd791c947851bc1dbe4d3582040fbaf8103f0",
+          "test/retry.test.js": "064afaca133b3cd9477d3c3ccdcc60ac738537fa858bb46cc8575ae2fb55d3d3"
+        },
+        "finalFiles": {
+          "src/client.js": "ca6b2c516218cb82412f489deee4aef43014cb7dcc1cf5cc5e6547ac4846325e",
+          "src/retry.js": "c47c795d7eeba1b89e796e9fba195cab1d76e4a4515e1294869a75dcc2c3e52e",
+          "test/retry.test.js": "ff7cfbd26bbddff09064e9d34c7e6c09d249ca6a0f259640e9eda0d13434c338"
+        },
+        "quality": {
+          "passed": true,
+          "checks": {
+            "testsPassed": true,
+            "oraclePassed": true,
+            "mutantChecksPassed": true,
+            "verifierCompleted": true,
+            "onlyAllowedFilesChanged": true,
+            "noSymlinksOrSpecialFiles": true
+          },
+          "changedFiles": [
+            "src/client.js",
+            "src/retry.js",
+            "test/retry.test.js"
+          ],
+          "checksPassed": 6,
+          "checksTotal": 6
+        }
+      }
+    },
+    {
+      "order": 7,
+      "caseId": "query-encoding",
+      "arm": "inline",
+      "repeat": 2,
+      "artifact": {
+        "saved": true,
+        "path": "07-query-encoding-inline-2.patch",
+        "sha256": "2e97abe61523271d7bd281cfeb18b531ad151019c386bd730b919ec4ae79859d",
+        "bytes": 2756,
+        "accepted": true,
+        "initialFiles": {
+          "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+          "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+          "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+        },
+        "finalFiles": {
+          "src/query.js": "cfc29fe4a47f8632c5643fd96088de75310a4e91f93c76438627d0760893d681",
+          "src/search.js": "64b14177175f7023fed458e0b41d2caf624f7a291ba7a7ca6df3f9c2d9ef8e23",
+          "test/search.test.js": "f8dd5091d6ffd451ebea746c3a29d03093077a837c099d4125e16d10ca9da199"
+        },
+        "quality": {
+          "passed": true,
+          "checks": {
+            "testsPassed": true,
+            "oraclePassed": true,
+            "mutantChecksPassed": true,
+            "verifierCompleted": true,
+            "onlyAllowedFilesChanged": true,
+            "noSymlinksOrSpecialFiles": true
+          },
+          "changedFiles": [
+            "src/query.js",
+            "src/search.js",
+            "test/search.test.js"
+          ],
+          "checksPassed": 6,
+          "checksTotal": 6
+        }
+      }
+    },
+    {
+      "order": 8,
+      "caseId": "query-encoding",
+      "arm": "read",
+      "repeat": 2,
+      "artifact": {
+        "saved": true,
+        "path": "08-query-encoding-read-2.patch",
+        "sha256": "0f9744300666daafa3bafa2edc98a53e3fa02e5c34dda979310f8a949a4ff4aa",
+        "bytes": 2355,
+        "accepted": true,
+        "initialFiles": {
+          "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+          "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+          "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+        },
+        "finalFiles": {
+          "src/query.js": "9fa6e39f46f992d3e9db354d412aed5b7dceb5e8fb88417fce7ef28b903d3f26",
+          "src/search.js": "bc32219903863d7f1f2cdd6e65b40a86e8bf4393e208cf4c45e0f4c18751a290",
+          "test/search.test.js": "77250d9d308fe964cf54ccecd040cbe984bff6684a508be04c50469e1ebfc705"
+        },
+        "quality": {
+          "passed": true,
+          "checks": {
+            "testsPassed": true,
+            "oraclePassed": true,
+            "mutantChecksPassed": true,
+            "verifierCompleted": true,
+            "onlyAllowedFilesChanged": true,
+            "noSymlinksOrSpecialFiles": true
+          },
+          "changedFiles": [
+            "src/query.js",
+            "src/search.js",
+            "test/search.test.js"
+          ],
+          "checksPassed": 6,
+          "checksTotal": 6
+        }
+      }
+    }
+  ]
+}

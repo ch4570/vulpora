@@ -1,0 +1,236 @@
+{
+  "schema": "vulpora.proposal-artifact-audit/v1",
+  "report": "proposal-confirmation-2026-09-07.json",
+  "reportSha256": "6168517ded5ce47e9e0c8b32f34a5fb638e8fec9c7fcb0833fcbd0dd70c06c7b",
+  "sourceCommit": "b2324cc",
+  "sourceHashesMatch": true,
+  "scope": "Independent patch reconstruction and graders; recorded dispatch/usage consistency; no backend or billing attestation",
+  "runs": [
+    {
+      "order": 1,
+      "caseId": "query-encoding",
+      "arm": "agent",
+      "repeat": 1,
+      "patchHashMatches": true,
+      "finalFilesMatch": true,
+      "quality": {
+        "passed": true,
+        "checks": {
+          "testsPassed": true,
+          "oraclePassed": true,
+          "mutantChecksPassed": true,
+          "verifierCompleted": true,
+          "onlyAllowedFilesChanged": true,
+          "noSymlinksOrSpecialFiles": true
+        },
+        "changedFiles": [
+          "src/query.js",
+          "src/search.js",
+          "test/search.test.js"
+        ],
+        "checksPassed": 6,
+        "checksTotal": 6
+      },
+      "dispatchAndUsageConsistent": true,
+      "proposalsValidated": 0
+    },
+    {
+      "order": 2,
+      "caseId": "query-encoding",
+      "arm": "proposal",
+      "repeat": 1,
+      "patchHashMatches": true,
+      "finalFilesMatch": true,
+      "quality": {
+        "passed": true,
+        "checks": {
+          "testsPassed": true,
+          "oraclePassed": true,
+          "mutantChecksPassed": true,
+          "verifierCompleted": true,
+          "onlyAllowedFilesChanged": true,
+          "noSymlinksOrSpecialFiles": true
+        },
+        "changedFiles": [
+          "src/query.js",
+          "src/search.js",
+          "test/search.test.js"
+        ],
+        "checksPassed": 6,
+        "checksTotal": 6
+      },
+      "dispatchAndUsageConsistent": true,
+      "proposalsValidated": 1
+    },
+    {
+      "order": 3,
+      "caseId": "retry",
+      "arm": "proposal",
+      "repeat": 1,
+      "patchHashMatches": true,
+      "finalFilesMatch": true,
+      "quality": {
+        "passed": true,
+        "checks": {
+          "testsPassed": true,
+          "oraclePassed": true,
+          "mutantChecksPassed": true,
+          "verifierCompleted": true,
+          "onlyAllowedFilesChanged": true,
+          "noSymlinksOrSpecialFiles": true
+        },
+        "changedFiles": [
+          "src/retry.js",
+          "src/client.js",
+          "test/retry.test.js"
+        ],
+        "checksPassed": 6,
+        "checksTotal": 6
+      },
+      "dispatchAndUsageConsistent": true,
+      "proposalsValidated": 1
+    },
+    {
+      "order": 4,
+      "caseId": "retry",
+      "arm": "agent",
+      "repeat": 1,
+      "patchHashMatches": true,
+      "finalFilesMatch": true,
+      "quality": {
+        "passed": true,
+        "checks": {
+          "testsPassed": true,
+          "oraclePassed": true,
+          "mutantChecksPassed": true,
+          "verifierCompleted": true,
+          "onlyAllowedFilesChanged": true,
+          "noSymlinksOrSpecialFiles": true
+        },
+        "changedFiles": [
+          "src/retry.js",
+          "src/client.js",
+          "test/retry.test.js"
+        ],
+        "checksPassed": 6,
+        "checksTotal": 6
+      },
+      "dispatchAndUsageConsistent": true,
+      "proposalsValidated": 0
+    },
+    {
+      "order": 5,
+      "caseId": "retry",
+      "arm": "agent",
+      "repeat": 2,
+      "patchHashMatches": true,
+      "finalFilesMatch": true,
+      "quality": {
+        "passed": true,
+        "checks": {
+          "testsPassed": true,
+          "oraclePassed": true,
+          "mutantChecksPassed": true,
+          "verifierCompleted": true,
+          "onlyAllowedFilesChanged": true,
+          "noSymlinksOrSpecialFiles": true
+        },
+        "changedFiles": [
+          "src/retry.js",
+          "src/client.js",
+          "test/retry.test.js"
+        ],
+        "checksPassed": 6,
+        "checksTotal": 6
+      },
+      "dispatchAndUsageConsistent": true,
+      "proposalsValidated": 0
+    },
+    {
+      "order": 6,
+      "caseId": "retry",
+      "arm": "proposal",
+      "repeat": 2,
+      "patchHashMatches": true,
+      "finalFilesMatch": true,
+      "quality": {
+        "passed": true,
+        "checks": {
+          "testsPassed": true,
+          "oraclePassed": true,
+          "mutantChecksPassed": true,
+          "verifierCompleted": true,
+          "onlyAllowedFilesChanged": true,
+          "noSymlinksOrSpecialFiles": true
+        },
+        "changedFiles": [
+          "src/retry.js",
+          "src/client.js",
+          "test/retry.test.js"
+        ],
+        "checksPassed": 6,
+        "checksTotal": 6
+      },
+      "dispatchAndUsageConsistent": true,
+      "proposalsValidated": 1
+    },
+    {
+      "order": 7,
+      "caseId": "query-encoding",
+      "arm": "proposal",
+      "repeat": 2,
+      "patchHashMatches": true,
+      "finalFilesMatch": true,
+      "quality": {
+        "passed": true,
+        "checks": {
+          "testsPassed": true,
+          "oraclePassed": true,
+          "mutantChecksPassed": true,
+          "verifierCompleted": true,
+          "onlyAllowedFilesChanged": true,
+          "noSymlinksOrSpecialFiles": true
+        },
+        "changedFiles": [
+          "src/query.js",
+          "src/search.js",
+          "test/search.test.js"
+        ],
+        "checksPassed": 6,
+        "checksTotal": 6
+      },
+      "dispatchAndUsageConsistent": true,
+      "proposalsValidated": 1
+    },
+    {
+      "order": 8,
+      "caseId": "query-encoding",
+      "arm": "agent",
+      "repeat": 2,
+      "patchHashMatches": true,
+      "finalFilesMatch": true,
+      "quality": {
+        "passed": true,
+        "checks": {
+          "testsPassed": true,
+          "oraclePassed": true,
+          "mutantChecksPassed": true,
+          "verifierCompleted": true,
+          "onlyAllowedFilesChanged": true,
+          "noSymlinksOrSpecialFiles": true
+        },
+        "changedFiles": [
+          "src/query.js",
+          "src/search.js",
+          "test/search.test.js"
+        ],
+        "checksPassed": 6,
+        "checksTotal": 6
+      },
+      "dispatchAndUsageConsistent": true,
+      "proposalsValidated": 0
+    }
+  ],
+  "totalObservedTokens": 309072,
+  "budgetSettled": true
+}

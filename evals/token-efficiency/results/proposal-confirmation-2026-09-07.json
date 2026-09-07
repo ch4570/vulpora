@@ -1,0 +1,2617 @@
+{
+  "schema": "vulpora.proposal-ab/v1",
+  "createdAt": "2026-09-07T14:53:46.563Z",
+  "model": null,
+  "runtime": "codex-cli 0.153.4",
+  "arms": [
+    "agent",
+    "proposal"
+  ],
+  "repeats": 2,
+  "source": {
+    "files": {
+      "evals/token-efficiency/run-context-ab.js": "91c9746b45a94f8bc681ead0614ef54e43b8e43c1eec2159124caadd76b81614",
+      "evals/token-efficiency/run-routing-ab.js": "f8778bcfc86be63dd86ea0199db50889b87d6fced33ca2850e746f928e4d9de2",
+      "evals/token-efficiency/run-economic-ab.js": "63fd659cc67aeb48db657e5639de562f273d0a42043be65eb8ea3c45cfdcd242",
+      "evals/token-efficiency/CONTEXT-EVAL.md": "8507f9270281c737009c517fc84d5bd7774d9e44bcd7cda64dcb4b5467fb9344",
+      "evals/token-efficiency/routing-fixtures.cjs": "c7b98918ef4991c42f4dae47752ebee47a05638c6487d9f212b6dcd64b1b4a98",
+      "evals/token-efficiency/economic-fixtures.cjs": "3ca9f9efab8d1b9d20865b33eb95a0ef8eb3622ac477d7ac7f22485c24736c2e",
+      "evals/behavioral/adapters/provider-usage.cjs": "9bcaeaeb225b9af2f17d690ba70c10a6b3814c92f534b50eda8632075bb710db",
+      "skills/start-task/scripts/session-context.js": "607819af6c15962f09fa9fe80b06022621f8ffc3395b83bd6df7764edac33d16",
+      "skills/start-task/scripts/session-telemetry.js": "6dc3f7f6daf0802834bf7abf22338d2ec6cfde97d6f8e30df00cc73203bf83bc",
+      "skills/start-task/scripts/task-router.js": "b153703b0dfc835ddf05950e9f18c7fc46a64b0fee0eeb4022c05d7a03851cc5",
+      "skills/start-task/scripts/model-router.js": "04c18fa81e6da2d102fe5782784fd0a0b00b80a0c963f0bc457448bd5a7e561d",
+      "skills/start-task/scripts/model-routing-policy.json": "fd6ee18da98b01451dc4f1abd21943be166988bc2778afe4d9850b87615a4810",
+      "skills/start-task/scripts/model-routing-io.js": "bcc0458983fa2e41e748d844409e87731d885d436592efe78cdfb5fbaaee455b",
+      "skills/start-task/scripts/codex-model-catalog.js": "3f554d229406d2fa6556de1878e5b7bf617af491d44b0a31a75b14ca732c46c9",
+      "evals/token-efficiency/run-proposal-ab.js": "f9194b0d7478d4bd0dfeb1631b7aa8ba3bf0fc9dc33b93643d46ac8745e8cf68",
+      "evals/token-efficiency/PROPOSAL-EVAL.md": "1bbfb28fbd93406f99a863c077a3e98d59985be986c0f7f54a539051386853cc",
+      "skills/start-task/scripts/session-runner.js": "529efbe85147e2fb82f1b882922d2df9196b477644bdea58a835539e2ca5a750",
+      "skills/start-task/scripts/session-io.js": "eab2d7b3f6c0785a3cb038f8ccf83310957cb3c080efe1501539fda4fb24fa01",
+      "skills/start-task/scripts/session-budget.js": "15823cef72c619cd92ed8551e069d6a8f6ecb7455a793714d9520ef07455767f",
+      "skills/start-task/scripts/session-task.schema.json": "e5332433d4d7b21adcf2acc53d196bba4a418a48db1fa105f274eb3348626897",
+      "skills/start-task/scripts/session-candidate.schema.json": "ea0401b85a670b089c93a42c642dc5c738efec87b205d0aa2581071ba2c99cd7",
+      "skills/start-task/scripts/session-edit-proposal.js": "913d86a6bfd25a387e2fc7a87f0cebdcc87bc302b2d50d2afbca10cf47dc1a64",
+      "skills/start-task/scripts/session-edit-proposal.schema.json": "19229ee5a56b99cd66d6e9bc43a5bc1013b39f5ebef2a983170d3f2c2f973aee"
+    },
+    "sha256": "a19e2580fafa1fc9611cb18f48272f7af6a035f479f1d1c630fa980445f43a79"
+  },
+  "policy": {
+    "schema": "vulpora.model-routing-policy/v1",
+    "id": "vulpora-default",
+    "maxCatalogAgeSeconds": 3600,
+    "profiles": {
+      "frugal": {
+        "effort": "low",
+        "relativeUnits": 1
+      },
+      "standard": {
+        "effort": "medium",
+        "relativeUnits": 10
+      },
+      "frontier": {
+        "effort": "high",
+        "relativeUnits": 30
+      }
+    },
+    "runtimes": {
+      "codex": {
+        "frugal": [
+          "gpt-5.6-luna"
+        ],
+        "standard": [
+          "gpt-5.6-terra"
+        ],
+        "frontier": [
+          "gpt-6-astra",
+          "gpt-5.6-sol",
+          "gpt-5.6"
+        ]
+      },
+      "claude-code": {
+        "frugal": [
+          "haiku"
+        ],
+        "standard": [
+          "sonnet"
+        ],
+        "frontier": [
+          "opus"
+        ]
+      }
+    }
+  },
+  "catalog": {
+    "schema": "vulpora.runtime-model-catalog/v1",
+    "runtime": "codex",
+    "source": "codex-app-server:model/list",
+    "observedAt": "2026-09-07T14:53:39.476Z",
+    "models": [
+      {
+        "id": "gpt-5.4-mini",
+        "reasoningEfforts": [
+          "high",
+          "low",
+          "medium",
+          "xhigh"
+        ]
+      },
+      {
+        "id": "gpt-5.5",
+        "reasoningEfforts": [
+          "high",
+          "low",
+          "medium",
+          "xhigh"
+        ]
+      },
+      {
+        "id": "gpt-5.6-luna",
+        "reasoningEfforts": [
+          "high",
+          "low",
+          "max",
+          "medium",
+          "xhigh"
+        ]
+      },
+      {
+        "id": "gpt-5.6-sol",
+        "reasoningEfforts": [
+          "high",
+          "low",
+          "max",
+          "medium",
+          "ultra",
+          "xhigh"
+        ]
+      },
+      {
+        "id": "gpt-5.6-terra",
+        "reasoningEfforts": [
+          "high",
+          "low",
+          "max",
+          "medium",
+          "ultra",
+          "xhigh"
+        ]
+      },
+      {
+        "id": "gpt-6-astra",
+        "reasoningEfforts": [
+          "high",
+          "low",
+          "max",
+          "medium",
+          "ultra",
+          "xhigh"
+        ]
+      }
+    ]
+  },
+  "design": "Two fresh production transport arms; same original goals, files, routes, shared budget, independent graders and two-attempt repair cap",
+  "scope": "session.prepare/run: agent tools versus read-only edit proposal plus deterministic parent application and grading",
+  "limits": {
+    "attemptMs": 180000,
+    "suiteMs": 3600000,
+    "stdoutBytes": 8388608,
+    "stderrBytes": 1048576,
+    "maxAttempts": 2,
+    "maxRepeats": 2,
+    "defaultTokens": 500000,
+    "maxTokens": 5000000,
+    "estimatedTokens": 4000,
+    "maxRelativeUnitsPerAttempt": 30,
+    "promptBytes": 8192,
+    "contextBytes": 4096,
+    "maxResultBytes": 16384,
+    "aggregateTokenGuard": 500000
+  },
+  "reusedPaidAttempts": 0,
+  "sourceReports": [],
+  "artifactsDirectory": "proposal-confirmation-2026-09-07-artifacts",
+  "coordinator": {
+    "kind": "deterministic-node",
+    "paidRouterTurns": 0,
+    "primaryLaunchesPerAttempt": 1,
+    "nestedOrchestrators": 0
+  },
+  "cases": [
+    {
+      "id": "query-encoding",
+      "task": "Fix query serialization in src/query.js and its wrapper src/search.js, adding regression tests to test/search.test.js. queryPairs(filters) must return [key,String(value)] pairs in Object.entries order; scalar string/number/boolean values are included, null and undefined are omitted. Array values expand to repeated keys in array order, omitting null/undefined elements. Other value types (objects, functions, symbols, BigInts, nested arrays) are ignored. Preserve 0, false and empty strings. Do not mutate filters or arrays. buildSearch(filters) must use queryPairs and URLSearchParams to return a leading ? plus the encoded query, or an empty string when no pairs remain. Preserve the existing export names. Only these three files may change. Work directly without delegation or other coding sessions. Do not commit, install dependencies, use the network or perform external writes. Run node --test, inspect your diff, and finish with a concise change summary and test result.",
+      "routing": {
+        "taskType": "implementation",
+        "difficulty": "simple",
+        "risk": "low"
+      },
+      "allowedFiles": [
+        "src/query.js",
+        "src/search.js",
+        "test/search.test.js"
+      ],
+      "fixtureSha256": "a25f32e294f4c3031bf8291384c5ad549762772f0dcf2ca2740b7910b43baf1d"
+    },
+    {
+      "id": "retry",
+      "task": "Implement retry behavior across src/retry.js and src/client.js, adding regression tests in test/retry.test.js. Export async retry(operation, options={}) with attempts default 3 (total calls, not retries), shouldRetry default ()=>true, and async wait default no-op. Reject invalid attempts (non-number, non-integer, <=0, non-finite) with RangeError before operation runs. Call operation with a one-based attempt number; return its first successful value unchanged. On failure, if this was the last attempt rethrow the exact error without calling shouldRetry or wait. Otherwise call shouldRetry(error, attempt); if false rethrow the exact error, else await wait(attempt,error) before the next call. Propagate predicate/wait errors and stop. Support synchronous throws and async rejections. In src/client.js, export fetchWithRetry(fetcher, url, options) that uses retry to call fetcher(url), forwarding options; preserve fetchOnce. No real network or timers are needed. Only these three files may change. Work directly without delegation or other coding sessions. Do not commit, install dependencies, use the network or perform external writes. Preserve unrelated behavior. Run node --test, inspect your diff, and finish with a concise change summary and test result.",
+      "routing": {
+        "taskType": "implementation",
+        "difficulty": "complex",
+        "risk": "low"
+      },
+      "allowedFiles": [
+        "src/retry.js",
+        "src/client.js",
+        "test/retry.test.js"
+      ],
+      "fixtureSha256": "63d3a14a45d4cfd09655eaf95cb299396f6cc1d440c34894aaadbffca3cc9f2f"
+    }
+  ],
+  "limitations": [
+    "Small synthetic sample; shared cache and prior fixture exposure are uncontrolled",
+    "Different output schemas and tool surfaces are intentional parts of the treatment; preflight byte counts do not include every runtime schema/tool difference",
+    "Every failed attempt and repair counts; prior pilot, development/review conversation and full installed skill/Audit are excluded",
+    "Requested model and API price scenarios do not attest served identity or actual billing",
+    "Aggregate admission guard can overshoot by one attempt; unknown usage blocks more dispatch"
+  ],
+  "runs": [
+    {
+      "order": 1,
+      "caseId": "query-encoding",
+      "arm": "agent",
+      "repeat": 1,
+      "initialHead": "13267f18c492c0c87b1ee3d6b50dcb7fc547a071",
+      "initialFiles": {
+        "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+        "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+        "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+      },
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 8045,
+        "renderedInputSha256": "c792a118b44e144564f60dbc8966abfb69955e1eb8e3067753cb0b2fd3695e9a",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "attempts": [
+        {
+          "number": 1,
+          "route": {
+            "agentFileSettings": {
+              "model": "gpt-5.6-luna",
+              "model_reasoning_effort": "low"
+            },
+            "budgetScope": "per-attempt-estimate-not-billing-enforcement",
+            "estimatedTokens": 4000,
+            "evidence": {
+              "catalogSha256": "db65d25c016b0d065620fca362d6f6ce71bb95105e76b6093351fc8e533f0026",
+              "catalogSource": "codex-app-server:model/list",
+              "observedAt": "2026-09-07T14:53:39.476Z",
+              "policySha256": "afb6c690f604b1b22602816d57737598706b2495205b1abc371fc389693c8234",
+              "requestSha256": "f88a74015092d50d9ffb407e76ddffd66a3a0ffd9758ba6730e50e168b5bb176",
+              "taskRequestSha256": "125e7901d3b4799076571eca562c4e56d8c62f9331ff5d0589ad59cb2ce19067"
+            },
+            "execution": "NOT_RUN",
+            "executionKind": "independent-session",
+            "inheritanceUsed": false,
+            "model": "gpt-5.6-luna",
+            "nativeArguments": null,
+            "preflight": {
+              "status": "NOT_CHECKED"
+            },
+            "profile": "frugal",
+            "reasoning_effort": "low",
+            "rejected": [],
+            "relativeUnits": 1,
+            "requestedProfile": "frugal",
+            "riskFloorApplied": false,
+            "runtime": "codex",
+            "schema": "vulpora.model-route/v1",
+            "sessionArguments": {
+              "inheritHistory": false,
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low"
+            },
+            "status": "RESOLVED",
+            "taskSelection": {
+              "basis": "caller-supplied-task-facts-not-free-text-inference",
+              "difficulty": "simple",
+              "explicitProfile": "frugal",
+              "reason": "bounded_verifiable_task",
+              "recommendedProfile": "frugal",
+              "risk": "low",
+              "schema": "vulpora.task-model-selection/v1",
+              "selectedProfile": "frugal",
+              "taskType": "implementation"
+            }
+          },
+          "selection": {
+            "action": "INITIAL",
+            "reason": "PRODUCTION_TASK_CLASSIFICATION"
+          },
+          "capsuleSha256": "f3be93a86d446cbdf2a43cc13353faf42bb905fa65d99defcab43fc70ed6b372",
+          "workerMode": "agent",
+          "promptSha256": "bfaf4c0b9e1ba4de731df6ce162594c18cb9616e44867a1e240610e65fb8ead7",
+          "promptBytes": 2217,
+          "sourceContextBytes": 0,
+          "sourceContextSha256": null,
+          "initialFiles": {
+            "completed": true,
+            "files": {
+              "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+              "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+              "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+            },
+            "sha256": "c5ee0bd4af73c801349dbc14fe764c2358105d5b842c6873937acbd2346bb457"
+          },
+          "afterFiles": {
+            "completed": true,
+            "files": {
+              "src/query.js": "43fe2d9077390a7e80c66f60f2d12f30eadf6536272658cf048addcab5b48f48",
+              "src/search.js": "64b14177175f7023fed458e0b41d2caf624f7a291ba7a7ca6df3f9c2d9ef8e23",
+              "test/search.test.js": "e1a572bbf01a46c9557bb53bcc6187b0c1fd94a8667cded4d6c7069204d73fa7"
+            },
+            "sha256": "d42560ed861de5b93a9a22943b5d52d1a48e3a5660511df349d90b6ca69da710"
+          },
+          "runtime": {
+            "reason": null,
+            "exitCode": 0,
+            "signal": null,
+            "closeObserved": true,
+            "eventCount": 12,
+            "elapsedMs": 37444,
+            "outputBytes": 7282,
+            "stdoutSha256": "325b8a68147b7cfd80b5a0e9c3a434e35feda0e28ad9ef73145bb10e5fc3b1d3",
+            "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "invocationSha256": "fa93a88b784a76bba0074deef3d934da65b274d2fe836f841eef568a97a02076",
+            "requestedModel": "gpt-5.6-luna",
+            "requestedEffort": "low",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low",
+              "commandSha256": "55c4351e91171c6c909c452ef3ade8c0cfdabfd248f1b3919e7434fadb8924df",
+              "primarySessions": 1,
+              "nestedOrchestrator": false,
+              "backendIdentity": "NOT_ATTESTED",
+              "sandbox": "workspace-write"
+            },
+            "telemetry": {
+              "schema": "vulpora.session-telemetry/v1",
+              "measurementKind": "runtime_event_counts_and_utf8_bytes",
+              "providerTokenAttribution": "unavailable",
+              "rawContentRetained": false,
+              "eventTypes": {
+                "error": 0,
+                "item.completed": 6,
+                "item.started": 3,
+                "item.updated": 0,
+                "other": 0,
+                "thread.started": 1,
+                "turn.completed": 1,
+                "turn.failed": 0,
+                "turn.started": 1
+              },
+              "itemCompleted": {
+                "commandExecutions": 2,
+                "fileChanges": 1,
+                "agentMessages": 3
+              },
+              "byteProxies": {
+                "command": 241,
+                "aggregatedOutput": 2996,
+                "agentTextBytes": 1463,
+                "labels": {
+                  "command": "utf8_bytes",
+                  "aggregatedOutput": "utf8_bytes",
+                  "agentTextBytes": "utf8_bytes"
+                }
+              },
+              "repeatedCommands": [],
+              "caps": {
+                "fingerprints": 128
+              },
+              "saturation": false,
+              "fingerprintOverflow": false
+            },
+            "failureDiagnostics": {
+              "schema": "vulpora.runtime-failure-diagnostics/v1",
+              "events": [],
+              "limit": 4,
+              "omittedEvents": 0,
+              "rawMessageRetained": false
+            },
+            "promptBytes": 2217,
+            "sourceContextBytes": 0,
+            "rawTranscriptRetained": false,
+            "backendIdentity": "NOT_ATTESTED",
+            "descendantCleanup": "NOT_ATTESTED",
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 52322,
+              "uncached_input_tokens": 29282,
+              "cached_input_tokens": 23040,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 1545,
+              "reasoning_tokens": 96,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 53867,
+              "billing_amount": null
+            },
+            "usageAdapterSource": "production session-result.runtime.usage",
+            "unexpectedChild": false
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true,
+              "gitHeadUnchanged": true
+            },
+            "changedFiles": [
+              "src/query.js",
+              "src/search.js",
+              "test/search.test.js"
+            ],
+            "checksPassed": 7,
+            "checksTotal": 7
+          },
+          "treatmentCompliant": true,
+          "accepted": true,
+          "gitHistory": {
+            "initialHead": "13267f18c492c0c87b1ee3d6b50dcb7fc547a071",
+            "observedHead": "13267f18c492c0c87b1ee3d6b50dcb7fc547a071",
+            "unchanged": true
+          },
+          "transport": {
+            "status": "candidate",
+            "execution": "EXIT_ZERO",
+            "verification": "NOT_VERIFIED",
+            "mutationState": "known_effect",
+            "scopedFilesChanged": [
+              "src/query.js",
+              "src/search.js",
+              "test/search.test.js"
+            ],
+            "budget": {
+              "committedTokens": 53867,
+              "remainingTokens": 446133,
+              "unresolvedAttempts": 0
+            }
+          }
+        }
+      ],
+      "accepted": true,
+      "finished": true,
+      "artifact": {
+        "saved": true,
+        "path": "01-query-encoding-agent-1.patch",
+        "sha256": "4ca83b17a2b36d13283c32bebaf6c759f55de4b037e9049fba403c8693e04258",
+        "bytes": 2414,
+        "accepted": true,
+        "initialFiles": {
+          "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+          "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+          "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+        },
+        "finalFiles": {
+          "src/query.js": "43fe2d9077390a7e80c66f60f2d12f30eadf6536272658cf048addcab5b48f48",
+          "src/search.js": "64b14177175f7023fed458e0b41d2caf624f7a291ba7a7ca6df3f9c2d9ef8e23",
+          "test/search.test.js": "e1a572bbf01a46c9557bb53bcc6187b0c1fd94a8667cded4d6c7069204d73fa7"
+        },
+        "quality": {
+          "passed": true,
+          "checks": {
+            "testsPassed": true,
+            "oraclePassed": true,
+            "mutantChecksPassed": true,
+            "verifierCompleted": true,
+            "onlyAllowedFilesChanged": true,
+            "noSymlinksOrSpecialFiles": true,
+            "gitHeadUnchanged": true
+          },
+          "changedFiles": [
+            "src/query.js",
+            "src/search.js",
+            "test/search.test.js"
+          ],
+          "checksPassed": 7,
+          "checksTotal": 7
+        }
+      }
+    },
+    {
+      "order": 2,
+      "caseId": "query-encoding",
+      "arm": "proposal",
+      "repeat": 1,
+      "initialHead": "5044c77256f80d65ff51c5720d124be6fc4aa5cb",
+      "initialFiles": {
+        "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+        "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+        "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+      },
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 9028,
+        "renderedInputSha256": "6f497d0487ebb869df33cb334d9ad97ba81abac154c5cf0d1dbc5cb9c3f17dd6",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "attempts": [
+        {
+          "number": 1,
+          "route": {
+            "agentFileSettings": {
+              "model": "gpt-5.6-luna",
+              "model_reasoning_effort": "low"
+            },
+            "budgetScope": "per-attempt-estimate-not-billing-enforcement",
+            "estimatedTokens": 4000,
+            "evidence": {
+              "catalogSha256": "db65d25c016b0d065620fca362d6f6ce71bb95105e76b6093351fc8e533f0026",
+              "catalogSource": "codex-app-server:model/list",
+              "observedAt": "2026-09-07T14:53:39.476Z",
+              "policySha256": "afb6c690f604b1b22602816d57737598706b2495205b1abc371fc389693c8234",
+              "requestSha256": "f88a74015092d50d9ffb407e76ddffd66a3a0ffd9758ba6730e50e168b5bb176",
+              "taskRequestSha256": "125e7901d3b4799076571eca562c4e56d8c62f9331ff5d0589ad59cb2ce19067"
+            },
+            "execution": "NOT_RUN",
+            "executionKind": "independent-session",
+            "inheritanceUsed": false,
+            "model": "gpt-5.6-luna",
+            "nativeArguments": null,
+            "preflight": {
+              "status": "NOT_CHECKED"
+            },
+            "profile": "frugal",
+            "reasoning_effort": "low",
+            "rejected": [],
+            "relativeUnits": 1,
+            "requestedProfile": "frugal",
+            "riskFloorApplied": false,
+            "runtime": "codex",
+            "schema": "vulpora.model-route/v1",
+            "sessionArguments": {
+              "inheritHistory": false,
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low"
+            },
+            "status": "RESOLVED",
+            "taskSelection": {
+              "basis": "caller-supplied-task-facts-not-free-text-inference",
+              "difficulty": "simple",
+              "explicitProfile": "frugal",
+              "reason": "bounded_verifiable_task",
+              "recommendedProfile": "frugal",
+              "risk": "low",
+              "schema": "vulpora.task-model-selection/v1",
+              "selectedProfile": "frugal",
+              "taskType": "implementation"
+            }
+          },
+          "selection": {
+            "action": "INITIAL",
+            "reason": "PRODUCTION_TASK_CLASSIFICATION"
+          },
+          "capsuleSha256": "828e87d66237093d4e70eb599f3d98a59c5b99d65486813d8e9826e9e60196cf",
+          "workerMode": "edit-proposal",
+          "promptSha256": "27f61edee83521bc6d02de8b2372be9ff73809227aaa2bf3861bf27dd68b48eb",
+          "promptBytes": 3154,
+          "sourceContextBytes": 931,
+          "sourceContextSha256": "b4d1edff887a4da6b7c4449171ef43accf6b19df8ce20b1cd08579e9639067c9",
+          "initialFiles": {
+            "completed": true,
+            "files": {
+              "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+              "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+              "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+            },
+            "sha256": "c5ee0bd4af73c801349dbc14fe764c2358105d5b842c6873937acbd2346bb457"
+          },
+          "afterFiles": {
+            "completed": true,
+            "files": {
+              "src/query.js": "6301c030cabd010fb9e019299611a53526f0dc84784816b4b507899dd13b503f",
+              "src/search.js": "38bec19a5bacce845c1cb4fde7e091b06770b7b247904edc4a7fa18adb915109",
+              "test/search.test.js": "a0ada73e4284a3ae7f3f69f703592244a5f1adfc04ad6c8e6e34ac801f380dff"
+            },
+            "sha256": "332b83ac61259f2707d64d85838d8df9cae8e46bc4985b866220cdc953835a7d"
+          },
+          "runtime": {
+            "reason": null,
+            "exitCode": 0,
+            "signal": null,
+            "closeObserved": true,
+            "eventCount": 4,
+            "elapsedMs": 20812,
+            "outputBytes": 2923,
+            "stdoutSha256": "779a0087f1a989971c44abe58bf912ace1f8ab39a3e1d9ba67623bfcc708e1be",
+            "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "invocationSha256": "87b5886298e053017d43e5ff04f0f9a727337517d8ee4b3546c9917bb0cf77fb",
+            "requestedModel": "gpt-5.6-luna",
+            "requestedEffort": "low",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low",
+              "commandSha256": "792b2021e6d996fb476d777ad1958f40a35f185f374e581ccd3c00fe2a1c5f95",
+              "primarySessions": 1,
+              "nestedOrchestrator": false,
+              "backendIdentity": "NOT_ATTESTED",
+              "sandbox": "read-only"
+            },
+            "telemetry": {
+              "schema": "vulpora.session-telemetry/v1",
+              "measurementKind": "runtime_event_counts_and_utf8_bytes",
+              "providerTokenAttribution": "unavailable",
+              "rawContentRetained": false,
+              "eventTypes": {
+                "error": 0,
+                "item.completed": 1,
+                "item.started": 0,
+                "item.updated": 0,
+                "other": 0,
+                "thread.started": 1,
+                "turn.completed": 1,
+                "turn.failed": 0,
+                "turn.started": 1
+              },
+              "itemCompleted": {
+                "commandExecutions": 0,
+                "fileChanges": 0,
+                "agentMessages": 1
+              },
+              "byteProxies": {
+                "command": 0,
+                "aggregatedOutput": 0,
+                "agentTextBytes": 2484,
+                "labels": {
+                  "command": "utf8_bytes",
+                  "aggregatedOutput": "utf8_bytes",
+                  "agentTextBytes": "utf8_bytes"
+                }
+              },
+              "repeatedCommands": [],
+              "caps": {
+                "fingerprints": 128
+              },
+              "saturation": false,
+              "fingerprintOverflow": false
+            },
+            "failureDiagnostics": {
+              "schema": "vulpora.runtime-failure-diagnostics/v1",
+              "events": [],
+              "limit": 4,
+              "omittedEvents": 0,
+              "rawMessageRetained": false
+            },
+            "promptBytes": 3154,
+            "sourceContextBytes": 931,
+            "rawTranscriptRetained": false,
+            "backendIdentity": "NOT_ATTESTED",
+            "descendantCleanup": "NOT_ATTESTED",
+            "proposalBytes": 2484,
+            "proposalEditCount": 3,
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 8874,
+              "uncached_input_tokens": 8874,
+              "cached_input_tokens": 0,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 894,
+              "reasoning_tokens": 131,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 9768,
+              "billing_amount": null
+            },
+            "usageAdapterSource": "production session-result.runtime.usage",
+            "unexpectedChild": false
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true,
+              "gitHeadUnchanged": true
+            },
+            "changedFiles": [
+              "src/query.js",
+              "src/search.js",
+              "test/search.test.js"
+            ],
+            "checksPassed": 7,
+            "checksTotal": 7
+          },
+          "treatmentCompliant": true,
+          "accepted": true,
+          "gitHistory": {
+            "initialHead": "5044c77256f80d65ff51c5720d124be6fc4aa5cb",
+            "observedHead": "5044c77256f80d65ff51c5720d124be6fc4aa5cb",
+            "unchanged": true
+          },
+          "transport": {
+            "status": "candidate",
+            "execution": "EXIT_ZERO",
+            "verification": "NOT_VERIFIED",
+            "mutationState": "known_effect",
+            "scopedFilesChanged": [
+              "src/query.js",
+              "src/search.js",
+              "test/search.test.js"
+            ],
+            "budget": {
+              "committedTokens": 63635,
+              "remainingTokens": 436365,
+              "unresolvedAttempts": 0
+            }
+          }
+        }
+      ],
+      "accepted": true,
+      "finished": true,
+      "artifact": {
+        "saved": true,
+        "path": "02-query-encoding-proposal-1.patch",
+        "sha256": "96296e2b43a8d9731e8c17a1d586158ef219248f04537456b29467b8d52e4d73",
+        "bytes": 2528,
+        "accepted": true,
+        "initialFiles": {
+          "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+          "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+          "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+        },
+        "finalFiles": {
+          "src/query.js": "6301c030cabd010fb9e019299611a53526f0dc84784816b4b507899dd13b503f",
+          "src/search.js": "38bec19a5bacce845c1cb4fde7e091b06770b7b247904edc4a7fa18adb915109",
+          "test/search.test.js": "a0ada73e4284a3ae7f3f69f703592244a5f1adfc04ad6c8e6e34ac801f380dff"
+        },
+        "quality": {
+          "passed": true,
+          "checks": {
+            "testsPassed": true,
+            "oraclePassed": true,
+            "mutantChecksPassed": true,
+            "verifierCompleted": true,
+            "onlyAllowedFilesChanged": true,
+            "noSymlinksOrSpecialFiles": true,
+            "gitHeadUnchanged": true
+          },
+          "changedFiles": [
+            "src/query.js",
+            "src/search.js",
+            "test/search.test.js"
+          ],
+          "checksPassed": 7,
+          "checksTotal": 7
+        }
+      }
+    },
+    {
+      "order": 3,
+      "caseId": "retry",
+      "arm": "proposal",
+      "repeat": 1,
+      "initialHead": "92f4669fb94dd9d668732f65acdd626dd91eab94",
+      "initialFiles": {
+        "src/client.js": "7a8f8d76e47c522b2991bbf628b8101790fa9af413a3215422ef48ad1b159898",
+        "src/retry.js": "599eba53238c3368ae140fad4e4bd791c947851bc1dbe4d3582040fbaf8103f0",
+        "test/retry.test.js": "064afaca133b3cd9477d3c3ccdcc60ac738537fa858bb46cc8575ae2fb55d3d3"
+      },
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 12454,
+        "renderedInputSha256": "39907c1649f4aee0bd786bd5a5af66ab04b07bd8bd565140daea827512e56db4",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "attempts": [
+        {
+          "number": 1,
+          "route": {
+            "agentFileSettings": {
+              "model": "gpt-5.6-terra",
+              "model_reasoning_effort": "medium"
+            },
+            "budgetScope": "per-attempt-estimate-not-billing-enforcement",
+            "estimatedTokens": 4000,
+            "evidence": {
+              "catalogSha256": "db65d25c016b0d065620fca362d6f6ce71bb95105e76b6093351fc8e533f0026",
+              "catalogSource": "codex-app-server:model/list",
+              "observedAt": "2026-09-07T14:53:39.476Z",
+              "policySha256": "afb6c690f604b1b22602816d57737598706b2495205b1abc371fc389693c8234",
+              "requestSha256": "9638dc9cd36d1ab38bd7bdcd0c9ccc699fbae163469ae4c88d145c478e473b6a",
+              "taskRequestSha256": "835fd3a10e92b0d8926b849af1b76a43241c1c366fc50f1c5a5d70eff8783b26"
+            },
+            "execution": "NOT_RUN",
+            "executionKind": "independent-session",
+            "inheritanceUsed": false,
+            "model": "gpt-5.6-terra",
+            "nativeArguments": null,
+            "preflight": {
+              "status": "NOT_CHECKED"
+            },
+            "profile": "standard",
+            "reasoning_effort": "medium",
+            "rejected": [],
+            "relativeUnits": 10,
+            "requestedProfile": "standard",
+            "riskFloorApplied": false,
+            "runtime": "codex",
+            "schema": "vulpora.model-route/v1",
+            "sessionArguments": {
+              "inheritHistory": false,
+              "model": "gpt-5.6-terra",
+              "reasoning_effort": "medium"
+            },
+            "status": "RESOLVED",
+            "taskSelection": {
+              "basis": "caller-supplied-task-facts-not-free-text-inference",
+              "difficulty": "complex",
+              "explicitProfile": "standard",
+              "reason": "complex_work_decompose_before_escalation",
+              "recommendedProfile": "standard",
+              "risk": "low",
+              "schema": "vulpora.task-model-selection/v1",
+              "selectedProfile": "standard",
+              "taskType": "implementation"
+            }
+          },
+          "selection": {
+            "action": "INITIAL",
+            "reason": "PRODUCTION_TASK_CLASSIFICATION"
+          },
+          "capsuleSha256": "a25579d62819a3bdfc7682040190063cd00811817a8fc931b768d7948b82d1b2",
+          "workerMode": "edit-proposal",
+          "promptSha256": "6fc7b0b575e027cefd1617fe9fb697fc48582d5189e7950bc3cf90cc2ded1daf",
+          "promptBytes": 3432,
+          "sourceContextBytes": 933,
+          "sourceContextSha256": "d4d7d93f0e9d3843109039f6f6fb4c5a24befe9d26d413705c58e95a28f28608",
+          "initialFiles": {
+            "completed": true,
+            "files": {
+              "src/client.js": "7a8f8d76e47c522b2991bbf628b8101790fa9af413a3215422ef48ad1b159898",
+              "src/retry.js": "599eba53238c3368ae140fad4e4bd791c947851bc1dbe4d3582040fbaf8103f0",
+              "test/retry.test.js": "064afaca133b3cd9477d3c3ccdcc60ac738537fa858bb46cc8575ae2fb55d3d3"
+            },
+            "sha256": "dd92780954cac4aa58eb4fb3e283fc2aab25e894fee0d03263b6a000fe47cf69"
+          },
+          "afterFiles": {
+            "completed": true,
+            "files": {
+              "src/client.js": "8ded9a9d0a91eb5f71f6e3bef68c7014c3536a6e41ffd7ef0b04aeb1defc0f5f",
+              "src/retry.js": "692aeaeef3832609d62102a041471a655073944be430bfa6b3f8363524ab57d5",
+              "test/retry.test.js": "a52ebee74b2fbe40bc7e64057f2fcf516e0276cd856d23f459fe622637a92618"
+            },
+            "sha256": "a270f7ff738b8f5afd792c752f600ab5d409fcee064f4421da660e1e8d1d2dbd"
+          },
+          "runtime": {
+            "reason": null,
+            "exitCode": 0,
+            "signal": null,
+            "closeObserved": true,
+            "eventCount": 4,
+            "elapsedMs": 34140,
+            "outputBytes": 5424,
+            "stdoutSha256": "a0b8c4856259611f46d8f83f9869d61b30f0ca7e754a1fceff7501a53c5666b2",
+            "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "invocationSha256": "79a10007857ddae2b08e7b5a056a1abdc95b201889c2f58f334fc8b2b134ddd3",
+            "requestedModel": "gpt-5.6-terra",
+            "requestedEffort": "medium",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "model": "gpt-5.6-terra",
+              "reasoning_effort": "medium",
+              "commandSha256": "f501c1db329844c922899f4fe9c0ecf34b1b559269a2f87589b889cc55256c0a",
+              "primarySessions": 1,
+              "nestedOrchestrator": false,
+              "backendIdentity": "NOT_ATTESTED",
+              "sandbox": "read-only"
+            },
+            "telemetry": {
+              "schema": "vulpora.session-telemetry/v1",
+              "measurementKind": "runtime_event_counts_and_utf8_bytes",
+              "providerTokenAttribution": "unavailable",
+              "rawContentRetained": false,
+              "eventTypes": {
+                "error": 0,
+                "item.completed": 1,
+                "item.started": 0,
+                "item.updated": 0,
+                "other": 0,
+                "thread.started": 1,
+                "turn.completed": 1,
+                "turn.failed": 0,
+                "turn.started": 1
+              },
+              "itemCompleted": {
+                "commandExecutions": 0,
+                "fileChanges": 0,
+                "agentMessages": 1
+              },
+              "byteProxies": {
+                "command": 0,
+                "aggregatedOutput": 0,
+                "agentTextBytes": 4881,
+                "labels": {
+                  "command": "utf8_bytes",
+                  "aggregatedOutput": "utf8_bytes",
+                  "agentTextBytes": "utf8_bytes"
+                }
+              },
+              "repeatedCommands": [],
+              "caps": {
+                "fingerprints": 128
+              },
+              "saturation": false,
+              "fingerprintOverflow": false
+            },
+            "failureDiagnostics": {
+              "schema": "vulpora.runtime-failure-diagnostics/v1",
+              "events": [],
+              "limit": 4,
+              "omittedEvents": 0,
+              "rawMessageRetained": false
+            },
+            "promptBytes": 3432,
+            "sourceContextBytes": 933,
+            "rawTranscriptRetained": false,
+            "backendIdentity": "NOT_ATTESTED",
+            "descendantCleanup": "NOT_ATTESTED",
+            "proposalBytes": 4881,
+            "proposalEditCount": 3,
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 10493,
+              "uncached_input_tokens": 10493,
+              "cached_input_tokens": 0,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 1630,
+              "reasoning_tokens": 141,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 12123,
+              "billing_amount": null
+            },
+            "usageAdapterSource": "production session-result.runtime.usage",
+            "unexpectedChild": false
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true,
+              "gitHeadUnchanged": true
+            },
+            "changedFiles": [
+              "src/client.js",
+              "src/retry.js",
+              "test/retry.test.js"
+            ],
+            "checksPassed": 7,
+            "checksTotal": 7
+          },
+          "treatmentCompliant": true,
+          "accepted": true,
+          "gitHistory": {
+            "initialHead": "92f4669fb94dd9d668732f65acdd626dd91eab94",
+            "observedHead": "92f4669fb94dd9d668732f65acdd626dd91eab94",
+            "unchanged": true
+          },
+          "transport": {
+            "status": "candidate",
+            "execution": "EXIT_ZERO",
+            "verification": "NOT_VERIFIED",
+            "mutationState": "known_effect",
+            "scopedFilesChanged": [
+              "src/retry.js",
+              "src/client.js",
+              "test/retry.test.js"
+            ],
+            "budget": {
+              "committedTokens": 75758,
+              "remainingTokens": 424242,
+              "unresolvedAttempts": 0
+            }
+          }
+        }
+      ],
+      "accepted": true,
+      "finished": true,
+      "artifact": {
+        "saved": true,
+        "path": "03-retry-proposal-1.patch",
+        "sha256": "fb265dfd32fc0c7bd513608445f2110f6c3c4d54862aaf7c8e3460996c22801e",
+        "bytes": 5151,
+        "accepted": true,
+        "initialFiles": {
+          "src/client.js": "7a8f8d76e47c522b2991bbf628b8101790fa9af413a3215422ef48ad1b159898",
+          "src/retry.js": "599eba53238c3368ae140fad4e4bd791c947851bc1dbe4d3582040fbaf8103f0",
+          "test/retry.test.js": "064afaca133b3cd9477d3c3ccdcc60ac738537fa858bb46cc8575ae2fb55d3d3"
+        },
+        "finalFiles": {
+          "src/client.js": "8ded9a9d0a91eb5f71f6e3bef68c7014c3536a6e41ffd7ef0b04aeb1defc0f5f",
+          "src/retry.js": "692aeaeef3832609d62102a041471a655073944be430bfa6b3f8363524ab57d5",
+          "test/retry.test.js": "a52ebee74b2fbe40bc7e64057f2fcf516e0276cd856d23f459fe622637a92618"
+        },
+        "quality": {
+          "passed": true,
+          "checks": {
+            "testsPassed": true,
+            "oraclePassed": true,
+            "mutantChecksPassed": true,
+            "verifierCompleted": true,
+            "onlyAllowedFilesChanged": true,
+            "noSymlinksOrSpecialFiles": true,
+            "gitHeadUnchanged": true
+          },
+          "changedFiles": [
+            "src/client.js",
+            "src/retry.js",
+            "test/retry.test.js"
+          ],
+          "checksPassed": 7,
+          "checksTotal": 7
+        }
+      }
+    },
+    {
+      "order": 4,
+      "caseId": "retry",
+      "arm": "agent",
+      "repeat": 1,
+      "initialHead": "28632d7156a7308fa09b939dfe77135e3d236233",
+      "initialFiles": {
+        "src/client.js": "7a8f8d76e47c522b2991bbf628b8101790fa9af413a3215422ef48ad1b159898",
+        "src/retry.js": "599eba53238c3368ae140fad4e4bd791c947851bc1dbe4d3582040fbaf8103f0",
+        "test/retry.test.js": "064afaca133b3cd9477d3c3ccdcc60ac738537fa858bb46cc8575ae2fb55d3d3"
+      },
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 11468,
+        "renderedInputSha256": "708761b8d403c0425be59cedbe9cd4300b78461746e53bf26061a02cbff485bb",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "attempts": [
+        {
+          "number": 1,
+          "route": {
+            "agentFileSettings": {
+              "model": "gpt-5.6-terra",
+              "model_reasoning_effort": "medium"
+            },
+            "budgetScope": "per-attempt-estimate-not-billing-enforcement",
+            "estimatedTokens": 4000,
+            "evidence": {
+              "catalogSha256": "db65d25c016b0d065620fca362d6f6ce71bb95105e76b6093351fc8e533f0026",
+              "catalogSource": "codex-app-server:model/list",
+              "observedAt": "2026-09-07T14:53:39.476Z",
+              "policySha256": "afb6c690f604b1b22602816d57737598706b2495205b1abc371fc389693c8234",
+              "requestSha256": "9638dc9cd36d1ab38bd7bdcd0c9ccc699fbae163469ae4c88d145c478e473b6a",
+              "taskRequestSha256": "835fd3a10e92b0d8926b849af1b76a43241c1c366fc50f1c5a5d70eff8783b26"
+            },
+            "execution": "NOT_RUN",
+            "executionKind": "independent-session",
+            "inheritanceUsed": false,
+            "model": "gpt-5.6-terra",
+            "nativeArguments": null,
+            "preflight": {
+              "status": "NOT_CHECKED"
+            },
+            "profile": "standard",
+            "reasoning_effort": "medium",
+            "rejected": [],
+            "relativeUnits": 10,
+            "requestedProfile": "standard",
+            "riskFloorApplied": false,
+            "runtime": "codex",
+            "schema": "vulpora.model-route/v1",
+            "sessionArguments": {
+              "inheritHistory": false,
+              "model": "gpt-5.6-terra",
+              "reasoning_effort": "medium"
+            },
+            "status": "RESOLVED",
+            "taskSelection": {
+              "basis": "caller-supplied-task-facts-not-free-text-inference",
+              "difficulty": "complex",
+              "explicitProfile": "standard",
+              "reason": "complex_work_decompose_before_escalation",
+              "recommendedProfile": "standard",
+              "risk": "low",
+              "schema": "vulpora.task-model-selection/v1",
+              "selectedProfile": "standard",
+              "taskType": "implementation"
+            }
+          },
+          "selection": {
+            "action": "INITIAL",
+            "reason": "PRODUCTION_TASK_CLASSIFICATION"
+          },
+          "capsuleSha256": "fc042e3bb407fa199dc078ae15af2fd3a448477291aed65b68f53eb8a82e1288",
+          "workerMode": "agent",
+          "promptSha256": "8ee39ced4b2eaf1da7ace897de6a9af133873f68560e0b9764ddf47e7a60a116",
+          "promptBytes": 2493,
+          "sourceContextBytes": 0,
+          "sourceContextSha256": null,
+          "initialFiles": {
+            "completed": true,
+            "files": {
+              "src/client.js": "7a8f8d76e47c522b2991bbf628b8101790fa9af413a3215422ef48ad1b159898",
+              "src/retry.js": "599eba53238c3368ae140fad4e4bd791c947851bc1dbe4d3582040fbaf8103f0",
+              "test/retry.test.js": "064afaca133b3cd9477d3c3ccdcc60ac738537fa858bb46cc8575ae2fb55d3d3"
+            },
+            "sha256": "dd92780954cac4aa58eb4fb3e283fc2aab25e894fee0d03263b6a000fe47cf69"
+          },
+          "afterFiles": {
+            "completed": true,
+            "files": {
+              "src/client.js": "9628a8f08c050404849e501c8a39e758abcf9896a9ce5c972c5128562b6700a7",
+              "src/retry.js": "f9c58303a0ec95c68705db86d72dd51e2e2db0fba131c1c0053d8d6df50269bb",
+              "test/retry.test.js": "f9c48011b60a4e38986fd6196037e7ea5c55b6a6c1d4bb3aa8cc7a8b21d73c24"
+            },
+            "sha256": "5801789202186a21f51b1074e100221727039af1e51b8a9dee3b86c0589b1ec5"
+          },
+          "runtime": {
+            "reason": null,
+            "exitCode": 0,
+            "signal": null,
+            "closeObserved": true,
+            "eventCount": 12,
+            "elapsedMs": 59562,
+            "outputBytes": 10478,
+            "stdoutSha256": "7012c858b4609b3ca48784fd2886e29d005bdb397c30ecda8a5992adf3d0df31",
+            "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "invocationSha256": "d6a934fb71e2101fce97150a50b74a1cc738520074c8626e48b4570688a10f9a",
+            "requestedModel": "gpt-5.6-terra",
+            "requestedEffort": "medium",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "model": "gpt-5.6-terra",
+              "reasoning_effort": "medium",
+              "commandSha256": "6f773e2f30a3ac17a5842a21613102c44aa70d11fe5e898c8fdcb0b27b272ef9",
+              "primarySessions": 1,
+              "nestedOrchestrator": false,
+              "backendIdentity": "NOT_ATTESTED",
+              "sandbox": "workspace-write"
+            },
+            "telemetry": {
+              "schema": "vulpora.session-telemetry/v1",
+              "measurementKind": "runtime_event_counts_and_utf8_bytes",
+              "providerTokenAttribution": "unavailable",
+              "rawContentRetained": false,
+              "eventTypes": {
+                "error": 0,
+                "item.completed": 6,
+                "item.started": 3,
+                "item.updated": 0,
+                "other": 0,
+                "thread.started": 1,
+                "turn.completed": 1,
+                "turn.failed": 0,
+                "turn.started": 1
+              },
+              "itemCompleted": {
+                "commandExecutions": 2,
+                "fileChanges": 1,
+                "agentMessages": 3
+              },
+              "byteProxies": {
+                "command": 402,
+                "aggregatedOutput": 5675,
+                "agentTextBytes": 1531,
+                "labels": {
+                  "command": "utf8_bytes",
+                  "aggregatedOutput": "utf8_bytes",
+                  "agentTextBytes": "utf8_bytes"
+                }
+              },
+              "repeatedCommands": [],
+              "caps": {
+                "fingerprints": 128
+              },
+              "saturation": false,
+              "fingerprintOverflow": false
+            },
+            "failureDiagnostics": {
+              "schema": "vulpora.runtime-failure-diagnostics/v1",
+              "events": [],
+              "limit": 4,
+              "omittedEvents": 0,
+              "rawMessageRetained": false
+            },
+            "promptBytes": 2493,
+            "sourceContextBytes": 0,
+            "rawTranscriptRetained": false,
+            "backendIdentity": "NOT_ATTESTED",
+            "descendantCleanup": "NOT_ATTESTED",
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 61925,
+              "uncached_input_tokens": 19685,
+              "cached_input_tokens": 42240,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 2691,
+              "reasoning_tokens": 338,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 64616,
+              "billing_amount": null
+            },
+            "usageAdapterSource": "production session-result.runtime.usage",
+            "unexpectedChild": false
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true,
+              "gitHeadUnchanged": true
+            },
+            "changedFiles": [
+              "src/client.js",
+              "src/retry.js",
+              "test/retry.test.js"
+            ],
+            "checksPassed": 7,
+            "checksTotal": 7
+          },
+          "treatmentCompliant": true,
+          "accepted": true,
+          "gitHistory": {
+            "initialHead": "28632d7156a7308fa09b939dfe77135e3d236233",
+            "observedHead": "28632d7156a7308fa09b939dfe77135e3d236233",
+            "unchanged": true
+          },
+          "transport": {
+            "status": "candidate",
+            "execution": "EXIT_ZERO",
+            "verification": "NOT_VERIFIED",
+            "mutationState": "known_effect",
+            "scopedFilesChanged": [
+              "src/retry.js",
+              "src/client.js",
+              "test/retry.test.js"
+            ],
+            "budget": {
+              "committedTokens": 140374,
+              "remainingTokens": 359626,
+              "unresolvedAttempts": 0
+            }
+          }
+        }
+      ],
+      "accepted": true,
+      "finished": true,
+      "artifact": {
+        "saved": true,
+        "path": "04-retry-agent-1.patch",
+        "sha256": "4f4af34b5b337b80df22f647582b5e5642c73958f79aa46f8274206105e51ad7",
+        "bytes": 4903,
+        "accepted": true,
+        "initialFiles": {
+          "src/client.js": "7a8f8d76e47c522b2991bbf628b8101790fa9af413a3215422ef48ad1b159898",
+          "src/retry.js": "599eba53238c3368ae140fad4e4bd791c947851bc1dbe4d3582040fbaf8103f0",
+          "test/retry.test.js": "064afaca133b3cd9477d3c3ccdcc60ac738537fa858bb46cc8575ae2fb55d3d3"
+        },
+        "finalFiles": {
+          "src/client.js": "9628a8f08c050404849e501c8a39e758abcf9896a9ce5c972c5128562b6700a7",
+          "src/retry.js": "f9c58303a0ec95c68705db86d72dd51e2e2db0fba131c1c0053d8d6df50269bb",
+          "test/retry.test.js": "f9c48011b60a4e38986fd6196037e7ea5c55b6a6c1d4bb3aa8cc7a8b21d73c24"
+        },
+        "quality": {
+          "passed": true,
+          "checks": {
+            "testsPassed": true,
+            "oraclePassed": true,
+            "mutantChecksPassed": true,
+            "verifierCompleted": true,
+            "onlyAllowedFilesChanged": true,
+            "noSymlinksOrSpecialFiles": true,
+            "gitHeadUnchanged": true
+          },
+          "changedFiles": [
+            "src/client.js",
+            "src/retry.js",
+            "test/retry.test.js"
+          ],
+          "checksPassed": 7,
+          "checksTotal": 7
+        }
+      }
+    },
+    {
+      "order": 5,
+      "caseId": "retry",
+      "arm": "agent",
+      "repeat": 2,
+      "initialHead": "2aee0e60642e32d18b222353cc20ae4b9feb15ba",
+      "initialFiles": {
+        "src/client.js": "7a8f8d76e47c522b2991bbf628b8101790fa9af413a3215422ef48ad1b159898",
+        "src/retry.js": "599eba53238c3368ae140fad4e4bd791c947851bc1dbe4d3582040fbaf8103f0",
+        "test/retry.test.js": "064afaca133b3cd9477d3c3ccdcc60ac738537fa858bb46cc8575ae2fb55d3d3"
+      },
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 11468,
+        "renderedInputSha256": "00c08cf46934e861b90d011d708c9c1567ce15178bd2f215e1d2650aae0f45be",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "attempts": [
+        {
+          "number": 1,
+          "route": {
+            "agentFileSettings": {
+              "model": "gpt-5.6-terra",
+              "model_reasoning_effort": "medium"
+            },
+            "budgetScope": "per-attempt-estimate-not-billing-enforcement",
+            "estimatedTokens": 4000,
+            "evidence": {
+              "catalogSha256": "db65d25c016b0d065620fca362d6f6ce71bb95105e76b6093351fc8e533f0026",
+              "catalogSource": "codex-app-server:model/list",
+              "observedAt": "2026-09-07T14:53:39.476Z",
+              "policySha256": "afb6c690f604b1b22602816d57737598706b2495205b1abc371fc389693c8234",
+              "requestSha256": "9638dc9cd36d1ab38bd7bdcd0c9ccc699fbae163469ae4c88d145c478e473b6a",
+              "taskRequestSha256": "835fd3a10e92b0d8926b849af1b76a43241c1c366fc50f1c5a5d70eff8783b26"
+            },
+            "execution": "NOT_RUN",
+            "executionKind": "independent-session",
+            "inheritanceUsed": false,
+            "model": "gpt-5.6-terra",
+            "nativeArguments": null,
+            "preflight": {
+              "status": "NOT_CHECKED"
+            },
+            "profile": "standard",
+            "reasoning_effort": "medium",
+            "rejected": [],
+            "relativeUnits": 10,
+            "requestedProfile": "standard",
+            "riskFloorApplied": false,
+            "runtime": "codex",
+            "schema": "vulpora.model-route/v1",
+            "sessionArguments": {
+              "inheritHistory": false,
+              "model": "gpt-5.6-terra",
+              "reasoning_effort": "medium"
+            },
+            "status": "RESOLVED",
+            "taskSelection": {
+              "basis": "caller-supplied-task-facts-not-free-text-inference",
+              "difficulty": "complex",
+              "explicitProfile": "standard",
+              "reason": "complex_work_decompose_before_escalation",
+              "recommendedProfile": "standard",
+              "risk": "low",
+              "schema": "vulpora.task-model-selection/v1",
+              "selectedProfile": "standard",
+              "taskType": "implementation"
+            }
+          },
+          "selection": {
+            "action": "INITIAL",
+            "reason": "PRODUCTION_TASK_CLASSIFICATION"
+          },
+          "capsuleSha256": "e6cfbd8dd2065784f6574bcf9692a512ec785320e8fb4360b875ee4e33e959a5",
+          "workerMode": "agent",
+          "promptSha256": "60895bab7ee6bfa2cb4af26e358c3940779f52c4c64c8f07d6b9a48c1f35ec17",
+          "promptBytes": 2493,
+          "sourceContextBytes": 0,
+          "sourceContextSha256": null,
+          "initialFiles": {
+            "completed": true,
+            "files": {
+              "src/client.js": "7a8f8d76e47c522b2991bbf628b8101790fa9af413a3215422ef48ad1b159898",
+              "src/retry.js": "599eba53238c3368ae140fad4e4bd791c947851bc1dbe4d3582040fbaf8103f0",
+              "test/retry.test.js": "064afaca133b3cd9477d3c3ccdcc60ac738537fa858bb46cc8575ae2fb55d3d3"
+            },
+            "sha256": "dd92780954cac4aa58eb4fb3e283fc2aab25e894fee0d03263b6a000fe47cf69"
+          },
+          "afterFiles": {
+            "completed": true,
+            "files": {
+              "src/client.js": "fc44de488c5393ee98dd78ae9c96ef0e85e2e650af01a3c7c79374196dc516ac",
+              "src/retry.js": "943b1142a5452afe6eac5cd38b7e2077580626bbc189653a86a3b2053dfd2a1c",
+              "test/retry.test.js": "362f43b84b3ff9f169387c7af60bc58011ef16f0ea420440144826b1664dd0a2"
+            },
+            "sha256": "f3f97275a996025e67dd86e4f87fb0623b221b6d96845f9122d70a2ca4cb7b41"
+          },
+          "runtime": {
+            "reason": null,
+            "exitCode": 0,
+            "signal": null,
+            "closeObserved": true,
+            "eventCount": 13,
+            "elapsedMs": 60183,
+            "outputBytes": 9378,
+            "stdoutSha256": "75bed8151dbbced6916bbd9a86c5f07817e69b279564dbba01fd5a7f3976a264",
+            "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "invocationSha256": "c3a151718fd0181d518b4881fe434b70501d2c20f49bb4abfc2d1ac72405cf72",
+            "requestedModel": "gpt-5.6-terra",
+            "requestedEffort": "medium",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "model": "gpt-5.6-terra",
+              "reasoning_effort": "medium",
+              "commandSha256": "df95136a45563b7874cd8999b6eb9068f071ad7932a914fde35deb7aeb24e280",
+              "primarySessions": 1,
+              "nestedOrchestrator": false,
+              "backendIdentity": "NOT_ATTESTED",
+              "sandbox": "workspace-write"
+            },
+            "telemetry": {
+              "schema": "vulpora.session-telemetry/v1",
+              "measurementKind": "runtime_event_counts_and_utf8_bytes",
+              "providerTokenAttribution": "unavailable",
+              "rawContentRetained": false,
+              "eventTypes": {
+                "error": 0,
+                "item.completed": 6,
+                "item.started": 4,
+                "item.updated": 0,
+                "other": 0,
+                "thread.started": 1,
+                "turn.completed": 1,
+                "turn.failed": 0,
+                "turn.started": 1
+              },
+              "itemCompleted": {
+                "commandExecutions": 3,
+                "fileChanges": 1,
+                "agentMessages": 2
+              },
+              "byteProxies": {
+                "command": 509,
+                "aggregatedOutput": 4800,
+                "agentTextBytes": 954,
+                "labels": {
+                  "command": "utf8_bytes",
+                  "aggregatedOutput": "utf8_bytes",
+                  "agentTextBytes": "utf8_bytes"
+                }
+              },
+              "repeatedCommands": [],
+              "caps": {
+                "fingerprints": 128
+              },
+              "saturation": false,
+              "fingerprintOverflow": false
+            },
+            "failureDiagnostics": {
+              "schema": "vulpora.runtime-failure-diagnostics/v1",
+              "events": [],
+              "limit": 4,
+              "omittedEvents": 0,
+              "rawMessageRetained": false
+            },
+            "promptBytes": 2493,
+            "sourceContextBytes": 0,
+            "rawTranscriptRetained": false,
+            "backendIdentity": "NOT_ATTESTED",
+            "descendantCleanup": "NOT_ATTESTED",
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 75266,
+              "uncached_input_tokens": 19970,
+              "cached_input_tokens": 55296,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 2515,
+              "reasoning_tokens": 456,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 77781,
+              "billing_amount": null
+            },
+            "usageAdapterSource": "production session-result.runtime.usage",
+            "unexpectedChild": false
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true,
+              "gitHeadUnchanged": true
+            },
+            "changedFiles": [
+              "src/client.js",
+              "src/retry.js",
+              "test/retry.test.js"
+            ],
+            "checksPassed": 7,
+            "checksTotal": 7
+          },
+          "treatmentCompliant": true,
+          "accepted": true,
+          "gitHistory": {
+            "initialHead": "2aee0e60642e32d18b222353cc20ae4b9feb15ba",
+            "observedHead": "2aee0e60642e32d18b222353cc20ae4b9feb15ba",
+            "unchanged": true
+          },
+          "transport": {
+            "status": "candidate",
+            "execution": "EXIT_ZERO",
+            "verification": "NOT_VERIFIED",
+            "mutationState": "known_effect",
+            "scopedFilesChanged": [
+              "src/retry.js",
+              "src/client.js",
+              "test/retry.test.js"
+            ],
+            "budget": {
+              "committedTokens": 218155,
+              "remainingTokens": 281845,
+              "unresolvedAttempts": 0
+            }
+          }
+        }
+      ],
+      "accepted": true,
+      "finished": true,
+      "artifact": {
+        "saved": true,
+        "path": "05-retry-agent-2.patch",
+        "sha256": "8f19edffc4b20d32c6c6dbad5cf8baf15344cb577378cc6bd54784171ed3f887",
+        "bytes": 4073,
+        "accepted": true,
+        "initialFiles": {
+          "src/client.js": "7a8f8d76e47c522b2991bbf628b8101790fa9af413a3215422ef48ad1b159898",
+          "src/retry.js": "599eba53238c3368ae140fad4e4bd791c947851bc1dbe4d3582040fbaf8103f0",
+          "test/retry.test.js": "064afaca133b3cd9477d3c3ccdcc60ac738537fa858bb46cc8575ae2fb55d3d3"
+        },
+        "finalFiles": {
+          "src/client.js": "fc44de488c5393ee98dd78ae9c96ef0e85e2e650af01a3c7c79374196dc516ac",
+          "src/retry.js": "943b1142a5452afe6eac5cd38b7e2077580626bbc189653a86a3b2053dfd2a1c",
+          "test/retry.test.js": "362f43b84b3ff9f169387c7af60bc58011ef16f0ea420440144826b1664dd0a2"
+        },
+        "quality": {
+          "passed": true,
+          "checks": {
+            "testsPassed": true,
+            "oraclePassed": true,
+            "mutantChecksPassed": true,
+            "verifierCompleted": true,
+            "onlyAllowedFilesChanged": true,
+            "noSymlinksOrSpecialFiles": true,
+            "gitHeadUnchanged": true
+          },
+          "changedFiles": [
+            "src/client.js",
+            "src/retry.js",
+            "test/retry.test.js"
+          ],
+          "checksPassed": 7,
+          "checksTotal": 7
+        }
+      }
+    },
+    {
+      "order": 6,
+      "caseId": "retry",
+      "arm": "proposal",
+      "repeat": 2,
+      "initialHead": "2aee0e60642e32d18b222353cc20ae4b9feb15ba",
+      "initialFiles": {
+        "src/client.js": "7a8f8d76e47c522b2991bbf628b8101790fa9af413a3215422ef48ad1b159898",
+        "src/retry.js": "599eba53238c3368ae140fad4e4bd791c947851bc1dbe4d3582040fbaf8103f0",
+        "test/retry.test.js": "064afaca133b3cd9477d3c3ccdcc60ac738537fa858bb46cc8575ae2fb55d3d3"
+      },
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 12453,
+        "renderedInputSha256": "94dfd3d69921fec667a9328bc65d6892ba255d8ff295259e56f17a0a7bf73130",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "attempts": [
+        {
+          "number": 1,
+          "route": {
+            "agentFileSettings": {
+              "model": "gpt-5.6-terra",
+              "model_reasoning_effort": "medium"
+            },
+            "budgetScope": "per-attempt-estimate-not-billing-enforcement",
+            "estimatedTokens": 4000,
+            "evidence": {
+              "catalogSha256": "db65d25c016b0d065620fca362d6f6ce71bb95105e76b6093351fc8e533f0026",
+              "catalogSource": "codex-app-server:model/list",
+              "observedAt": "2026-09-07T14:53:39.476Z",
+              "policySha256": "afb6c690f604b1b22602816d57737598706b2495205b1abc371fc389693c8234",
+              "requestSha256": "9638dc9cd36d1ab38bd7bdcd0c9ccc699fbae163469ae4c88d145c478e473b6a",
+              "taskRequestSha256": "835fd3a10e92b0d8926b849af1b76a43241c1c366fc50f1c5a5d70eff8783b26"
+            },
+            "execution": "NOT_RUN",
+            "executionKind": "independent-session",
+            "inheritanceUsed": false,
+            "model": "gpt-5.6-terra",
+            "nativeArguments": null,
+            "preflight": {
+              "status": "NOT_CHECKED"
+            },
+            "profile": "standard",
+            "reasoning_effort": "medium",
+            "rejected": [],
+            "relativeUnits": 10,
+            "requestedProfile": "standard",
+            "riskFloorApplied": false,
+            "runtime": "codex",
+            "schema": "vulpora.model-route/v1",
+            "sessionArguments": {
+              "inheritHistory": false,
+              "model": "gpt-5.6-terra",
+              "reasoning_effort": "medium"
+            },
+            "status": "RESOLVED",
+            "taskSelection": {
+              "basis": "caller-supplied-task-facts-not-free-text-inference",
+              "difficulty": "complex",
+              "explicitProfile": "standard",
+              "reason": "complex_work_decompose_before_escalation",
+              "recommendedProfile": "standard",
+              "risk": "low",
+              "schema": "vulpora.task-model-selection/v1",
+              "selectedProfile": "standard",
+              "taskType": "implementation"
+            }
+          },
+          "selection": {
+            "action": "INITIAL",
+            "reason": "PRODUCTION_TASK_CLASSIFICATION"
+          },
+          "capsuleSha256": "dbf8ed41fdf9f54334baf5563ccb2adde0ccda0a8fab015204f9f643e400f715",
+          "workerMode": "edit-proposal",
+          "promptSha256": "7fd17810a54e4c42123880212d2670593cf6b3d0cea5f73b05c5c809388fd8f4",
+          "promptBytes": 3432,
+          "sourceContextBytes": 933,
+          "sourceContextSha256": "d4d7d93f0e9d3843109039f6f6fb4c5a24befe9d26d413705c58e95a28f28608",
+          "initialFiles": {
+            "completed": true,
+            "files": {
+              "src/client.js": "7a8f8d76e47c522b2991bbf628b8101790fa9af413a3215422ef48ad1b159898",
+              "src/retry.js": "599eba53238c3368ae140fad4e4bd791c947851bc1dbe4d3582040fbaf8103f0",
+              "test/retry.test.js": "064afaca133b3cd9477d3c3ccdcc60ac738537fa858bb46cc8575ae2fb55d3d3"
+            },
+            "sha256": "dd92780954cac4aa58eb4fb3e283fc2aab25e894fee0d03263b6a000fe47cf69"
+          },
+          "afterFiles": {
+            "completed": true,
+            "files": {
+              "src/client.js": "7c2569528a46ad266a98701e9a57886c369a51c6ca4836a81a1ed57079d9ea26",
+              "src/retry.js": "2365ccd7b3394d2c72a9b8c655d39ba060c9b133263e9789c6904239f6c8c995",
+              "test/retry.test.js": "417f34cf385f272256f1e92433de0665affc4891c41f234f9cb9f65c38bf8685"
+            },
+            "sha256": "9a90e2e0ec8c359c3a31805ddacdf23237812ea5867864966fac27c2a6c38e79"
+          },
+          "runtime": {
+            "reason": null,
+            "exitCode": 0,
+            "signal": null,
+            "closeObserved": true,
+            "eventCount": 4,
+            "elapsedMs": 29408,
+            "outputBytes": 4503,
+            "stdoutSha256": "8edd5fcde79c1b270cce632fad39003e0335c278e404b7cae4546c1d17f4b623",
+            "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "invocationSha256": "0f156775c5752f80c406ab587aebb1276e4a67dfff789fb28dc7a9d68d9f36d6",
+            "requestedModel": "gpt-5.6-terra",
+            "requestedEffort": "medium",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "model": "gpt-5.6-terra",
+              "reasoning_effort": "medium",
+              "commandSha256": "eaa3ec1e8806016b29d4241406ec879bef4937860cd39200c5b8cb24cdaba928",
+              "primarySessions": 1,
+              "nestedOrchestrator": false,
+              "backendIdentity": "NOT_ATTESTED",
+              "sandbox": "read-only"
+            },
+            "telemetry": {
+              "schema": "vulpora.session-telemetry/v1",
+              "measurementKind": "runtime_event_counts_and_utf8_bytes",
+              "providerTokenAttribution": "unavailable",
+              "rawContentRetained": false,
+              "eventTypes": {
+                "error": 0,
+                "item.completed": 1,
+                "item.started": 0,
+                "item.updated": 0,
+                "other": 0,
+                "thread.started": 1,
+                "turn.completed": 1,
+                "turn.failed": 0,
+                "turn.started": 1
+              },
+              "itemCompleted": {
+                "commandExecutions": 0,
+                "fileChanges": 0,
+                "agentMessages": 1
+              },
+              "byteProxies": {
+                "command": 0,
+                "aggregatedOutput": 0,
+                "agentTextBytes": 3992,
+                "labels": {
+                  "command": "utf8_bytes",
+                  "aggregatedOutput": "utf8_bytes",
+                  "agentTextBytes": "utf8_bytes"
+                }
+              },
+              "repeatedCommands": [],
+              "caps": {
+                "fingerprints": 128
+              },
+              "saturation": false,
+              "fingerprintOverflow": false
+            },
+            "failureDiagnostics": {
+              "schema": "vulpora.runtime-failure-diagnostics/v1",
+              "events": [],
+              "limit": 4,
+              "omittedEvents": 0,
+              "rawMessageRetained": false
+            },
+            "promptBytes": 3432,
+            "sourceContextBytes": 933,
+            "rawTranscriptRetained": false,
+            "backendIdentity": "NOT_ATTESTED",
+            "descendantCleanup": "NOT_ATTESTED",
+            "proposalBytes": 3992,
+            "proposalEditCount": 3,
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 10496,
+              "uncached_input_tokens": 10496,
+              "cached_input_tokens": 0,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 1339,
+              "reasoning_tokens": 113,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 11835,
+              "billing_amount": null
+            },
+            "usageAdapterSource": "production session-result.runtime.usage",
+            "unexpectedChild": false
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true,
+              "gitHeadUnchanged": true
+            },
+            "changedFiles": [
+              "src/client.js",
+              "src/retry.js",
+              "test/retry.test.js"
+            ],
+            "checksPassed": 7,
+            "checksTotal": 7
+          },
+          "treatmentCompliant": true,
+          "accepted": true,
+          "gitHistory": {
+            "initialHead": "2aee0e60642e32d18b222353cc20ae4b9feb15ba",
+            "observedHead": "2aee0e60642e32d18b222353cc20ae4b9feb15ba",
+            "unchanged": true
+          },
+          "transport": {
+            "status": "candidate",
+            "execution": "EXIT_ZERO",
+            "verification": "NOT_VERIFIED",
+            "mutationState": "known_effect",
+            "scopedFilesChanged": [
+              "src/retry.js",
+              "src/client.js",
+              "test/retry.test.js"
+            ],
+            "budget": {
+              "committedTokens": 229990,
+              "remainingTokens": 270010,
+              "unresolvedAttempts": 0
+            }
+          }
+        }
+      ],
+      "accepted": true,
+      "finished": true,
+      "artifact": {
+        "saved": true,
+        "path": "06-retry-proposal-2.patch",
+        "sha256": "4589ccf521f6be30b342ba499565c1dce7f09cec1f38e09beea1bea196430652",
+        "bytes": 4307,
+        "accepted": true,
+        "initialFiles": {
+          "src/client.js": "7a8f8d76e47c522b2991bbf628b8101790fa9af413a3215422ef48ad1b159898",
+          "src/retry.js": "599eba53238c3368ae140fad4e4bd791c947851bc1dbe4d3582040fbaf8103f0",
+          "test/retry.test.js": "064afaca133b3cd9477d3c3ccdcc60ac738537fa858bb46cc8575ae2fb55d3d3"
+        },
+        "finalFiles": {
+          "src/client.js": "7c2569528a46ad266a98701e9a57886c369a51c6ca4836a81a1ed57079d9ea26",
+          "src/retry.js": "2365ccd7b3394d2c72a9b8c655d39ba060c9b133263e9789c6904239f6c8c995",
+          "test/retry.test.js": "417f34cf385f272256f1e92433de0665affc4891c41f234f9cb9f65c38bf8685"
+        },
+        "quality": {
+          "passed": true,
+          "checks": {
+            "testsPassed": true,
+            "oraclePassed": true,
+            "mutantChecksPassed": true,
+            "verifierCompleted": true,
+            "onlyAllowedFilesChanged": true,
+            "noSymlinksOrSpecialFiles": true,
+            "gitHeadUnchanged": true
+          },
+          "changedFiles": [
+            "src/client.js",
+            "src/retry.js",
+            "test/retry.test.js"
+          ],
+          "checksPassed": 7,
+          "checksTotal": 7
+        }
+      }
+    },
+    {
+      "order": 7,
+      "caseId": "query-encoding",
+      "arm": "proposal",
+      "repeat": 2,
+      "initialHead": "04531ea82cccdff1517dea6652fc9f7e62a54320",
+      "initialFiles": {
+        "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+        "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+        "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+      },
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 9028,
+        "renderedInputSha256": "e00797e9955b6cb89fff538cee7bf1cccc0adf386321af201161375a3a46bf77",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "attempts": [
+        {
+          "number": 1,
+          "route": {
+            "agentFileSettings": {
+              "model": "gpt-5.6-luna",
+              "model_reasoning_effort": "low"
+            },
+            "budgetScope": "per-attempt-estimate-not-billing-enforcement",
+            "estimatedTokens": 4000,
+            "evidence": {
+              "catalogSha256": "db65d25c016b0d065620fca362d6f6ce71bb95105e76b6093351fc8e533f0026",
+              "catalogSource": "codex-app-server:model/list",
+              "observedAt": "2026-09-07T14:53:39.476Z",
+              "policySha256": "afb6c690f604b1b22602816d57737598706b2495205b1abc371fc389693c8234",
+              "requestSha256": "f88a74015092d50d9ffb407e76ddffd66a3a0ffd9758ba6730e50e168b5bb176",
+              "taskRequestSha256": "125e7901d3b4799076571eca562c4e56d8c62f9331ff5d0589ad59cb2ce19067"
+            },
+            "execution": "NOT_RUN",
+            "executionKind": "independent-session",
+            "inheritanceUsed": false,
+            "model": "gpt-5.6-luna",
+            "nativeArguments": null,
+            "preflight": {
+              "status": "NOT_CHECKED"
+            },
+            "profile": "frugal",
+            "reasoning_effort": "low",
+            "rejected": [],
+            "relativeUnits": 1,
+            "requestedProfile": "frugal",
+            "riskFloorApplied": false,
+            "runtime": "codex",
+            "schema": "vulpora.model-route/v1",
+            "sessionArguments": {
+              "inheritHistory": false,
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low"
+            },
+            "status": "RESOLVED",
+            "taskSelection": {
+              "basis": "caller-supplied-task-facts-not-free-text-inference",
+              "difficulty": "simple",
+              "explicitProfile": "frugal",
+              "reason": "bounded_verifiable_task",
+              "recommendedProfile": "frugal",
+              "risk": "low",
+              "schema": "vulpora.task-model-selection/v1",
+              "selectedProfile": "frugal",
+              "taskType": "implementation"
+            }
+          },
+          "selection": {
+            "action": "INITIAL",
+            "reason": "PRODUCTION_TASK_CLASSIFICATION"
+          },
+          "capsuleSha256": "ac333dc57f3974748b730446ae3257905c5d3893758d423bf3f3507ff52fc89b",
+          "workerMode": "edit-proposal",
+          "promptSha256": "b3682a86abfadf4f9a3362b6083937203c07e1cc9e4040895420fad5a3a52f5d",
+          "promptBytes": 3154,
+          "sourceContextBytes": 931,
+          "sourceContextSha256": "b4d1edff887a4da6b7c4449171ef43accf6b19df8ce20b1cd08579e9639067c9",
+          "initialFiles": {
+            "completed": true,
+            "files": {
+              "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+              "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+              "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+            },
+            "sha256": "c5ee0bd4af73c801349dbc14fe764c2358105d5b842c6873937acbd2346bb457"
+          },
+          "afterFiles": {
+            "completed": true,
+            "files": {
+              "src/query.js": "4aad86a3392ba623db42dd4916d7cbc5e630aa603e147fc4bba7624ec1d1df2c",
+              "src/search.js": "64b14177175f7023fed458e0b41d2caf624f7a291ba7a7ca6df3f9c2d9ef8e23",
+              "test/search.test.js": "fdf9c95f4b155a417923685fbd29ade5a879e93b99dc70a6bb16d9fec9be326c"
+            },
+            "sha256": "db75e63bf6eed1273fc6cab6370faad44797c064cb40c63a9f227b848f3f150d"
+          },
+          "runtime": {
+            "reason": null,
+            "exitCode": 0,
+            "signal": null,
+            "closeObserved": true,
+            "eventCount": 4,
+            "elapsedMs": 20962,
+            "outputBytes": 3186,
+            "stdoutSha256": "13a14f794440fc5e9a3e39764b50e2217796160791609b0500d29569af9c33d1",
+            "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "invocationSha256": "3ca1a03b1251265eea8ff4e81320abd44a2bbc634c75777913060812e9026426",
+            "requestedModel": "gpt-5.6-luna",
+            "requestedEffort": "low",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low",
+              "commandSha256": "b6eabd992614c1b93c44eb4eb4a6dadfdea50bac585debeb4b168bd5998b553a",
+              "primarySessions": 1,
+              "nestedOrchestrator": false,
+              "backendIdentity": "NOT_ATTESTED",
+              "sandbox": "read-only"
+            },
+            "telemetry": {
+              "schema": "vulpora.session-telemetry/v1",
+              "measurementKind": "runtime_event_counts_and_utf8_bytes",
+              "providerTokenAttribution": "unavailable",
+              "rawContentRetained": false,
+              "eventTypes": {
+                "error": 0,
+                "item.completed": 1,
+                "item.started": 0,
+                "item.updated": 0,
+                "other": 0,
+                "thread.started": 1,
+                "turn.completed": 1,
+                "turn.failed": 0,
+                "turn.started": 1
+              },
+              "itemCompleted": {
+                "commandExecutions": 0,
+                "fileChanges": 0,
+                "agentMessages": 1
+              },
+              "byteProxies": {
+                "command": 0,
+                "aggregatedOutput": 0,
+                "agentTextBytes": 2755,
+                "labels": {
+                  "command": "utf8_bytes",
+                  "aggregatedOutput": "utf8_bytes",
+                  "agentTextBytes": "utf8_bytes"
+                }
+              },
+              "repeatedCommands": [],
+              "caps": {
+                "fingerprints": 128
+              },
+              "saturation": false,
+              "fingerprintOverflow": false
+            },
+            "failureDiagnostics": {
+              "schema": "vulpora.runtime-failure-diagnostics/v1",
+              "events": [],
+              "limit": 4,
+              "omittedEvents": 0,
+              "rawMessageRetained": false
+            },
+            "promptBytes": 3154,
+            "sourceContextBytes": 931,
+            "rawTranscriptRetained": false,
+            "backendIdentity": "NOT_ATTESTED",
+            "descendantCleanup": "NOT_ATTESTED",
+            "proposalBytes": 2755,
+            "proposalEditCount": 3,
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 8874,
+              "uncached_input_tokens": 8874,
+              "cached_input_tokens": 0,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 913,
+              "reasoning_tokens": 76,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 9787,
+              "billing_amount": null
+            },
+            "usageAdapterSource": "production session-result.runtime.usage",
+            "unexpectedChild": false
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true,
+              "gitHeadUnchanged": true
+            },
+            "changedFiles": [
+              "src/query.js",
+              "src/search.js",
+              "test/search.test.js"
+            ],
+            "checksPassed": 7,
+            "checksTotal": 7
+          },
+          "treatmentCompliant": true,
+          "accepted": true,
+          "gitHistory": {
+            "initialHead": "04531ea82cccdff1517dea6652fc9f7e62a54320",
+            "observedHead": "04531ea82cccdff1517dea6652fc9f7e62a54320",
+            "unchanged": true
+          },
+          "transport": {
+            "status": "candidate",
+            "execution": "EXIT_ZERO",
+            "verification": "NOT_VERIFIED",
+            "mutationState": "known_effect",
+            "scopedFilesChanged": [
+              "src/query.js",
+              "src/search.js",
+              "test/search.test.js"
+            ],
+            "budget": {
+              "committedTokens": 239777,
+              "remainingTokens": 260223,
+              "unresolvedAttempts": 0
+            }
+          }
+        }
+      ],
+      "accepted": true,
+      "finished": true,
+      "artifact": {
+        "saved": true,
+        "path": "07-query-encoding-proposal-2.patch",
+        "sha256": "ce98516c192c9e6d4a45102aae2cf59c143c7ca2aa9992b5929338dd43e62b41",
+        "bytes": 2725,
+        "accepted": true,
+        "initialFiles": {
+          "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+          "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+          "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+        },
+        "finalFiles": {
+          "src/query.js": "4aad86a3392ba623db42dd4916d7cbc5e630aa603e147fc4bba7624ec1d1df2c",
+          "src/search.js": "64b14177175f7023fed458e0b41d2caf624f7a291ba7a7ca6df3f9c2d9ef8e23",
+          "test/search.test.js": "fdf9c95f4b155a417923685fbd29ade5a879e93b99dc70a6bb16d9fec9be326c"
+        },
+        "quality": {
+          "passed": true,
+          "checks": {
+            "testsPassed": true,
+            "oraclePassed": true,
+            "mutantChecksPassed": true,
+            "verifierCompleted": true,
+            "onlyAllowedFilesChanged": true,
+            "noSymlinksOrSpecialFiles": true,
+            "gitHeadUnchanged": true
+          },
+          "changedFiles": [
+            "src/query.js",
+            "src/search.js",
+            "test/search.test.js"
+          ],
+          "checksPassed": 7,
+          "checksTotal": 7
+        }
+      }
+    },
+    {
+      "order": 8,
+      "caseId": "query-encoding",
+      "arm": "agent",
+      "repeat": 2,
+      "initialHead": "b0e509203d96cc2e9ded989187f2af255e820204",
+      "initialFiles": {
+        "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+        "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+        "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+      },
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 8047,
+        "renderedInputSha256": "7b8871ba69b40e8447ffc4307c8af0229185b69a74142bf9c53b07a6e211bb7b",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "attempts": [
+        {
+          "number": 1,
+          "route": {
+            "agentFileSettings": {
+              "model": "gpt-5.6-luna",
+              "model_reasoning_effort": "low"
+            },
+            "budgetScope": "per-attempt-estimate-not-billing-enforcement",
+            "estimatedTokens": 4000,
+            "evidence": {
+              "catalogSha256": "db65d25c016b0d065620fca362d6f6ce71bb95105e76b6093351fc8e533f0026",
+              "catalogSource": "codex-app-server:model/list",
+              "observedAt": "2026-09-07T14:53:39.476Z",
+              "policySha256": "afb6c690f604b1b22602816d57737598706b2495205b1abc371fc389693c8234",
+              "requestSha256": "f88a74015092d50d9ffb407e76ddffd66a3a0ffd9758ba6730e50e168b5bb176",
+              "taskRequestSha256": "125e7901d3b4799076571eca562c4e56d8c62f9331ff5d0589ad59cb2ce19067"
+            },
+            "execution": "NOT_RUN",
+            "executionKind": "independent-session",
+            "inheritanceUsed": false,
+            "model": "gpt-5.6-luna",
+            "nativeArguments": null,
+            "preflight": {
+              "status": "NOT_CHECKED"
+            },
+            "profile": "frugal",
+            "reasoning_effort": "low",
+            "rejected": [],
+            "relativeUnits": 1,
+            "requestedProfile": "frugal",
+            "riskFloorApplied": false,
+            "runtime": "codex",
+            "schema": "vulpora.model-route/v1",
+            "sessionArguments": {
+              "inheritHistory": false,
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low"
+            },
+            "status": "RESOLVED",
+            "taskSelection": {
+              "basis": "caller-supplied-task-facts-not-free-text-inference",
+              "difficulty": "simple",
+              "explicitProfile": "frugal",
+              "reason": "bounded_verifiable_task",
+              "recommendedProfile": "frugal",
+              "risk": "low",
+              "schema": "vulpora.task-model-selection/v1",
+              "selectedProfile": "frugal",
+              "taskType": "implementation"
+            }
+          },
+          "selection": {
+            "action": "INITIAL",
+            "reason": "PRODUCTION_TASK_CLASSIFICATION"
+          },
+          "capsuleSha256": "8346d557eab9d6e5e63927091980b5da678c1a0cc73d33ade1ab314e583bb86a",
+          "workerMode": "agent",
+          "promptSha256": "5fd7db5a2ef21353a96e01d39fef1757eb2a7bb3c1f80cab51a4478bd22c7639",
+          "promptBytes": 2217,
+          "sourceContextBytes": 0,
+          "sourceContextSha256": null,
+          "initialFiles": {
+            "completed": true,
+            "files": {
+              "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+              "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+              "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+            },
+            "sha256": "c5ee0bd4af73c801349dbc14fe764c2358105d5b842c6873937acbd2346bb457"
+          },
+          "afterFiles": {
+            "completed": true,
+            "files": {
+              "src/query.js": "0dfda19e094d97a109bd748c344d41a5beef3f45945532b5493009c7088f340b",
+              "src/search.js": "11283e427aa8b45c3507d54ca64133bd2853c1659516eae57d9531abf69fa487",
+              "test/search.test.js": "fcbea7351f3f8e77174b31e07dedb94d7a13f89f519a7316a5c7ce27a43e56f0"
+            },
+            "sha256": "43fb329b92e4ce55ea681de859f5069930df6826d9cd190fe06f894996eff039"
+          },
+          "runtime": {
+            "reason": null,
+            "exitCode": 0,
+            "signal": null,
+            "closeObserved": true,
+            "eventCount": 14,
+            "elapsedMs": 44383,
+            "outputBytes": 8458,
+            "stdoutSha256": "a3cb68a8c8396826c5dcbe1dad9b1f7289d27a79172952cbe1c05d0750b0783d",
+            "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "invocationSha256": "99058e40ae2d4c121033fec5971e145315f48ce50ce0086d8a3cdf4dc47c15e7",
+            "requestedModel": "gpt-5.6-luna",
+            "requestedEffort": "low",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low",
+              "commandSha256": "10eb9d730e489a757100992484826ae4538408bdeb6bd9d66fadf74e3ff752a8",
+              "primarySessions": 1,
+              "nestedOrchestrator": false,
+              "backendIdentity": "NOT_ATTESTED",
+              "sandbox": "workspace-write"
+            },
+            "telemetry": {
+              "schema": "vulpora.session-telemetry/v1",
+              "measurementKind": "runtime_event_counts_and_utf8_bytes",
+              "providerTokenAttribution": "unavailable",
+              "rawContentRetained": false,
+              "eventTypes": {
+                "error": 0,
+                "item.completed": 7,
+                "item.started": 4,
+                "item.updated": 0,
+                "other": 0,
+                "thread.started": 1,
+                "turn.completed": 1,
+                "turn.failed": 0,
+                "turn.started": 1
+              },
+              "itemCompleted": {
+                "commandExecutions": 3,
+                "fileChanges": 1,
+                "agentMessages": 3
+              },
+              "byteProxies": {
+                "command": 401,
+                "aggregatedOutput": 3409,
+                "agentTextBytes": 1578,
+                "labels": {
+                  "command": "utf8_bytes",
+                  "aggregatedOutput": "utf8_bytes",
+                  "agentTextBytes": "utf8_bytes"
+                }
+              },
+              "repeatedCommands": [],
+              "caps": {
+                "fingerprints": 128
+              },
+              "saturation": false,
+              "fingerprintOverflow": false
+            },
+            "failureDiagnostics": {
+              "schema": "vulpora.runtime-failure-diagnostics/v1",
+              "events": [],
+              "limit": 4,
+              "omittedEvents": 0,
+              "rawMessageRetained": false
+            },
+            "promptBytes": 2217,
+            "sourceContextBytes": 0,
+            "rawTranscriptRetained": false,
+            "backendIdentity": "NOT_ATTESTED",
+            "descendantCleanup": "NOT_ATTESTED",
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 67490,
+              "uncached_input_tokens": 29346,
+              "cached_input_tokens": 38144,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 1805,
+              "reasoning_tokens": 148,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 69295,
+              "billing_amount": null
+            },
+            "usageAdapterSource": "production session-result.runtime.usage",
+            "unexpectedChild": false
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true,
+              "gitHeadUnchanged": true
+            },
+            "changedFiles": [
+              "src/query.js",
+              "src/search.js",
+              "test/search.test.js"
+            ],
+            "checksPassed": 7,
+            "checksTotal": 7
+          },
+          "treatmentCompliant": true,
+          "accepted": true,
+          "gitHistory": {
+            "initialHead": "b0e509203d96cc2e9ded989187f2af255e820204",
+            "observedHead": "b0e509203d96cc2e9ded989187f2af255e820204",
+            "unchanged": true
+          },
+          "transport": {
+            "status": "candidate",
+            "execution": "EXIT_ZERO",
+            "verification": "NOT_VERIFIED",
+            "mutationState": "known_effect",
+            "scopedFilesChanged": [
+              "src/query.js",
+              "src/search.js",
+              "test/search.test.js"
+            ],
+            "budget": {
+              "committedTokens": 309072,
+              "remainingTokens": 190928,
+              "unresolvedAttempts": 0
+            }
+          }
+        }
+      ],
+      "accepted": true,
+      "finished": true,
+      "artifact": {
+        "saved": true,
+        "path": "08-query-encoding-agent-2.patch",
+        "sha256": "b58758e72e0c7611a7ed803b1689e7e80a0d2a72a24f96f61bc933d2b299de65",
+        "bytes": 2483,
+        "accepted": true,
+        "initialFiles": {
+          "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+          "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+          "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+        },
+        "finalFiles": {
+          "src/query.js": "0dfda19e094d97a109bd748c344d41a5beef3f45945532b5493009c7088f340b",
+          "src/search.js": "11283e427aa8b45c3507d54ca64133bd2853c1659516eae57d9531abf69fa487",
+          "test/search.test.js": "fcbea7351f3f8e77174b31e07dedb94d7a13f89f519a7316a5c7ce27a43e56f0"
+        },
+        "quality": {
+          "passed": true,
+          "checks": {
+            "testsPassed": true,
+            "oraclePassed": true,
+            "mutantChecksPassed": true,
+            "verifierCompleted": true,
+            "onlyAllowedFilesChanged": true,
+            "noSymlinksOrSpecialFiles": true,
+            "gitHeadUnchanged": true
+          },
+          "changedFiles": [
+            "src/query.js",
+            "src/search.js",
+            "test/search.test.js"
+          ],
+          "checksPassed": 7,
+          "checksTotal": 7
+        }
+      }
+    }
+  ],
+  "summary": {
+    "agent": {
+      "planned": 4,
+      "completed": 4,
+      "attempts": 4,
+      "accepted": 4,
+      "firstPasses": 4,
+      "repairs": 0,
+      "complete": true,
+      "usageComplete": true,
+      "observedTokensLowerBound": 265559,
+      "totals": {
+        "input_tokens": 257003,
+        "cached_input_tokens": 158720,
+        "uncached_input_tokens": 98283,
+        "output_tokens": 8556,
+        "input_output_tokens": 265559
+      },
+      "firstPassRate": 1,
+      "eventualPassRate": 1,
+      "tokensPerAccepted": 66389.75,
+      "uncachedInputPlusOutputPerAccepted": 26709.75,
+      "meanTokensPerTask": 66389.75,
+      "treatmentCompliant": 4
+    },
+    "proposal": {
+      "planned": 4,
+      "completed": 4,
+      "attempts": 4,
+      "accepted": 4,
+      "firstPasses": 4,
+      "repairs": 0,
+      "complete": true,
+      "usageComplete": true,
+      "observedTokensLowerBound": 43513,
+      "totals": {
+        "input_tokens": 38737,
+        "cached_input_tokens": 0,
+        "uncached_input_tokens": 38737,
+        "output_tokens": 4776,
+        "input_output_tokens": 43513
+      },
+      "firstPassRate": 1,
+      "eventualPassRate": 1,
+      "tokensPerAccepted": 10878.25,
+      "uncachedInputPlusOutputPerAccepted": 10878.25,
+      "meanTokensPerTask": 10878.25,
+      "treatmentCompliant": 4
+    }
+  },
+  "stopped": null,
+  "completedAt": "2026-09-07T14:58:57.230Z",
+  "elapsedMs": 310600,
+  "finalSource": {
+    "files": {
+      "evals/token-efficiency/run-context-ab.js": "91c9746b45a94f8bc681ead0614ef54e43b8e43c1eec2159124caadd76b81614",
+      "evals/token-efficiency/run-routing-ab.js": "f8778bcfc86be63dd86ea0199db50889b87d6fced33ca2850e746f928e4d9de2",
+      "evals/token-efficiency/run-economic-ab.js": "63fd659cc67aeb48db657e5639de562f273d0a42043be65eb8ea3c45cfdcd242",
+      "evals/token-efficiency/CONTEXT-EVAL.md": "8507f9270281c737009c517fc84d5bd7774d9e44bcd7cda64dcb4b5467fb9344",
+      "evals/token-efficiency/routing-fixtures.cjs": "c7b98918ef4991c42f4dae47752ebee47a05638c6487d9f212b6dcd64b1b4a98",
+      "evals/token-efficiency/economic-fixtures.cjs": "3ca9f9efab8d1b9d20865b33eb95a0ef8eb3622ac477d7ac7f22485c24736c2e",
+      "evals/behavioral/adapters/provider-usage.cjs": "9bcaeaeb225b9af2f17d690ba70c10a6b3814c92f534b50eda8632075bb710db",
+      "skills/start-task/scripts/session-context.js": "607819af6c15962f09fa9fe80b06022621f8ffc3395b83bd6df7764edac33d16",
+      "skills/start-task/scripts/session-telemetry.js": "6dc3f7f6daf0802834bf7abf22338d2ec6cfde97d6f8e30df00cc73203bf83bc",
+      "skills/start-task/scripts/task-router.js": "b153703b0dfc835ddf05950e9f18c7fc46a64b0fee0eeb4022c05d7a03851cc5",
+      "skills/start-task/scripts/model-router.js": "04c18fa81e6da2d102fe5782784fd0a0b00b80a0c963f0bc457448bd5a7e561d",
+      "skills/start-task/scripts/model-routing-policy.json": "fd6ee18da98b01451dc4f1abd21943be166988bc2778afe4d9850b87615a4810",
+      "skills/start-task/scripts/model-routing-io.js": "bcc0458983fa2e41e748d844409e87731d885d436592efe78cdfb5fbaaee455b",
+      "skills/start-task/scripts/codex-model-catalog.js": "3f554d229406d2fa6556de1878e5b7bf617af491d44b0a31a75b14ca732c46c9",
+      "evals/token-efficiency/run-proposal-ab.js": "f9194b0d7478d4bd0dfeb1631b7aa8ba3bf0fc9dc33b93643d46ac8745e8cf68",
+      "evals/token-efficiency/PROPOSAL-EVAL.md": "1bbfb28fbd93406f99a863c077a3e98d59985be986c0f7f54a539051386853cc",
+      "skills/start-task/scripts/session-runner.js": "529efbe85147e2fb82f1b882922d2df9196b477644bdea58a835539e2ca5a750",
+      "skills/start-task/scripts/session-io.js": "eab2d7b3f6c0785a3cb038f8ccf83310957cb3c080efe1501539fda4fb24fa01",
+      "skills/start-task/scripts/session-budget.js": "15823cef72c619cd92ed8551e069d6a8f6ecb7455a793714d9520ef07455767f",
+      "skills/start-task/scripts/session-task.schema.json": "e5332433d4d7b21adcf2acc53d196bba4a418a48db1fa105f274eb3348626897",
+      "skills/start-task/scripts/session-candidate.schema.json": "ea0401b85a670b089c93a42c642dc5c738efec87b205d0aa2581071ba2c99cd7",
+      "skills/start-task/scripts/session-edit-proposal.js": "913d86a6bfd25a387e2fc7a87f0cebdcc87bc302b2d50d2afbca10cf47dc1a64",
+      "skills/start-task/scripts/session-edit-proposal.schema.json": "19229ee5a56b99cd66d6e9bc43a5bc1013b39f5ebef2a983170d3f2c2f973aee"
+    },
+    "sha256": "a19e2580fafa1fc9611cb18f48272f7af6a035f479f1d1c630fa980445f43a79"
+  },
+  "sourceUnchanged": true,
+  "complete": true,
+  "comparable": true,
+  "finalBudget": {
+    "schema": "vulpora.session-budget/v1",
+    "id": "52b991fb-a5ae-4ad6-8f66-30ff90d4402a",
+    "limits": {
+      "maxRelativeUnits": 480,
+      "totalTokens": 500000
+    },
+    "committedTokens": 309072,
+    "reservedTokens": 0,
+    "remainingTokens": 190928,
+    "spentRelativeUnits": 44,
+    "reservedRelativeUnits": 0,
+    "remainingRelativeUnits": 436,
+    "overdrawn": false,
+    "unresolvedAttempts": 0
+  },
+  "assessment": {
+    "schema": "vulpora.proposal-ab-assessment/v1",
+    "status": "SAMPLE_CRITERIA_MET",
+    "qualityPreserved": true,
+    "lowerObservedTotalTokens": true,
+    "tokenReductionRatio": 0.8361456399519505,
+    "scope": "Actual production agent versus edit-proposal session transport; synthetic tasks; excludes full installed skill/Audit and development conversation"
+  }
+}

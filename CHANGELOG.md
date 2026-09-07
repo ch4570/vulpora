@@ -10,6 +10,8 @@ Vulpora(기존 Vulpora)의 사용자 관점 변경 사항을 기록합니다.
 - Added task/difficulty/risk model routing and fresh Codex session delegation with compact candidate results,
   explicit model/effort, observed usage, stale-input protection, deadlines, and bounded output.
 - Corrected behavioral adapter skill loading and distinguished provider usage from byte-based estimates.
+- Added an opt-in bounded edit-proposal session mode, deterministic application, and per-session round-trip
+  diagnostics. Preserved unsuccessful context experiments and matched production-transport evidence.
 - Integrated dependency update PRs and strengthened evaluation trust boundaries without claiming operational trust.
 
 Earlier entries below document private development snapshots, not prior public Vulpora releases.

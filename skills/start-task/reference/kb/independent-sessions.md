@@ -117,6 +117,35 @@ constraints, mode, and a small execution/result contract. It omits the primary t
 full global plans, credentials, and runtime event history. Unknown task fields such as `parentTranscript` are
 rejected. The CLI receives the selected model and effort as separate argv entries, with `shell: false`.
 
+Optional `contextMode: "inline"` also supplies the complete starting contents of at most four scoped text files.
+The serialized source bundle must fit 4,096 bytes and the complete prompt must still fit `maxPromptBytes`.
+Larger, binary, or wider scopes fall back to ordinary targeted reads; no source is silently truncated. The default
+`contextMode: "read"` keeps native reads. Missing files are marked absent. Source contents are data, and repository
+instructions, acceptance criteria, relevant checks, and independent parent verification remain required.
+The bundle is bound to the prepared workspace hashes; changes before launch still fail as `STALE_WORKSPACE`.
+This opt-in can avoid an initial read round on small tasks, but sending more source upfront can also increase
+tokens. Use the [matched context experiment](../../../../evals/token-efficiency/CONTEXT-EVAL.md) to measure it.
+
+For a bounded edit with complete source, set `workerMode: "edit-proposal"` and `mode: "workspace-write"`.
+This explicitly requests a session even for a tiny task. It accepts only low-risk implementation, testing, or
+documentation work with at most four files, complete source within 4,096 bytes, and existing parent directories.
+Nested `AGENTS.md` files make the mode ineligible because the worker cannot discover additional instructions.
+Ineligible requests fail before launch; the runner does not silently change the requested mode or risk floor.
+Model selection still follows the difficulty router: simple work can use Luna and moderate work can use Terra.
+
+The proposal worker runs in a read-only CLI sandbox with shell execution and web search disabled. It returns
+complete replacement file contents using [`session-edit-proposal.schema.json`](../../scripts/session-edit-proposal.schema.json).
+The coordinator requires observed provider usage, unchanged workspace fingerprints, matching original hashes,
+declared paths, no tool events, and a valid bounded proposal before applying it. Existing modes are preserved;
+creation cannot overwrite an unexpected file. Multi-file application has best-effort rollback and requires an
+exclusive, stable workspace. Independent verification remains the parent's responsibility.
+
+Set `limits.maxResultBytes` to the needed bound, up to the proposal mode's 16,384-byte maximum, to accommodate
+replacement contents. The raw proposal stays in the bounded attempt artifact; the result envelope contains a
+compact candidate with `verification: NOT_VERIFIED`. It never reports tests as passed simply because edits applied.
+The default `workerMode: "agent"` keeps the existing tool-driven behavior. Use the
+[production transport comparison](../../../../evals/token-efficiency/PROPOSAL-EVAL.md) to assess the tradeoff.
+
 The runner uses `codex exec --ephemeral --json --output-schema --output-last-message`, so each attempt begins
 fresh and leaves no resumable Codex session transcript through this mode. It disables native multiagent features
 and sets a session-depth marker to prevent accidental calls back into this transport. These controls do not
@@ -169,6 +198,13 @@ recorded as requested settings, and `backendIdentity: NOT_ATTESTED` remains expl
 Raw runtime stdout/stderr are consumed with bounded buffers and discarded. Their byte count and digests are
 retained alongside elapsed time, exit information, and observed usage. Only the bounded candidate and transport
 records remain on disk. Keep secrets and unrelated source out of task and result artifacts.
+
+Detailed results also retain bounded `runtime.telemetry`: completed command/file/message counts, UTF-8 byte
+proxies, and capped fingerprints of repeated commands. Unknown event names are combined into `other`.
+Command text, tool output, and message bodies are not retained by telemetry. These diagnostics do not count
+underlying model requests or attribute billed tokens to individual tools. Duplicate commands can be legitimate
+verification after an edit; their presence alone does not establish waste. `promptBytes` and `sourceContextBytes`
+measure explicit serialization only. Compact status previews omit these diagnostic details.
 
 ## Limits, interruption, and stale work
 

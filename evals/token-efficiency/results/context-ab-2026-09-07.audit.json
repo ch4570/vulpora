@@ -1,0 +1,105 @@
+{
+  "schema": "vulpora.context-artifact-audit/v1",
+  "report": "context-ab-2026-09-07.json",
+  "reportSha256": "f9131f7246c6d2ec6ccb5585750fc1ccae9af984e37fbea00dd65707a4f14c9e",
+  "sourceHashesMatch": true,
+  "scope": "Independent reconstruction, grading and committed fixture-tree inspection; not an attestation of unobserved transient actions",
+  "runs": [
+    {
+      "order": 1,
+      "caseId": "query-encoding",
+      "arm": "read",
+      "repeat": 1,
+      "patchHashMatches": true,
+      "finalFilesMatch": true,
+      "qualityPassed": true,
+      "originalCommittedTreeMatchesFixture": true,
+      "originalCommitCount": 1,
+      "observedHead": "d0ba4b976d96ab46acef44c9d6a7414e4c5be28c"
+    },
+    {
+      "order": 2,
+      "caseId": "query-encoding",
+      "arm": "inline",
+      "repeat": 1,
+      "patchHashMatches": true,
+      "finalFilesMatch": true,
+      "qualityPassed": true,
+      "originalCommittedTreeMatchesFixture": true,
+      "originalCommitCount": 1,
+      "observedHead": "82977b943bb4f5e780f1eb7b6807ee1dca2ff02a"
+    },
+    {
+      "order": 3,
+      "caseId": "retry",
+      "arm": "inline",
+      "repeat": 1,
+      "patchHashMatches": true,
+      "finalFilesMatch": true,
+      "qualityPassed": true,
+      "originalCommittedTreeMatchesFixture": true,
+      "originalCommitCount": 1,
+      "observedHead": "783287112572b7cc3d499ad08e85e55bb5323735"
+    },
+    {
+      "order": 4,
+      "caseId": "retry",
+      "arm": "read",
+      "repeat": 1,
+      "patchHashMatches": true,
+      "finalFilesMatch": true,
+      "qualityPassed": true,
+      "originalCommittedTreeMatchesFixture": true,
+      "originalCommitCount": 1,
+      "observedHead": "6ac7aa2fc4a551912bb840edc65ffe847999ddeb"
+    },
+    {
+      "order": 5,
+      "caseId": "retry",
+      "arm": "read",
+      "repeat": 2,
+      "patchHashMatches": true,
+      "finalFilesMatch": true,
+      "qualityPassed": true,
+      "originalCommittedTreeMatchesFixture": true,
+      "originalCommitCount": 1,
+      "observedHead": "55f1d9db68769a2b47286a8287f772c7f82c3013"
+    },
+    {
+      "order": 6,
+      "caseId": "retry",
+      "arm": "inline",
+      "repeat": 2,
+      "patchHashMatches": true,
+      "finalFilesMatch": true,
+      "qualityPassed": true,
+      "originalCommittedTreeMatchesFixture": true,
+      "originalCommitCount": 1,
+      "observedHead": "41d8134a590f8d85be0e2caadb192a372cb8dab3"
+    },
+    {
+      "order": 7,
+      "caseId": "query-encoding",
+      "arm": "inline",
+      "repeat": 2,
+      "patchHashMatches": true,
+      "finalFilesMatch": true,
+      "qualityPassed": true,
+      "originalCommittedTreeMatchesFixture": true,
+      "originalCommitCount": 1,
+      "observedHead": "a7be740875fc419f5758c00d031d2d74b9ded10a"
+    },
+    {
+      "order": 8,
+      "caseId": "query-encoding",
+      "arm": "read",
+      "repeat": 2,
+      "patchHashMatches": true,
+      "finalFilesMatch": true,
+      "qualityPassed": true,
+      "originalCommittedTreeMatchesFixture": true,
+      "originalCommitCount": 1,
+      "observedHead": "ba8991a98a1c6af2b046ca273776387c1a1571fd"
+    }
+  ]
+}

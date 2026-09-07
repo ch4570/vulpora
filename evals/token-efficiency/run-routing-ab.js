@@ -151,7 +151,8 @@ function sourceEvidence() {
     'evals/token-efficiency/routing-fixtures.cjs','evals/token-efficiency/economic-fixtures.cjs',
     'evals/behavioral/adapters/provider-usage.cjs','skills/start-task/scripts/task-router.js',
     'skills/start-task/scripts/model-router.js','skills/start-task/scripts/model-routing-policy.json',
-    'skills/start-task/scripts/model-routing-io.js','skills/start-task/scripts/codex-model-catalog.js'];
+    'skills/start-task/scripts/model-routing-io.js','skills/start-task/scripts/codex-model-catalog.js',
+    'skills/start-task/scripts/session-telemetry.js'];
   const hashes=Object.fromEntries(files.map(name=>[name,hash(fs.readFileSync(path.join(ROOT,name)))]));
   return {files:hashes,sha256:hash(canonical(hashes))};
 }

@@ -25,14 +25,27 @@ fs.writeFileSync(process.env.SESSION_TEST_CAPTURE, JSON.stringify({args, prompt}
 const mode = process.env.SESSION_TEST_MODE || 'good';
 if (mode === 'budget-lock') fs.mkdirSync(process.env.SESSION_TEST_BUDGET + '.lock');
 if (mode === 'timeout') { setInterval(() => {}, 1000); }
+else if (mode === 'provider-schema-error') {
+  const secret='SECRET /private/path credential-value';
+  const events=[{type:'error',message:'Invalid schema for response_format: missing type key. '+secret},
+    {type:'turn.failed',error:{code:'invalid_json_schema',message:secret}},
+    ...Array.from({length:4},()=>({type:'error',code:secret,message:secret}))];
+  process.stdout.write(events.map(event=>JSON.stringify(event)).join('\\n')+'\\n');
+}
 else {
   if (mode === 'huge') process.stdout.write('x'.repeat(10000));
-  if (mode === 'write' || mode === 'silent-write') fs.writeFileSync(require('node:path').join(prompt.cwd,'source.txt'),'worker edit\\n');
+  if (mode === 'write' || mode === 'silent-write' || mode === 'proposal-mutate') fs.writeFileSync(require('node:path').join(prompt.cwd,'source.txt'),'worker edit\\n');
   const output = args[args.indexOf('--output-last-message') + 1];
-  const candidate = {schema:'vulpora.session-candidate/v1',task_id:prompt.task_id,
+  let candidate = {schema:'vulpora.session-candidate/v1',task_id:prompt.task_id,
     attempt_id: mode === 'mismatch' ? 'wrong-attempt' : prompt.attempt_id,
     status:'candidate', summary:'The bounded inspection completed.',changed_files:mode === 'write' ? ['source.txt'] : [],
     evidence:['source.txt was inspected'],risks:[],blocker:null};
+  const proposal = JSON.parse(fs.readFileSync(args[args.indexOf('--output-schema') + 1], 'utf8')).properties.schema.const === 'vulpora.session-edit-proposal/v1';
+  if (proposal) candidate = {schema:'vulpora.session-edit-proposal/v1',
+    task_id:mode === 'proposal-task' ? 'wrong-task' : prompt.task_id,summary:'A bounded replacement was proposed.',edits:[{
+      path:mode === 'proposal-scope' ? '../outside.txt' : 'source.txt',
+      before_sha256:mode === 'proposal-hash' ? '0'.repeat(64) : prompt.source_context.files[0].sha256,
+      content:'deterministic proposal\\n'}]};
   if (mode !== 'missing') fs.writeFileSync(output, JSON.stringify(candidate));
   process.stdout.write(JSON.stringify({type:'thread.started',thread_id:'fake-thread-001'})+'\\n');
   process.stdout.write(JSON.stringify({type:'item.completed',item:{type:'agent_message',
@@ -48,6 +61,7 @@ else {
     'valid-then-malformed-usage':[usage,malformedUsage],
     'null-then-valid-usage':[nullUsage,usage],'missing-then-valid-usage':[missingUsage,usage]};
   for (const completion of sequences[mode] || [usage]) process.stdout.write(JSON.stringify(completion)+'\\n');
+  if (mode === 'proposal-tool') process.stdout.write(JSON.stringify({type:'item.completed',item:{type:'command_execution',command:'forbidden',aggregated_output:''}})+'\\n');
 }
 `, {mode: 0o700});
   const policy = path.join(work, 'policy.json');
@@ -97,6 +111,36 @@ else {
     assert.equal(prepare(retry).json.model,'fake-standard');
     assert.equal(JSON.parse(fs.readFileSync(retry.capsule)).route.taskSelection.explicitProfile,'standard');
   });
+  check('inline context is fingerprinted, bounded, optional, and stale-protected',()=>{
+    const item=fixture('inline-context',{contextMode:'inline'});
+    assert.equal(prepare(item).status,0);
+    const capsule=JSON.parse(fs.readFileSync(item.capsule));
+    assert.equal(capsule.sourceContext.files[0].content,'original\n');
+    assert.equal(run(item).status,0);
+    const captured=JSON.parse(fs.readFileSync(item.capture));
+    assert.deepEqual(captured.prompt.source_context,capsule.sourceContext);
+    const result=invoke(['status','--capsule',item.capsule,'--detail'],item).json;
+    assert.ok(result.runtime.sourceContextBytes>0);
+    assert.equal(result.runtime.telemetry.itemCompleted.agentMessages,1);
+    assert.equal(result.runtime.usage.inputTokens,100);
+    const plain=fixture('read-context',{contextMode:'read'});prepare(plain);
+    assert.equal(JSON.parse(fs.readFileSync(plain.capsule)).sourceContext,undefined);
+    const large=fixture('large-inline-context',{contextMode:'inline'});
+    fs.writeFileSync(path.join(large.cwd,'source.txt'),'x'.repeat(5000));prepare(large);
+    assert.equal(JSON.parse(fs.readFileSync(large.capsule)).sourceContext,undefined);
+    const tight=fixture('tight-inline-context',{contextMode:'inline'});
+    const api=require(runner);
+    const minimum=Buffer.byteLength(api.promptFor({task:api.validateTask(tight.task),attemptId:'a'.repeat(36)}));
+    tight.task.limits={maxPromptBytes:minimum+5};fs.writeFileSync(tight.taskPath,JSON.stringify(tight.task));
+    assert.equal(prepare(tight).status,0);
+    assert.equal(JSON.parse(fs.readFileSync(tight.capsule)).sourceContext,undefined);
+    const stale=fixture('stale-inline-context',{contextMode:'inline'});prepare(stale);
+    fs.writeFileSync(path.join(stale.cwd,'source.txt'),'new\n');
+    assert.equal(run(stale).json.reason,'STALE_WORKSPACE');
+    assert.equal(fs.existsSync(stale.capture),false);
+    const invalid=fixture('invalid-context-mode',{contextMode:'everything'});
+    assert.equal(prepare(invalid).json.reason,'INVALID_CONTEXT_MODE');
+  });
   check('profile pins cannot bypass risk floors, budgets, ownership, or input validation',()=>{
     const high=fixture('profile-risk',{risk:'high',profile:'frugal'});
     assert.equal(prepare(high).json.model,'fake-frontier');
@@ -106,6 +150,103 @@ else {
     assert.equal(prepare(direct).json.status,'PRIMARY_OWNED');
     const invalid=fixture('profile-invalid',{profile:'cheapest'});
     assert.equal(prepare(invalid).json.reason,'INVALID_TASK_PROFILE');
+  });
+  check('edit proposals apply validated replacements with read-only worker and independent verification pending',()=>{
+    const item=fixture('proposal-good',{workerMode:'edit-proposal',mode:'workspace-write',difficulty:'simple'});
+    fs.chmodSync(path.join(item.cwd,'source.txt'),0o751);
+    const planned=prepare(item);assert.equal(planned.status,0);assert.equal(planned.json.status,'PREPARED');
+    const capsule=JSON.parse(fs.readFileSync(item.capsule));
+    assert.equal(capsule.task.limits.maxResultBytes,16384);
+    assert.equal(JSON.parse(fs.readFileSync(path.join(item.out,'output.schema.json'))).properties.schema.const,'vulpora.session-edit-proposal/v1');
+    const result=run(item);assert.equal(result.status,0);assert.equal(result.json.mutationState,'known_effect');
+    assert.equal(fs.readFileSync(path.join(item.cwd,'source.txt'),'utf8'),'deterministic proposal\n');
+    assert.equal(fs.statSync(path.join(item.cwd,'source.txt')).mode&0o777,0o751);
+    assert.deepEqual(result.json.candidate.changed_files,['source.txt']);
+    assert.equal(result.json.candidate.schema,'vulpora.session-candidate/v1');
+    assert.equal(result.json.candidate.edits,undefined);assert.ok(!result.stdout.includes('deterministic proposal'));
+    assert.equal(result.json.verification,'NOT_VERIFIED');assert.match(result.json.candidate.evidence[0],/parent checks pending/);
+    assert.equal(result.json.runtime.usage.inputTokens,100);assert.equal(result.json.budget.committedTokens,110);
+    assert.equal(result.json.runtime.proposalEditCount,1);assert.ok(result.json.runtime.proposalBytes>0);
+    assert.equal(result.json.runtime.dispatchEvidence.sandbox,'read-only');
+    assert.equal(result.json.runtime.dispatchEvidence.model,'fake-small');
+    assert.equal(result.json.runtime.requestedModel,'fake-small');
+    assert.match(result.json.runtime.dispatchEvidence.commandSha256,/^[a-f0-9]{64}$/);
+    const capture=JSON.parse(fs.readFileSync(item.capture));
+    assert.equal(capture.args[capture.args.indexOf('--sandbox')+1],'read-only');
+    for(const flag of ['shell_tool','unified_exec','web_search="disabled"'])assert.ok(capture.args.includes(flag));
+    assert.deepEqual(capture.prompt.acceptance,item.task.acceptance);
+    assert.match(capture.prompt.instructions.join(' '),/applicable user and repository instructions/);
+    assert.deepEqual(fs.readdirSync(item.cwd),['source.txt']);
+  });
+  check('invalid proposals and tool use are charged but never applied or automatically retried',()=>{
+    for(const [mode,reason] of [['proposal-task','INVALID_EDIT_PROPOSAL'],['proposal-scope','INVALID_EDIT'],
+      ['proposal-hash','EDIT_SOURCE_MISMATCH'],['proposal-tool','EDIT_PROPOSAL_TOOL_USE']]) {
+      const item=fixture(mode,{workerMode:'edit-proposal',mode:'workspace-write'});assert.equal(prepare(item).status,0);
+      const result=run(item,mode);assert.equal(result.status,3);assert.equal(result.json.reason,reason);
+      assert.equal(result.json.candidate,null);assert.equal(result.json.mutationState,'unknown');
+      assert.equal(fs.readFileSync(path.join(item.cwd,'source.txt'),'utf8'),'original\n');
+      assert.equal(result.json.runtime.usage.inputTokens,100);assert.equal(result.json.budget.committedTokens,110);
+      assert.equal(run(item).json.reason,'ATTEMPT_ALREADY_STARTED');
+    }
+  });
+  check('proposal worker mutations and stale absent-file bindings cannot reach application',()=>{
+    const item=fixture('proposal-mutate',{workerMode:'edit-proposal',mode:'workspace-write'});prepare(item);
+    const result=run(item,'proposal-mutate');assert.equal(result.json.reason,'EDIT_WORKSPACE_CHANGED');
+    assert.equal(result.json.mutationState,'unknown');
+    assert.equal(fs.readFileSync(path.join(item.cwd,'source.txt'),'utf8'),'worker edit\n');
+    const absent=fixture('proposal-absent',{workerMode:'edit-proposal',mode:'workspace-write',files:['source.txt','new.txt']});prepare(absent);
+    fs.writeFileSync(path.join(absent.cwd,'new.txt'),'another writer');
+    assert.equal(run(absent).json.reason,'STALE_WORKSPACE');assert.equal(fs.existsSync(absent.capture),false);
+  });
+  check('proposal application requires observed usage and unknown usage retains the reservation',()=>{
+    for(const mode of ['usage-in-text','duplicate-usage','null-usage','valid-then-malformed-usage']) {
+      const item=fixture(`proposal-${mode}`,{workerMode:'edit-proposal',mode:'workspace-write'});prepare(item);
+      const result=run(item,mode);assert.equal(result.status,3);assert.equal(result.json.reason,'EDIT_USAGE_UNAVAILABLE');
+      assert.equal(result.json.candidate,null);assert.equal(result.json.mutationState,'unknown');
+      assert.equal(fs.readFileSync(path.join(item.cwd,'source.txt'),'utf8'),'original\n');
+      assert.equal(result.json.runtime.usage.source,'unavailable');
+      const budget=readBudget(item.budget);assert.equal(budget.committedTokens,0);
+      assert.equal(budget.reservedTokens,4000);assert.equal(budget.unresolvedAttempts,1);
+    }
+  });
+  check('provider failures retain bounded private-safe diagnostics without fabricating usage or applying edits',()=>{
+    const item=fixture('proposal-provider-schema-error',{workerMode:'edit-proposal',mode:'workspace-write'});prepare(item);
+    const result=run(item,'provider-schema-error');assert.equal(result.status,3);
+    assert.equal(result.json.reason,'RUNTIME_REPORTED_FAILURE');
+    const diagnostics=result.json.runtime.failureDiagnostics;
+    assert.equal(diagnostics.events.length,4);assert.equal(diagnostics.omittedEvents,2);
+    assert.equal(diagnostics.events[0].category,'output_schema');
+    assert.equal(diagnostics.events[0].classification,'message_pattern');
+    assert.equal(diagnostics.events[1].code,'invalid_json_schema');
+    assert.equal(diagnostics.rawMessageRetained,false);
+    assert.ok(!result.stdout.includes('SECRET'));assert.ok(!result.stdout.includes('/private/path'));
+    assert.equal(result.json.runtime.usage.source,'unavailable');assert.equal(result.json.candidate,null);
+    assert.equal(fs.readFileSync(path.join(item.cwd,'source.txt'),'utf8'),'original\n');
+    assert.equal(readBudget(item.budget).reservedTokens,4000);assert.equal(readBudget(item.budget).unresolvedAttempts,1);
+  });
+  check('proposal eligibility is explicit and never silently changes mode or source scope',()=>{
+    for(const [name,overrides,reason] of [
+      ['proposal-readonly',{},'EDIT_PROPOSAL_INELIGIBLE'],
+      ['proposal-high',{mode:'workspace-write',risk:'high'},'EDIT_PROPOSAL_INELIGIBLE'],
+      ['proposal-review',{mode:'workspace-write',taskType:'review'},'EDIT_PROPOSAL_INELIGIBLE'],
+      ['proposal-wide',{mode:'workspace-write',files:['a','b','c','d','e']},'EDIT_PROPOSAL_INELIGIBLE'],
+      ['proposal-read-context',{mode:'workspace-write',contextMode:'read'},'EDIT_PROPOSAL_INELIGIBLE'],
+      ['proposal-result-limit',{mode:'workspace-write',limits:{maxResultBytes:20000}},'EDIT_PROPOSAL_LIMIT_EXCEEDED'],
+      ['proposal-prompt-limit',{mode:'workspace-write',limits:{maxPromptBytes:9000}},'EDIT_PROPOSAL_LIMIT_EXCEEDED']]) {
+      const item=fixture(name,{workerMode:'edit-proposal',...overrides});
+      assert.equal(prepare(item).json.reason,reason);assert.equal(fs.existsSync(item.out),false);
+    }
+    const big=fixture('proposal-context-large',{workerMode:'edit-proposal',mode:'workspace-write'});
+    fs.writeFileSync(path.join(big.cwd,'source.txt'),'x'.repeat(5000));
+    assert.equal(prepare(big).json.reason,'EDIT_SOURCE_CONTEXT_REQUIRED');assert.equal(fs.existsSync(big.out),false);
+    const nested=fixture('proposal-nested-rules',{workerMode:'edit-proposal',mode:'workspace-write',files:['sub/source.txt']});
+    fs.mkdirSync(path.join(nested.cwd,'sub'));fs.writeFileSync(path.join(nested.cwd,'sub/source.txt'),'small');
+    fs.writeFileSync(path.join(nested.cwd,'sub/AGENTS.md'),'Additional rules');
+    assert.equal(prepare(nested).json.reason,'EDIT_REPOSITORY_CONTEXT_REQUIRED');
+    assert.equal(fs.existsSync(nested.capture),false);
+    const schema=fixture('proposal-schema-substitution',{workerMode:'edit-proposal',mode:'workspace-write'});prepare(schema);
+    fs.copyFileSync(path.join(path.dirname(runner),'session-candidate.schema.json'),path.join(schema.out,'output.schema.json'));
+    assert.equal(run(schema).json.reason,'OUTPUT_SCHEMA_CHANGED');assert.equal(fs.existsSync(schema.capture),false);
   });
   check('literal task reaches stdin, exact route reaches argv, final output is compact',()=>{
     const marker=path.join(work,'must-not-exist');

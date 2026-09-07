@@ -129,6 +129,10 @@ Luna/low, 중간 난이도와 범위가 정해진 복잡한 구현은 Terra/medi
 짧은 산출물 참조를 반환하고 `--detail`을 붙이면 전체 결과를 보여줍니다. 예산·출력 제한 자체가
 실제 요금 절감을 입증하지는 않습니다.
 
+작고 위험이 낮은 수정은 `workerMode: "edit-proposal"`을 선택할 수 있습니다. 읽기 전용 작업자가 편집안을
+반환하면 하네스가 원본 해시를 검사해 적용하고, 부모가 결과를 검증합니다. Luna·Terra 난이도 라우팅은
+유지합니다. [같은 과제의 실행 방식 비교](evals/token-efficiency/PROPOSAL-EVAL.md)를 참고하세요.
+
 [작업 JSON과 실행 제한](skills/start-task/reference/kb/independent-sessions.md),
 [토큰 측정과 설계](evals/token-efficiency/README.ko.md)를 참고하세요. 상위 대화는 전달하지 않지만
 새 세션의 시작과 파일 재탐색에도 토큰이 듭니다. Claude 세션 실행은 아직 미지원이며 명시적 Audit은

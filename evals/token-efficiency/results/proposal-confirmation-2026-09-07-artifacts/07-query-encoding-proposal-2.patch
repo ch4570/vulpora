@@ -1,0 +1,57 @@
+diff --git a/src/query.js b/src/query.js
+index ccd7d9e..4bda63d 100644
+--- a/src/query.js
++++ b/src/query.js
+@@ -1,3 +1,16 @@
+ 'use strict';
+-function queryPairs(filters){return Object.entries(filters).filter(([,value])=>value).map(([key,value])=>[key,String(value)]);}
++function isScalar(value){return typeof value==='string'||typeof value==='number'||typeof value==='boolean';}
++function queryPairs(filters){
++  const pairs=[];
++  for(const [key,value] of Object.entries(filters)){
++    if(Array.isArray(value)){
++      for(const item of value){
++        if(isScalar(item))pairs.push([key,String(item)]);
++      }
++    }else if(isScalar(value)){
++      pairs.push([key,String(value)]);
++    }
++  }
++  return pairs;
++}
+ module.exports={queryPairs};
+diff --git a/src/search.js b/src/search.js
+index 65f12d1..8a44634 100644
+--- a/src/search.js
++++ b/src/search.js
+@@ -1,3 +1,7 @@
+ 'use strict';
+-function buildSearch(filters){return '?'+Object.entries(filters).map(([key,value])=>key+'='+value).join('&');}
++const {queryPairs}=require('./query.js');
++function buildSearch(filters){
++  const pairs=queryPairs(filters);
++  return pairs.length?'?'+new URLSearchParams(pairs).toString():'';
++}
+ module.exports={buildSearch};
+diff --git a/test/search.test.js b/test/search.test.js
+index ca55db6..8195324 100644
+--- a/test/search.test.js
++++ b/test/search.test.js
+@@ -1,4 +1,17 @@
+ 'use strict';
+ const test=require('node:test'),assert=require('node:assert/strict');
++const {queryPairs}=require('../src/query.js');
+ const {buildSearch}=require('../src/search.js');
++
+ test('basic',()=>assert.equal(buildSearch({q:'term'}),'?q=term'));
++test('queryPairs preserves scalar values and entry order',()=>assert.deepEqual(queryPairs({zero:0,flag:false,empty:'',text:'term'}),[['zero','0'],['flag','false'],['empty',''],['text','term']]));
++test('queryPairs expands arrays and omits nullish values',()=>assert.deepEqual(queryPairs({tag:['a',null,'b',undefined,false,0],skip:null,alsoSkip:undefined}),[['tag','a'],['tag','b'],['tag','false'],['tag','0']]));
++test('queryPairs ignores unsupported and nested values without mutation',()=>{
++  const tags=['a',['nested'],'b'];
++  const filters={tags,object:{x:1},fn:()=>{},symbol:Symbol('x'),bigint:1n};
++  assert.deepEqual(queryPairs(filters),[['tags','a'],['tags','b']]);
++  assert.deepEqual(tags,['a',['nested'],'b']);
++  assert.deepEqual(filters,{tags,object:{x:1},fn:filters.fn,symbol:filters.symbol,bigint:1n});
++});
++test('buildSearch URL-encodes repeated query pairs',()=>assert.equal(buildSearch({q:'a b&c',tag:['x','y']}),'?q=a+b%26c&tag=x&tag=y'));
++test('buildSearch returns empty string when no pairs remain',()=>assert.equal(buildSearch({a:null,b:undefined,c:{},d:[],e:1n}),''));

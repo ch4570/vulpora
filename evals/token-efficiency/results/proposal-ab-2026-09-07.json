@@ -1,0 +1,872 @@
+{
+  "schema": "vulpora.proposal-ab/v1",
+  "createdAt": "2026-09-07T14:44:09.694Z",
+  "model": null,
+  "runtime": "codex-cli 0.153.4",
+  "arms": [
+    "agent",
+    "proposal"
+  ],
+  "repeats": 2,
+  "source": {
+    "files": {
+      "evals/token-efficiency/run-context-ab.js": "91c9746b45a94f8bc681ead0614ef54e43b8e43c1eec2159124caadd76b81614",
+      "evals/token-efficiency/run-routing-ab.js": "f8778bcfc86be63dd86ea0199db50889b87d6fced33ca2850e746f928e4d9de2",
+      "evals/token-efficiency/run-economic-ab.js": "63fd659cc67aeb48db657e5639de562f273d0a42043be65eb8ea3c45cfdcd242",
+      "evals/token-efficiency/CONTEXT-EVAL.md": "8507f9270281c737009c517fc84d5bd7774d9e44bcd7cda64dcb4b5467fb9344",
+      "evals/token-efficiency/routing-fixtures.cjs": "c7b98918ef4991c42f4dae47752ebee47a05638c6487d9f212b6dcd64b1b4a98",
+      "evals/token-efficiency/economic-fixtures.cjs": "3ca9f9efab8d1b9d20865b33eb95a0ef8eb3622ac477d7ac7f22485c24736c2e",
+      "evals/behavioral/adapters/provider-usage.cjs": "9bcaeaeb225b9af2f17d690ba70c10a6b3814c92f534b50eda8632075bb710db",
+      "skills/start-task/scripts/session-context.js": "607819af6c15962f09fa9fe80b06022621f8ffc3395b83bd6df7764edac33d16",
+      "skills/start-task/scripts/session-telemetry.js": "6dc3f7f6daf0802834bf7abf22338d2ec6cfde97d6f8e30df00cc73203bf83bc",
+      "skills/start-task/scripts/task-router.js": "b153703b0dfc835ddf05950e9f18c7fc46a64b0fee0eeb4022c05d7a03851cc5",
+      "skills/start-task/scripts/model-router.js": "04c18fa81e6da2d102fe5782784fd0a0b00b80a0c963f0bc457448bd5a7e561d",
+      "skills/start-task/scripts/model-routing-policy.json": "fd6ee18da98b01451dc4f1abd21943be166988bc2778afe4d9850b87615a4810",
+      "skills/start-task/scripts/model-routing-io.js": "bcc0458983fa2e41e748d844409e87731d885d436592efe78cdfb5fbaaee455b",
+      "skills/start-task/scripts/codex-model-catalog.js": "3f554d229406d2fa6556de1878e5b7bf617af491d44b0a31a75b14ca732c46c9",
+      "evals/token-efficiency/run-proposal-ab.js": "f9194b0d7478d4bd0dfeb1631b7aa8ba3bf0fc9dc33b93643d46ac8745e8cf68",
+      "evals/token-efficiency/PROPOSAL-EVAL.md": "7f51c00a509aca0300e09ec9534fd494a1eb5e16e4aede777eebfd99881bf7e0",
+      "skills/start-task/scripts/session-runner.js": "eaa96e4edb7b90368dc37608e4818cac73aee9ac56a9c5cda51896ad019fd1cd",
+      "skills/start-task/scripts/session-io.js": "eab2d7b3f6c0785a3cb038f8ccf83310957cb3c080efe1501539fda4fb24fa01",
+      "skills/start-task/scripts/session-budget.js": "15823cef72c619cd92ed8551e069d6a8f6ecb7455a793714d9520ef07455767f",
+      "skills/start-task/scripts/session-task.schema.json": "e5332433d4d7b21adcf2acc53d196bba4a418a48db1fa105f274eb3348626897",
+      "skills/start-task/scripts/session-candidate.schema.json": "ea0401b85a670b089c93a42c642dc5c738efec87b205d0aa2581071ba2c99cd7",
+      "skills/start-task/scripts/session-edit-proposal.js": "913d86a6bfd25a387e2fc7a87f0cebdcc87bc302b2d50d2afbca10cf47dc1a64",
+      "skills/start-task/scripts/session-edit-proposal.schema.json": "39603911a819ffc0d281a0affac5709ccb23d0a0c2790f7461fe9d02d38e2904"
+    },
+    "sha256": "4b268c057efffeaeba7bb19745d89dd704a71eec5ff1ab666709a48f9a3b3cbb"
+  },
+  "policy": {
+    "schema": "vulpora.model-routing-policy/v1",
+    "id": "vulpora-default",
+    "maxCatalogAgeSeconds": 3600,
+    "profiles": {
+      "frugal": {
+        "effort": "low",
+        "relativeUnits": 1
+      },
+      "standard": {
+        "effort": "medium",
+        "relativeUnits": 10
+      },
+      "frontier": {
+        "effort": "high",
+        "relativeUnits": 30
+      }
+    },
+    "runtimes": {
+      "codex": {
+        "frugal": [
+          "gpt-5.6-luna"
+        ],
+        "standard": [
+          "gpt-5.6-terra"
+        ],
+        "frontier": [
+          "gpt-6-astra",
+          "gpt-5.6-sol",
+          "gpt-5.6"
+        ]
+      },
+      "claude-code": {
+        "frugal": [
+          "haiku"
+        ],
+        "standard": [
+          "sonnet"
+        ],
+        "frontier": [
+          "opus"
+        ]
+      }
+    }
+  },
+  "catalog": {
+    "schema": "vulpora.runtime-model-catalog/v1",
+    "runtime": "codex",
+    "source": "codex-app-server:model/list",
+    "observedAt": "2026-09-07T14:44:03.017Z",
+    "models": [
+      {
+        "id": "gpt-5.4-mini",
+        "reasoningEfforts": [
+          "high",
+          "low",
+          "medium",
+          "xhigh"
+        ]
+      },
+      {
+        "id": "gpt-5.5",
+        "reasoningEfforts": [
+          "high",
+          "low",
+          "medium",
+          "xhigh"
+        ]
+      },
+      {
+        "id": "gpt-5.6-luna",
+        "reasoningEfforts": [
+          "high",
+          "low",
+          "max",
+          "medium",
+          "xhigh"
+        ]
+      },
+      {
+        "id": "gpt-5.6-sol",
+        "reasoningEfforts": [
+          "high",
+          "low",
+          "max",
+          "medium",
+          "ultra",
+          "xhigh"
+        ]
+      },
+      {
+        "id": "gpt-5.6-terra",
+        "reasoningEfforts": [
+          "high",
+          "low",
+          "max",
+          "medium",
+          "ultra",
+          "xhigh"
+        ]
+      },
+      {
+        "id": "gpt-6-astra",
+        "reasoningEfforts": [
+          "high",
+          "low",
+          "max",
+          "medium",
+          "ultra",
+          "xhigh"
+        ]
+      }
+    ]
+  },
+  "design": "Two fresh production transport arms; same original goals, files, routes, shared budget, independent graders and two-attempt repair cap",
+  "scope": "session.prepare/run: agent tools versus read-only edit proposal plus deterministic parent application and grading",
+  "limits": {
+    "attemptMs": 180000,
+    "suiteMs": 3600000,
+    "stdoutBytes": 8388608,
+    "stderrBytes": 1048576,
+    "maxAttempts": 2,
+    "maxRepeats": 2,
+    "defaultTokens": 500000,
+    "maxTokens": 5000000,
+    "estimatedTokens": 4000,
+    "maxRelativeUnitsPerAttempt": 30,
+    "promptBytes": 8192,
+    "contextBytes": 4096,
+    "maxResultBytes": 16384,
+    "aggregateTokenGuard": 500000
+  },
+  "reusedPaidAttempts": 0,
+  "sourceReports": [],
+  "artifactsDirectory": "proposal-ab-2026-09-07-artifacts",
+  "coordinator": {
+    "kind": "deterministic-node",
+    "paidRouterTurns": 0,
+    "primaryLaunchesPerAttempt": 1,
+    "nestedOrchestrators": 0
+  },
+  "cases": [
+    {
+      "id": "query-encoding",
+      "task": "Fix query serialization in src/query.js and its wrapper src/search.js, adding regression tests to test/search.test.js. queryPairs(filters) must return [key,String(value)] pairs in Object.entries order; scalar string/number/boolean values are included, null and undefined are omitted. Array values expand to repeated keys in array order, omitting null/undefined elements. Other value types (objects, functions, symbols, BigInts, nested arrays) are ignored. Preserve 0, false and empty strings. Do not mutate filters or arrays. buildSearch(filters) must use queryPairs and URLSearchParams to return a leading ? plus the encoded query, or an empty string when no pairs remain. Preserve the existing export names. Only these three files may change. Work directly without delegation or other coding sessions. Do not commit, install dependencies, use the network or perform external writes. Run node --test, inspect your diff, and finish with a concise change summary and test result.",
+      "routing": {
+        "taskType": "implementation",
+        "difficulty": "simple",
+        "risk": "low"
+      },
+      "allowedFiles": [
+        "src/query.js",
+        "src/search.js",
+        "test/search.test.js"
+      ],
+      "fixtureSha256": "a25f32e294f4c3031bf8291384c5ad549762772f0dcf2ca2740b7910b43baf1d"
+    },
+    {
+      "id": "retry",
+      "task": "Implement retry behavior across src/retry.js and src/client.js, adding regression tests in test/retry.test.js. Export async retry(operation, options={}) with attempts default 3 (total calls, not retries), shouldRetry default ()=>true, and async wait default no-op. Reject invalid attempts (non-number, non-integer, <=0, non-finite) with RangeError before operation runs. Call operation with a one-based attempt number; return its first successful value unchanged. On failure, if this was the last attempt rethrow the exact error without calling shouldRetry or wait. Otherwise call shouldRetry(error, attempt); if false rethrow the exact error, else await wait(attempt,error) before the next call. Propagate predicate/wait errors and stop. Support synchronous throws and async rejections. In src/client.js, export fetchWithRetry(fetcher, url, options) that uses retry to call fetcher(url), forwarding options; preserve fetchOnce. No real network or timers are needed. Only these three files may change. Work directly without delegation or other coding sessions. Do not commit, install dependencies, use the network or perform external writes. Preserve unrelated behavior. Run node --test, inspect your diff, and finish with a concise change summary and test result.",
+      "routing": {
+        "taskType": "implementation",
+        "difficulty": "complex",
+        "risk": "low"
+      },
+      "allowedFiles": [
+        "src/retry.js",
+        "src/client.js",
+        "test/retry.test.js"
+      ],
+      "fixtureSha256": "63d3a14a45d4cfd09655eaf95cb299396f6cc1d440c34894aaadbffca3cc9f2f"
+    }
+  ],
+  "limitations": [
+    "Small synthetic sample; shared cache and prior fixture exposure are uncontrolled",
+    "Different output schemas and tool surfaces are intentional parts of the treatment; preflight byte counts do not include every runtime schema/tool difference",
+    "Every failed attempt and repair counts; prior pilot, development/review conversation and full installed skill/Audit are excluded",
+    "Requested model and API price scenarios do not attest served identity or actual billing",
+    "Aggregate admission guard can overshoot by one attempt; unknown usage blocks more dispatch"
+  ],
+  "runs": [
+    {
+      "order": 1,
+      "caseId": "query-encoding",
+      "arm": "agent",
+      "repeat": 1,
+      "initialHead": "b5f0097e056b62e35b83db757abf36ef67aae5b7",
+      "initialFiles": {
+        "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+        "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+        "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+      },
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 8047,
+        "renderedInputSha256": "b473ba20da7b5136057dd9959ead2a15a31fa61f1ec7622a8a28a6dbc1b2fa4e",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "attempts": [
+        {
+          "number": 1,
+          "route": {
+            "agentFileSettings": {
+              "model": "gpt-5.6-luna",
+              "model_reasoning_effort": "low"
+            },
+            "budgetScope": "per-attempt-estimate-not-billing-enforcement",
+            "estimatedTokens": 4000,
+            "evidence": {
+              "catalogSha256": "6febb72c622fc9d380ecb2bebaff15878529e11dd95e2c9c1aabb4739cf1b67e",
+              "catalogSource": "codex-app-server:model/list",
+              "observedAt": "2026-09-07T14:44:03.017Z",
+              "policySha256": "afb6c690f604b1b22602816d57737598706b2495205b1abc371fc389693c8234",
+              "requestSha256": "f88a74015092d50d9ffb407e76ddffd66a3a0ffd9758ba6730e50e168b5bb176",
+              "taskRequestSha256": "125e7901d3b4799076571eca562c4e56d8c62f9331ff5d0589ad59cb2ce19067"
+            },
+            "execution": "NOT_RUN",
+            "executionKind": "independent-session",
+            "inheritanceUsed": false,
+            "model": "gpt-5.6-luna",
+            "nativeArguments": null,
+            "preflight": {
+              "status": "NOT_CHECKED"
+            },
+            "profile": "frugal",
+            "reasoning_effort": "low",
+            "rejected": [],
+            "relativeUnits": 1,
+            "requestedProfile": "frugal",
+            "riskFloorApplied": false,
+            "runtime": "codex",
+            "schema": "vulpora.model-route/v1",
+            "sessionArguments": {
+              "inheritHistory": false,
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low"
+            },
+            "status": "RESOLVED",
+            "taskSelection": {
+              "basis": "caller-supplied-task-facts-not-free-text-inference",
+              "difficulty": "simple",
+              "explicitProfile": "frugal",
+              "reason": "bounded_verifiable_task",
+              "recommendedProfile": "frugal",
+              "risk": "low",
+              "schema": "vulpora.task-model-selection/v1",
+              "selectedProfile": "frugal",
+              "taskType": "implementation"
+            }
+          },
+          "selection": {
+            "action": "INITIAL",
+            "reason": "PRODUCTION_TASK_CLASSIFICATION"
+          },
+          "capsuleSha256": "7c4c19e3ca3ded891d98de8945ff92a0f3a1d944ffd90449221b48aad9de91cb",
+          "workerMode": "agent",
+          "promptSha256": "1c893c5764762e38c13a13c126ebb2bd7c1e7273e89ca1263bca979e13afcd26",
+          "promptBytes": 2217,
+          "sourceContextBytes": 0,
+          "sourceContextSha256": null,
+          "initialFiles": {
+            "completed": true,
+            "files": {
+              "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+              "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+              "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+            },
+            "sha256": "c5ee0bd4af73c801349dbc14fe764c2358105d5b842c6873937acbd2346bb457"
+          },
+          "afterFiles": {
+            "completed": true,
+            "files": {
+              "src/query.js": "4e4be332173202e5d1b240266b20b4dcd5b45d68b69d32a4a78a877064e9e555",
+              "src/search.js": "a8ab4bd94ed860043e9deb4a11d22e30ab1db5c78de4344cf22c01cd8d45a2bf",
+              "test/search.test.js": "a1a2f10090ac8e38399fda3a3fde57819dbde990045c999a8ab7d7aab6e416e6"
+            },
+            "sha256": "e172bfd7988cd7e1e9dad168f371ed550c7eaa68243fbeb099d63585099dcee7"
+          },
+          "runtime": {
+            "reason": null,
+            "exitCode": 0,
+            "signal": null,
+            "closeObserved": true,
+            "eventCount": 12,
+            "elapsedMs": 41811,
+            "outputBytes": 7904,
+            "stdoutSha256": "75121291e7368c34da3893d3bac250e55d8cc230d2fe4b8378938eb08984e56a",
+            "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "invocationSha256": "647c7d1cba02361385b3365b374b4faf865aa5aeb94a5f78b93087aee99c48df",
+            "requestedModel": "gpt-5.6-luna",
+            "requestedEffort": "low",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low",
+              "commandSha256": "209bcb89182358ddfa8d2a2c049ad977496d8c73f3a3f0b106b60b44c5a58d3f",
+              "primarySessions": 1,
+              "nestedOrchestrator": false,
+              "backendIdentity": "NOT_ATTESTED",
+              "sandbox": "workspace-write"
+            },
+            "telemetry": {
+              "schema": "vulpora.session-telemetry/v1",
+              "measurementKind": "runtime_event_counts_and_utf8_bytes",
+              "providerTokenAttribution": "unavailable",
+              "rawContentRetained": false,
+              "eventTypes": {
+                "error": 0,
+                "item.completed": 6,
+                "item.started": 3,
+                "item.updated": 0,
+                "other": 0,
+                "thread.started": 1,
+                "turn.completed": 1,
+                "turn.failed": 0,
+                "turn.started": 1
+              },
+              "itemCompleted": {
+                "commandExecutions": 2,
+                "fileChanges": 1,
+                "agentMessages": 3
+              },
+              "byteProxies": {
+                "command": 217,
+                "aggregatedOutput": 3604,
+                "agentTextBytes": 1495,
+                "labels": {
+                  "command": "utf8_bytes",
+                  "aggregatedOutput": "utf8_bytes",
+                  "agentTextBytes": "utf8_bytes"
+                }
+              },
+              "repeatedCommands": [],
+              "caps": {
+                "fingerprints": 128
+              },
+              "saturation": false,
+              "fingerprintOverflow": false
+            },
+            "promptBytes": 2217,
+            "sourceContextBytes": 0,
+            "rawTranscriptRetained": false,
+            "backendIdentity": "NOT_ATTESTED",
+            "descendantCleanup": "NOT_ATTESTED",
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "provider_observed",
+              "usage_status": "observed",
+              "fallback_reason": null,
+              "usage_scope": "single_turn",
+              "source_event": "turn.completed.usage",
+              "aggregation": "single_final_only",
+              "input_tokens": 52784,
+              "uncached_input_tokens": 27696,
+              "cached_input_tokens": 25088,
+              "cache_creation_input_tokens": null,
+              "output_tokens": 1716,
+              "reasoning_tokens": 186,
+              "reasoning_semantics": "provider_reported_not_added",
+              "input_output_tokens": 54500,
+              "billing_amount": null
+            },
+            "usageAdapterSource": "production session-result.runtime.usage",
+            "unexpectedChild": false
+          },
+          "quality": {
+            "passed": true,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": true,
+              "mutantChecksPassed": true,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true,
+              "gitHeadUnchanged": true
+            },
+            "changedFiles": [
+              "src/query.js",
+              "src/search.js",
+              "test/search.test.js"
+            ],
+            "checksPassed": 7,
+            "checksTotal": 7
+          },
+          "treatmentCompliant": true,
+          "accepted": true,
+          "gitHistory": {
+            "initialHead": "b5f0097e056b62e35b83db757abf36ef67aae5b7",
+            "observedHead": "b5f0097e056b62e35b83db757abf36ef67aae5b7",
+            "unchanged": true
+          },
+          "transport": {
+            "status": "candidate",
+            "execution": "EXIT_ZERO",
+            "verification": "NOT_VERIFIED",
+            "mutationState": "known_effect",
+            "scopedFilesChanged": [
+              "src/query.js",
+              "src/search.js",
+              "test/search.test.js"
+            ],
+            "budget": {
+              "committedTokens": 54500,
+              "remainingTokens": 445500,
+              "unresolvedAttempts": 0
+            }
+          }
+        }
+      ],
+      "accepted": true,
+      "finished": true,
+      "artifact": {
+        "saved": true,
+        "path": "01-query-encoding-agent-1.patch",
+        "sha256": "151c2c08e168fd2b98d0d59658333880de6eda913ced44e022cbe648dba4f10b",
+        "bytes": 2632,
+        "accepted": true,
+        "initialFiles": {
+          "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+          "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+          "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+        },
+        "finalFiles": {
+          "src/query.js": "4e4be332173202e5d1b240266b20b4dcd5b45d68b69d32a4a78a877064e9e555",
+          "src/search.js": "a8ab4bd94ed860043e9deb4a11d22e30ab1db5c78de4344cf22c01cd8d45a2bf",
+          "test/search.test.js": "a1a2f10090ac8e38399fda3a3fde57819dbde990045c999a8ab7d7aab6e416e6"
+        },
+        "quality": {
+          "passed": true,
+          "checks": {
+            "testsPassed": true,
+            "oraclePassed": true,
+            "mutantChecksPassed": true,
+            "verifierCompleted": true,
+            "onlyAllowedFilesChanged": true,
+            "noSymlinksOrSpecialFiles": true,
+            "gitHeadUnchanged": true
+          },
+          "changedFiles": [
+            "src/query.js",
+            "src/search.js",
+            "test/search.test.js"
+          ],
+          "checksPassed": 7,
+          "checksTotal": 7
+        }
+      }
+    },
+    {
+      "order": 2,
+      "caseId": "query-encoding",
+      "arm": "proposal",
+      "repeat": 1,
+      "initialHead": "8ba4f52a92efcf569255cb592d94e2395d3455a1",
+      "initialFiles": {
+        "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+        "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+        "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+      },
+      "discovery": {
+        "skillIds": [
+          "imagegen",
+          "openai-docs",
+          "plugin-creator",
+          "skill-creator",
+          "skill-installer"
+        ],
+        "projectSkillIds": [],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 9028,
+        "renderedInputSha256": "37af0c11aab75618be99d5521bf5a1f1084c4b3b1d008c419c77e912f33edb86",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false
+      },
+      "attempts": [
+        {
+          "number": 1,
+          "route": {
+            "agentFileSettings": {
+              "model": "gpt-5.6-luna",
+              "model_reasoning_effort": "low"
+            },
+            "budgetScope": "per-attempt-estimate-not-billing-enforcement",
+            "estimatedTokens": 4000,
+            "evidence": {
+              "catalogSha256": "6febb72c622fc9d380ecb2bebaff15878529e11dd95e2c9c1aabb4739cf1b67e",
+              "catalogSource": "codex-app-server:model/list",
+              "observedAt": "2026-09-07T14:44:03.017Z",
+              "policySha256": "afb6c690f604b1b22602816d57737598706b2495205b1abc371fc389693c8234",
+              "requestSha256": "f88a74015092d50d9ffb407e76ddffd66a3a0ffd9758ba6730e50e168b5bb176",
+              "taskRequestSha256": "125e7901d3b4799076571eca562c4e56d8c62f9331ff5d0589ad59cb2ce19067"
+            },
+            "execution": "NOT_RUN",
+            "executionKind": "independent-session",
+            "inheritanceUsed": false,
+            "model": "gpt-5.6-luna",
+            "nativeArguments": null,
+            "preflight": {
+              "status": "NOT_CHECKED"
+            },
+            "profile": "frugal",
+            "reasoning_effort": "low",
+            "rejected": [],
+            "relativeUnits": 1,
+            "requestedProfile": "frugal",
+            "riskFloorApplied": false,
+            "runtime": "codex",
+            "schema": "vulpora.model-route/v1",
+            "sessionArguments": {
+              "inheritHistory": false,
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low"
+            },
+            "status": "RESOLVED",
+            "taskSelection": {
+              "basis": "caller-supplied-task-facts-not-free-text-inference",
+              "difficulty": "simple",
+              "explicitProfile": "frugal",
+              "reason": "bounded_verifiable_task",
+              "recommendedProfile": "frugal",
+              "risk": "low",
+              "schema": "vulpora.task-model-selection/v1",
+              "selectedProfile": "frugal",
+              "taskType": "implementation"
+            }
+          },
+          "selection": {
+            "action": "INITIAL",
+            "reason": "PRODUCTION_TASK_CLASSIFICATION"
+          },
+          "capsuleSha256": "add98759794ee05a6f5da2e6a8262c1ace49c00dca4d356f0434490c0dc7e730",
+          "workerMode": "edit-proposal",
+          "promptSha256": "ee0f8a3ae4943c1ebdfbde25b2ec94bff2abef056bb86980b1e2451591ad2c53",
+          "promptBytes": 3154,
+          "sourceContextBytes": 931,
+          "sourceContextSha256": "b4d1edff887a4da6b7c4449171ef43accf6b19df8ce20b1cd08579e9639067c9",
+          "initialFiles": {
+            "completed": true,
+            "files": {
+              "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+              "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+              "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+            },
+            "sha256": "c5ee0bd4af73c801349dbc14fe764c2358105d5b842c6873937acbd2346bb457"
+          },
+          "afterFiles": {
+            "completed": true,
+            "files": {
+              "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+              "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+              "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+            },
+            "sha256": "c5ee0bd4af73c801349dbc14fe764c2358105d5b842c6873937acbd2346bb457"
+          },
+          "runtime": {
+            "reason": "RUNTIME_REPORTED_FAILURE",
+            "exitCode": 0,
+            "signal": null,
+            "closeObserved": true,
+            "eventCount": 4,
+            "elapsedMs": 4600,
+            "outputBytes": 855,
+            "stdoutSha256": "a13f7854fc7d3f456c7270cc0c492dd4ebdc56ce5f4d7887703a8d6919b98e5d",
+            "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "invocationSha256": "d78f4a36d3261eadc917437c0bc6bc88c10588198d33265ed35c127d7f38d237",
+            "requestedModel": "gpt-5.6-luna",
+            "requestedEffort": "low",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "model": "gpt-5.6-luna",
+              "reasoning_effort": "low",
+              "commandSha256": "cac98df996661c5cfb6d83710d77e7512eea288928dcd196726b60b8e4aed546",
+              "primarySessions": 1,
+              "nestedOrchestrator": false,
+              "backendIdentity": "NOT_ATTESTED",
+              "sandbox": "read-only"
+            },
+            "telemetry": {
+              "schema": "vulpora.session-telemetry/v1",
+              "measurementKind": "runtime_event_counts_and_utf8_bytes",
+              "providerTokenAttribution": "unavailable",
+              "rawContentRetained": false,
+              "eventTypes": {
+                "error": 1,
+                "item.completed": 0,
+                "item.started": 0,
+                "item.updated": 0,
+                "other": 0,
+                "thread.started": 1,
+                "turn.completed": 0,
+                "turn.failed": 1,
+                "turn.started": 1
+              },
+              "itemCompleted": {
+                "commandExecutions": 0,
+                "fileChanges": 0,
+                "agentMessages": 0
+              },
+              "byteProxies": {
+                "command": 0,
+                "aggregatedOutput": 0,
+                "labels": {
+                  "command": "utf8_bytes",
+                  "aggregatedOutput": "utf8_bytes",
+                  "agentTextBytes": "utf8_bytes"
+                }
+              },
+              "repeatedCommands": [],
+              "caps": {
+                "fingerprints": 128
+              },
+              "saturation": false,
+              "fingerprintOverflow": false
+            },
+            "promptBytes": 3154,
+            "sourceContextBytes": 931,
+            "rawTranscriptRetained": false,
+            "backendIdentity": "NOT_ATTESTED",
+            "descendantCleanup": "NOT_ATTESTED",
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "unknown",
+              "usage_status": "unknown",
+              "fallback_reason": "missing_final_usage",
+              "usage_scope": "unknown",
+              "source_event": null,
+              "aggregation": "none",
+              "input_tokens": null,
+              "uncached_input_tokens": null,
+              "cached_input_tokens": null,
+              "cache_creation_input_tokens": null,
+              "output_tokens": null,
+              "reasoning_tokens": null,
+              "reasoning_semantics": "unknown",
+              "input_output_tokens": null,
+              "billing_amount": null
+            },
+            "usageAdapterSource": "production session-result.runtime.usage",
+            "unexpectedChild": false
+          },
+          "quality": {
+            "passed": false,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": false,
+              "mutantChecksPassed": false,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true,
+              "gitHeadUnchanged": true
+            },
+            "changedFiles": [],
+            "checksPassed": 5,
+            "checksTotal": 7
+          },
+          "treatmentCompliant": true,
+          "accepted": false,
+          "gitHistory": {
+            "initialHead": "8ba4f52a92efcf569255cb592d94e2395d3455a1",
+            "observedHead": "8ba4f52a92efcf569255cb592d94e2395d3455a1",
+            "unchanged": true
+          },
+          "transport": {
+            "status": "failed",
+            "execution": "FAILED",
+            "verification": "NOT_VERIFIED",
+            "mutationState": "unknown",
+            "scopedFilesChanged": [],
+            "budget": {
+              "committedTokens": 54500,
+              "remainingTokens": 441500,
+              "unresolvedAttempts": 1
+            }
+          }
+        }
+      ],
+      "accepted": false,
+      "finished": true,
+      "artifact": {
+        "saved": true,
+        "path": "02-query-encoding-proposal-1.patch",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "accepted": false,
+        "initialFiles": {
+          "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+          "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+          "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+        },
+        "finalFiles": {
+          "src/query.js": "07b2f3e2c0c56770084c1a166ec3a5ff1022d90d7a1a7d3c86c72c2ee75e521a",
+          "src/search.js": "ee2dfb35146cbe19deb40875e4e02ebde903f64b1279e1bb972a2355da31067e",
+          "test/search.test.js": "158ee1a29d0771f80ace03f8a3d3f4c02bf416aba41f767078303bbc818b511c"
+        },
+        "quality": {
+          "passed": false,
+          "checks": {
+            "testsPassed": true,
+            "oraclePassed": false,
+            "mutantChecksPassed": false,
+            "verifierCompleted": true,
+            "onlyAllowedFilesChanged": true,
+            "noSymlinksOrSpecialFiles": true,
+            "gitHeadUnchanged": true
+          },
+          "changedFiles": [],
+          "checksPassed": 5,
+          "checksTotal": 7
+        }
+      }
+    }
+  ],
+  "summary": {
+    "agent": {
+      "planned": 4,
+      "completed": 1,
+      "attempts": 1,
+      "accepted": 1,
+      "firstPasses": 1,
+      "repairs": 0,
+      "complete": false,
+      "usageComplete": true,
+      "observedTokensLowerBound": 54500,
+      "totals": {
+        "input_tokens": 52784,
+        "cached_input_tokens": 25088,
+        "uncached_input_tokens": 27696,
+        "output_tokens": 1716,
+        "input_output_tokens": 54500
+      },
+      "firstPassRate": 1,
+      "eventualPassRate": 1,
+      "tokensPerAccepted": 54500,
+      "uncachedInputPlusOutputPerAccepted": 29412,
+      "meanTokensPerTask": 54500,
+      "treatmentCompliant": 1
+    },
+    "proposal": {
+      "planned": 4,
+      "completed": 1,
+      "attempts": 1,
+      "accepted": 0,
+      "firstPasses": 0,
+      "repairs": 0,
+      "complete": false,
+      "usageComplete": false,
+      "observedTokensLowerBound": 0,
+      "totals": {
+        "input_tokens": null,
+        "cached_input_tokens": null,
+        "uncached_input_tokens": null,
+        "output_tokens": null,
+        "input_output_tokens": null
+      },
+      "firstPassRate": 0,
+      "eventualPassRate": 0,
+      "tokensPerAccepted": null,
+      "uncachedInputPlusOutputPerAccepted": null,
+      "meanTokensPerTask": null,
+      "treatmentCompliant": 1
+    }
+  },
+  "stopped": "USAGE_UNAVAILABLE",
+  "completedAt": "2026-09-07T14:44:56.936Z",
+  "elapsedMs": 47151,
+  "finalSource": {
+    "files": {
+      "evals/token-efficiency/run-context-ab.js": "91c9746b45a94f8bc681ead0614ef54e43b8e43c1eec2159124caadd76b81614",
+      "evals/token-efficiency/run-routing-ab.js": "f8778bcfc86be63dd86ea0199db50889b87d6fced33ca2850e746f928e4d9de2",
+      "evals/token-efficiency/run-economic-ab.js": "63fd659cc67aeb48db657e5639de562f273d0a42043be65eb8ea3c45cfdcd242",
+      "evals/token-efficiency/CONTEXT-EVAL.md": "8507f9270281c737009c517fc84d5bd7774d9e44bcd7cda64dcb4b5467fb9344",
+      "evals/token-efficiency/routing-fixtures.cjs": "c7b98918ef4991c42f4dae47752ebee47a05638c6487d9f212b6dcd64b1b4a98",
+      "evals/token-efficiency/economic-fixtures.cjs": "3ca9f9efab8d1b9d20865b33eb95a0ef8eb3622ac477d7ac7f22485c24736c2e",
+      "evals/behavioral/adapters/provider-usage.cjs": "9bcaeaeb225b9af2f17d690ba70c10a6b3814c92f534b50eda8632075bb710db",
+      "skills/start-task/scripts/session-context.js": "607819af6c15962f09fa9fe80b06022621f8ffc3395b83bd6df7764edac33d16",
+      "skills/start-task/scripts/session-telemetry.js": "6dc3f7f6daf0802834bf7abf22338d2ec6cfde97d6f8e30df00cc73203bf83bc",
+      "skills/start-task/scripts/task-router.js": "b153703b0dfc835ddf05950e9f18c7fc46a64b0fee0eeb4022c05d7a03851cc5",
+      "skills/start-task/scripts/model-router.js": "04c18fa81e6da2d102fe5782784fd0a0b00b80a0c963f0bc457448bd5a7e561d",
+      "skills/start-task/scripts/model-routing-policy.json": "fd6ee18da98b01451dc4f1abd21943be166988bc2778afe4d9850b87615a4810",
+      "skills/start-task/scripts/model-routing-io.js": "bcc0458983fa2e41e748d844409e87731d885d436592efe78cdfb5fbaaee455b",
+      "skills/start-task/scripts/codex-model-catalog.js": "3f554d229406d2fa6556de1878e5b7bf617af491d44b0a31a75b14ca732c46c9",
+      "evals/token-efficiency/run-proposal-ab.js": "f9194b0d7478d4bd0dfeb1631b7aa8ba3bf0fc9dc33b93643d46ac8745e8cf68",
+      "evals/token-efficiency/PROPOSAL-EVAL.md": "7f51c00a509aca0300e09ec9534fd494a1eb5e16e4aede777eebfd99881bf7e0",
+      "skills/start-task/scripts/session-runner.js": "eaa96e4edb7b90368dc37608e4818cac73aee9ac56a9c5cda51896ad019fd1cd",
+      "skills/start-task/scripts/session-io.js": "eab2d7b3f6c0785a3cb038f8ccf83310957cb3c080efe1501539fda4fb24fa01",
+      "skills/start-task/scripts/session-budget.js": "15823cef72c619cd92ed8551e069d6a8f6ecb7455a793714d9520ef07455767f",
+      "skills/start-task/scripts/session-task.schema.json": "e5332433d4d7b21adcf2acc53d196bba4a418a48db1fa105f274eb3348626897",
+      "skills/start-task/scripts/session-candidate.schema.json": "ea0401b85a670b089c93a42c642dc5c738efec87b205d0aa2581071ba2c99cd7",
+      "skills/start-task/scripts/session-edit-proposal.js": "913d86a6bfd25a387e2fc7a87f0cebdcc87bc302b2d50d2afbca10cf47dc1a64",
+      "skills/start-task/scripts/session-edit-proposal.schema.json": "39603911a819ffc0d281a0affac5709ccb23d0a0c2790f7461fe9d02d38e2904"
+    },
+    "sha256": "4b268c057efffeaeba7bb19745d89dd704a71eec5ff1ab666709a48f9a3b3cbb"
+  },
+  "sourceUnchanged": true,
+  "complete": false,
+  "comparable": false,
+  "finalBudget": {
+    "schema": "vulpora.session-budget/v1",
+    "id": "928586df-97d9-42fc-9635-02ac09daea7d",
+    "limits": {
+      "maxRelativeUnits": 480,
+      "totalTokens": 500000
+    },
+    "committedTokens": 54500,
+    "reservedTokens": 4000,
+    "remainingTokens": 441500,
+    "spentRelativeUnits": 1,
+    "reservedRelativeUnits": 1,
+    "remainingRelativeUnits": 478,
+    "overdrawn": false,
+    "unresolvedAttempts": 1
+  },
+  "assessment": {
+    "schema": "vulpora.proposal-ab-assessment/v1",
+    "status": "INCONCLUSIVE",
+    "qualityPreserved": null,
+    "lowerObservedTotalTokens": null,
+    "tokenReductionRatio": null,
+    "scope": "Actual production agent versus edit-proposal session transport; synthetic tasks; excludes full installed skill/Audit and development conversation"
+  }
+}
