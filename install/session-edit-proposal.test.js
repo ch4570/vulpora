@@ -49,6 +49,9 @@ function workspace(t) {
   t.after(() => fs.rmSync(cwd, {recursive: true, force: true}));
   fs.mkdirSync(path.join(cwd, 'src'));fs.mkdirSync(path.join(cwd, 'test'));
   fs.writeFileSync(path.join(cwd, 'src/a.js'), 'old', {mode: 0o751});
+  // writeFileSync's mode is filtered by umask; establish the mode explicitly
+  // so this test checks preservation rather than the process umask.
+  fs.chmodSync(path.join(cwd, 'src/a.js'), 0o751);
   return cwd;
 }
 const options = {taskId: 'task-1', files, sourceHashes};
