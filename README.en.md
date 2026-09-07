@@ -78,7 +78,7 @@ instructions.
 
 ### 3. Ask for work
 
-Install `pack:orchestration` to use this workflow. These are **runtime prompts**, not shell commands:
+Install `start-task` or `pack:orchestration` to use this workflow. These are **runtime prompts**, not shell commands:
 
 ```text
 Codex       $start-task "Add a retry limit and regression tests"
@@ -89,23 +89,46 @@ Claude Code /start-task "Add a retry limit and regression tests"
 the task. An explicit profile is a leading token: `$start-task --audit "Review this migration plan"`.
 [Orchestration contract](docs/start-task-orchestration.md).
 
+For scoped coding work, install just the task entrypoint and its declared dependencies:
+
+```sh
+./vulpora setup --runtime codex --scope project --target /absolute/project start-task
+```
+
+This selects three skills instead of the full catalog. The lightweight path includes its own instructions;
+standard and audit references load only when that profile is selected. Add domain packs when the project needs
+them. Existing global installations still contribute discovery context; a targeted project installation does not
+disable those assets. Compare quality and total usage with the [economic evaluation](evals/token-efficiency/README.md).
+
 ## Keep orchestration context small
 
 Standard tasks can delegate independent lanes to a **fresh Codex session**. Send a bounded task capsule with
 selected paths and acceptance checks; collect a compact candidate result and runtime token usage. The parent
 reviews the diff and evidence. Small or coupled changes stay with one owner.
 
-Task type, difficulty, risk, the available model catalog, and budget select a model profile: simple inspection
-uses the frugal tier, ordinary implementation uses standard, and complex/high-risk work uses frontier.
-Deterministic checks use no model. The default candidates are Luna, Terra, and Astra respectively; availability
-and an explicit operator policy control the actual route.
+Task type, difficulty, risk, the available model catalog, and budget select a model profile. Simple, low-risk
+implementation and inspection use Luna/low; moderate work and bounded complex implementation use Terra/medium.
+Complex architecture/research and high-risk work use frontier, starting with Astra/high. Bounded complex work
+receives a decomposition recommendation; deterministic checks use no model. Availability and explicit operator
+policy control the actual route. Independently verified model-quality failures can advance one tier within the
+shared budget and attempt cap; environment failures and unknown usage stop the retry path.
+Simple low-risk lookups, documentation, implementation, reviews, and tests across one or two declared files stay
+primary-owned unless the task explicitly sets `delegation: "independent-session"`. Primary-owned and deterministic
+preparation needs only `--task`.
 
 ```sh
+./vulpora session budget-init --out /absolute/shared-budget.json --tokens 100000 --units 60
 ./vulpora models --runtime codex > /absolute/runtime-models.json
-./vulpora session prepare --task /absolute/task.json --catalog /absolute/runtime-models.json --out /absolute/attempt-001
+./vulpora session prepare --task /absolute/task.json --catalog /absolute/runtime-models.json \
+  --budget /absolute/shared-budget.json --out /absolute/attempt-001
 ./vulpora session run --capsule /absolute/attempt-001/capsule.json
 ./vulpora session status --capsule /absolute/attempt-001/capsule.json
+./vulpora session budget-status --budget /absolute/shared-budget.json
 ```
+
+Keep the shared budget outside the task workspace and reuse it across related attempts. Reservations account for
+parallel work; unavailable usage and observed overruns block new launches. `status` returns compact artifact
+references; add `--detail` for the full result. These controls and output limits do not prove billing savings.
 
 See the [task JSON and session limits](skills/start-task/reference/kb/independent-sessions.md) and
 [token measurements](evals/token-efficiency/README.md). New sessions do not inherit the parent transcript;

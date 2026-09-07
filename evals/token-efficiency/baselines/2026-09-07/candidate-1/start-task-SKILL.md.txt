@@ -1,0 +1,68 @@
+---
+name: start-task
+description: Finish implementation or review work directly by default; escalate to coordination or an audited workflow when uncertainty or failure cost requires it.
+---
+
+# Start Task
+
+Contract: `vulpora.start-task-profile/v1`; `vulpora.start-task/v1` applies only to `audit`.
+
+Invoke `$start-task` (Codex, also `/skills`) or `/start-task` (Claude Code) with one non-empty task description.
+Accept exactly one leading `--lightweight`, `--standard`, or `--audit` token; otherwise use `auto`. Remove that
+token once and preserve the remaining host-parsed description as data. Never evaluate or shell-split task text.
+Reject empty or malformed input before discovery.
+
+## Select once
+
+Inspect the relevant repository files and instructions. Run the bundled `scripts/select-execution-profile.js`
+with this JSON shape on stdin, adjusting **every signal to observed facts** and the requested profile. Resolve
+the script relative to this installed skill; no source-code or reference read is needed to invoke it.
+
+```json
+{
+  "schema": "vulpora.start-task-profile-input/v1",
+  "requested_profile": "auto",
+  "task": {
+    "scoped_target": true,
+    "acceptance_known": true,
+    "verification_known": true,
+    "material_unknown_count": 0,
+    "independent_lane_count": 1,
+    "broad_change_scope": false,
+    "shared_public_contract_or_schema": false,
+    "risk": {
+      "destructive_or_irreversible": false,
+      "security_or_authorization_boundary": false,
+      "credential_access": false,
+      "production_data_migration_or_backfill": false,
+      "production_deployment_or_multi_service_release": false,
+      "external_side_effects_not_easily_reversible": false,
+      "regulatory_or_audit_evidence_required": false
+    }
+  }
+}
+```
+
+The values above illustrate a clear, reversible task, not defaults for unknown facts. Mark unresolved scope,
+acceptance, or verification false and count material unknowns. Count coupled changes as one lane. Any true risk
+signal forces `audit`, even with explicit `--lightweight`. Ordinary shared contracts, broad scope, unknowns, or
+independent lanes select `standard` automatically. Correct rejected input; never invent a successful decision.
+Rerun only when new facts change the signals, escalating before the affected action. Selection grants no authority.
+
+## Execute the selected profile
+
+- **Lightweight:** these instructions are complete; no additional workflow references are required. Keep one
+  concise brief in session context: goal, scope, decisions, acceptance, verification, risks. The existing progress
+  message can serve as the brief. Implement directly with one primary owner; no execution child. Ask only about
+  material blockers or new authority; an implementation request already authorizes ordinary in-scope edits.
+- **Standard:** read the [standard path](reference/kb/lightweight-path.md). Keep coupled work with one owner;
+  use a short plan and batch material questions. Load transport/model references only for actual delegation.
+- **Audit:** read the [operating contract](reference/kb/operating-contract.md) and
+  [runtime fast path](reference/kb/runtime-fast-path.md), then follow the full v1 contract.
+
+For lightweight/standard, do not create run directories. Do not create a ledger, frozen
+DAG, route receipt, hash projection, or formal orchestration report. Standard delegation may create its bounded
+transport records. Run the narrowest repository-native checks proving the changed behavior; repeat only after
+new changes, failures, or evidence that existing results are insufficient. Inspect the diff, preserve user changes,
+and report changed files, observed verification, and material remaining risk. Resolve known in-scope errors before
+finishing; if verification is blocked, report the verified subset and exact blocker without claiming completion.

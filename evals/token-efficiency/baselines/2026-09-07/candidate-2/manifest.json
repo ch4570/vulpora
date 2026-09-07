@@ -1,0 +1,13 @@
+{
+  "purpose": "Frozen candidate 2 used by the confirmation suite.",
+  "files": {
+    "skills/start-task/SKILL.md": {
+      "file": "start-task-SKILL.md.txt",
+      "sha256": "12b76623fb3db1de7d3e3eef4b4b1b5c2f101150b1842ba39970706cc935bea7"
+    },
+    "skills/start-task/reference/kb/lightweight-path.md": {
+      "file": "lightweight-path.md.txt",
+      "sha256": "19286406e7ac332e582bb05861682408b8e42853e68aaff8c979cf6eb7a8358f"
+    }
+  }
+}

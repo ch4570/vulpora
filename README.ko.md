@@ -76,7 +76,7 @@ npx --yes vulpora@1.0.0
 
 ### 3. 작업 요청
 
-이 workflow를 사용하려면 `pack:orchestration`도 설치합니다. 다음은 셸 명령이 아닌 **런타임 프롬프트**입니다.
+이 workflow를 사용하려면 `start-task` 또는 `pack:orchestration`을 설치합니다. 다음은 셸 명령이 아닌 **런타임 프롬프트**입니다.
 
 ```text
 Codex       $start-task "검색 API에 재시도 상한과 회귀 테스트를 추가해줘"
@@ -87,22 +87,47 @@ Claude Code /start-task "검색 API에 재시도 상한과 회귀 테스트를 �
 명시하려면 `$start-task --audit "이 마이그레이션 계획을 검토해줘"`처럼 맨 앞에 profile 토큰을 둡니다.
 [오케스트레이션 안내](docs/start-task-orchestration.md).
 
+범위가 정해진 코딩 작업에는 작업 진입점과 선언된 의존성만 선택해 설치할 수 있습니다.
+
+```sh
+./vulpora setup --runtime codex --scope project --target /absolute/project start-task
+```
+
+전체 목록 대신 스킬 3개를 설치합니다. 작은 작업의 지침은 진입 파일에 포함하고, standard·audit
+참조는 해당 경로를 선택했을 때 읽습니다. 필요한 도메인 팩은 추가로 설치합니다. 기존 전역 설치의
+스킬은 계속 발견되므로 프로젝트 선택 설치만으로 전역 문맥까지 줄어들지는 않습니다.
+품질과 총사용량 비교는 [경제성 평가](evals/token-efficiency/README.ko.md)를 참고하세요.
+
 ## 오케스트레이터 문맥 줄이기
 
 Standard 작업의 독립된 부분은 **새 Codex 세션**에 위임할 수 있습니다. 목표·관련 파일·수락 조건만
 담은 작은 작업 캡슐을 보내고, 짧은 후보 결과와 런타임 토큰 사용량을 회수합니다. 상위 세션은 실제
 변경과 검증 증거를 확인합니다. 작거나 서로 강하게 연결된 작업은 한 실행자가 처리합니다.
 
-작업 종류·난이도·위험·사용 가능한 모델·예산으로 모델을 선택합니다. 단순 조사는 frugal, 일반 구현은
-standard, 복잡하거나 위험한 판단은 frontier를 사용하고 결정적 검사는 모델을 호출하지 않습니다.
-기본 후보는 각각 Luna·Terra·Astra이며 실제 가용 목록과 사용자가 지정한 정책이 우선합니다.
+작업 종류·난이도·위험·사용 가능한 모델·예산으로 모델을 선택합니다. 단순하고 위험이 낮은 구현·검토는
+Luna/low, 중간 난이도와 범위가 정해진 복잡한 구현은 Terra/medium을 사용합니다. 복잡한 아키텍처·연구와
+위험이 높은 작업은 Astra/high부터 시작하는 frontier를 사용합니다. 복잡한 구현에는 분해를 권장하며
+결정적 검사는 모델을 호출하지 않습니다. 실제 가용 목록과 사용자가 지정한 정책이 우선합니다.
+독립 검증에서 모델 품질 문제가 확인되면 공유 예산과 시도 횟수 안에서 한 단계 상향할 수 있습니다.
+환경 오류나 사용량 미관측 상태에서는 재시도를 중단합니다.
+선언한 파일 1~2개를 다루는 단순하고 위험이 낮은 조회·문서·구현·검토·테스트는 상위 세션이 직접 처리합니다. 작업에
+`delegation: "independent-session"`을 명시하면 별도 세션을 요청할 수 있습니다. 직접 처리하거나
+결정적으로 검사할 작업의 준비에는 `--task`만 필요합니다.
 
 ```sh
+./vulpora session budget-init --out /absolute/shared-budget.json --tokens 100000 --units 60
 ./vulpora models --runtime codex > /absolute/runtime-models.json
-./vulpora session prepare --task /absolute/task.json --catalog /absolute/runtime-models.json --out /absolute/attempt-001
+./vulpora session prepare --task /absolute/task.json --catalog /absolute/runtime-models.json \
+  --budget /absolute/shared-budget.json --out /absolute/attempt-001
 ./vulpora session run --capsule /absolute/attempt-001/capsule.json
 ./vulpora session status --capsule /absolute/attempt-001/capsule.json
+./vulpora session budget-status --budget /absolute/shared-budget.json
 ```
+
+공유 예산 파일은 작업 디렉터리 밖에 두고 관련 시도에서 재사용합니다. 병렬 작업의 예약량을 함께
+계산하며 사용량을 확인할 수 없거나 관측 사용량이 예산을 넘으면 새 실행을 차단합니다. `status`는
+짧은 산출물 참조를 반환하고 `--detail`을 붙이면 전체 결과를 보여줍니다. 예산·출력 제한 자체가
+실제 요금 절감을 입증하지는 않습니다.
 
 [작업 JSON과 실행 제한](skills/start-task/reference/kb/independent-sessions.md),
 [토큰 측정과 설계](evals/token-efficiency/README.ko.md)를 참고하세요. 상위 대화는 전달하지 않지만

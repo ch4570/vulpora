@@ -9,10 +9,12 @@ SKILL="$ROOT/skills/start-task/SKILL.md"
 grep -Fq -- '--lightweight`, `--standard`, or `--audit`' "$SKILL"
 grep -Fq 'Do not create a ledger, frozen' "$SKILL"
 
-node - "$SELECTOR" <<'NODE'
+node - "$SELECTOR" "$SKILL" <<'NODE'
 const {spawnSync} = require('node:child_process');
+const fs = require('node:fs');
 
 const selector = process.argv[2];
+const skill = fs.readFileSync(process.argv[3], 'utf8');
 
 function select(input) {
   const result = spawnSync(process.execPath, [selector], {
@@ -35,30 +37,14 @@ function expectReject(input, message) {
     encoding: 'utf8',
   });
   expect(result.status !== 0, message);
+  expect(result.stdout.trim() === '', 'rejected input must not emit a decision usable by a write guard');
 }
 
-const base = {
-  schema: 'vulpora.start-task-profile-input/v1',
-  requested_profile: 'auto',
-  task: {
-    scoped_target: true,
-    acceptance_known: true,
-    verification_known: true,
-    material_unknown_count: 0,
-    independent_lane_count: 1,
-    broad_change_scope: false,
-    shared_public_contract_or_schema: false,
-    risk: {
-      destructive_or_irreversible: false,
-      security_or_authorization_boundary: false,
-      credential_access: false,
-      production_data_migration_or_backfill: false,
-      production_deployment_or_multi_service_release: false,
-      external_side_effects_not_easily_reversible: false,
-      regulatory_or_audit_evidence_required: false,
-    },
-  },
-};
+// Exercise the entrypoint's actual stdin example. An agent can invoke the
+// selector from that document without reading its implementation or guessing keys.
+const examples = [...skill.matchAll(/```json\s*\n([\s\S]*?)\n```/g)].map((match) => JSON.parse(match[1]));
+const base = examples.find((value) => value.schema === 'vulpora.start-task-profile-input/v1');
+expect(base, 'entrypoint must contain an executable selector input example');
 
 const small = select(base);
 expect(small.profile === 'lightweight', 'small clear change must use lightweight');
@@ -69,6 +55,18 @@ expect(small.controls.execution_owner === 'primary', 'lightweight must stay prim
 expect(small.controls.dag === false, 'lightweight must not create a DAG');
 expect(small.controls.ledger === false, 'lightweight must not create a ledger');
 expect(small.controls.routing_receipts === false, 'lightweight must not create routing receipts');
+
+for (const [signal, value] of [
+  ['scoped_target', false],
+  ['acceptance_known', false],
+  ['verification_known', false],
+  ['material_unknown_count', 1],
+  ['broad_change_scope', true],
+]) {
+  const unresolved = structuredClone(base);
+  unresolved.task[signal] = value;
+  expect(select(unresolved).profile === 'standard', `${signal} must preserve the standard escalation`);
+}
 
 const apiContract = structuredClone(base);
 apiContract.task.shared_public_contract_or_schema = true;
@@ -106,16 +104,13 @@ for (const risk of [
   expect(audit.controls.ledger === true, 'audit must preserve ledger controls');
   expect(audit.controls.routing_receipts === 'native_execution_attempts_only', 'audit must bind receipts only to native execution attempts');
   expect(audit.controls.child_no_progress_seconds === 60, 'audit execution children must have a no-progress reclaim bound');
+  risky.requested_profile = 'lightweight';
+  expect(select(risky).profile === 'audit', `${risk} must invalidate an expected lightweight write guard`);
 }
 
 const forcedAudit = structuredClone(base);
 forcedAudit.requested_profile = 'audit';
 expect(select(forcedAudit).profile === 'audit', 'explicit audit must be honored');
-
-const unsafeDownshift = structuredClone(base);
-unsafeDownshift.requested_profile = 'lightweight';
-unsafeDownshift.task.risk.production_data_migration_or_backfill = true;
-expect(select(unsafeDownshift).profile === 'audit', 'explicit lightweight must not bypass an audit risk signal');
 
 const inventedField = structuredClone(base);
 inventedField.task.risk.unspecified_guess = false;

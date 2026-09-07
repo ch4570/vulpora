@@ -1,0 +1,17 @@
+{
+  "sourceReport": "economic-confirmation-2026-09-07.json",
+  "sourceSha256": "e17d52207da8328d99f2763b9b7fce75989156414e97df867d22b09c66dbc700",
+  "historicalMeasurementsUnchanged": true,
+  "productGoal": {
+    "target": "Higher final quality AND lower total tokens AND lower actual cost than baseline",
+    "status": "not_met",
+    "lowerObservedTokensPerAcceptedTask": false,
+    "lowerEstimatedCostAcrossCacheWriteScenarios": false,
+    "higherObservedAcceptanceRate": false,
+    "finalQualitySuperiority": "not_established_by_acceptance_rates_alone",
+    "actualBilledSavings": "not_measured_by_this_calculator",
+    "strictWorkflowComparisonVerified": false,
+    "modelRoutingEffect": "not_exercised_fixed_model_suite",
+    "higherQualityAndLowerActualCostEstablished": false
+  }
+}

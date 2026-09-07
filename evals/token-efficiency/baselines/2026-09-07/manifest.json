@@ -1,0 +1,13 @@
+{
+  "purpose": "Pre-optimization start-task documents; overlay onto the current checkout to reconstruct the legacy documentation condition. Other installer assets are recorded by the live report snapshot.",
+  "files": {
+    "skills/start-task/SKILL.md": {
+      "file": "start-task-SKILL.md.txt",
+      "sha256": "a0502c78aaadc86cabd24dba9e0db2cea9b88cfe3cf03e891e5f5c658b0f9d79"
+    },
+    "skills/start-task/reference/kb/lightweight-path.md": {
+      "file": "lightweight-path.md.txt",
+      "sha256": "5461f71a50e05d6640a6f52ab16b5d8964c3b648e72cbcaa8c1032696f2f60fa"
+    }
+  }
+}

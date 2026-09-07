@@ -1,0 +1,95 @@
+diff --git a/src/lru.js b/src/lru.js
+index e501deb..ed34842 100644
+--- a/src/lru.js
++++ b/src/lru.js
+@@ -1,8 +1,23 @@
+ 'use strict';
+ class LRUCache {
+-constructor(capacity){this.capacity=capacity;this.items=new Map();}
+-set(key,value){if(this.items.size>=this.capacity)this.items.delete(this.items.keys().next().value);this.items.set(key,value);return this;}
+-get(key){return this.items.get(key)||undefined;}
++constructor(capacity){
++if(typeof capacity!=='number'||!Number.isInteger(capacity)||capacity<=0)throw new RangeError('capacity must be a positive integer');
++this.capacity=capacity;
++this.items=new Map();
++}
++set(key,value){
++if(this.items.has(key))this.items.delete(key);
++this.items.set(key,value);
++if(this.items.size>this.capacity)this.items.delete(this.items.keys().next().value);
++return this;
++}
++get(key){
++if(!this.items.has(key))return undefined;
++const value=this.items.get(key);
++this.items.delete(key);
++this.items.set(key,value);
++return value;
++}
+ has(key){return this.items.has(key);}
+ get size(){return this.items.size;}
+ }
+diff --git a/test/lru.test.js b/test/lru.test.js
+index 04e9b01..8713ea0 100644
+--- a/test/lru.test.js
++++ b/test/lru.test.js
+@@ -3,3 +3,59 @@ const test=require('node:test');
+ const assert=require('node:assert/strict');
+ const {LRUCache}=require('../src/lru.js');
+ test('stores a value',()=>{const c=new LRUCache(2);c.set('a',1);assert.equal(c.get('a'),1);});
++
++test('rejects capacities that are not positive integers',()=>{
++for(const capacity of [0,-1,1.5,NaN,Infinity,'2',null,undefined]){
++assert.throws(()=>new LRUCache(capacity),RangeError);
++}
++});
++
++test('stores falsy values and undefined',()=>{
++const c=new LRUCache(5);
++for(const [key,value] of [['false',false],['zero',0],['empty',''],['null',null],['undefined',undefined]])c.set(key,value);
++assert.equal(c.get('false'),false);
++assert.equal(c.get('zero'),0);
++assert.equal(c.get('empty'),'');
++assert.equal(c.get('null'),null);
++assert.equal(c.get('undefined'),undefined);
++assert.equal(c.size,5);
++});
++
++test('evicts the least recently used key and refreshes hits',()=>{
++const c=new LRUCache(2);
++c.set('a',1).set('b',2);
++assert.equal(c.get('a'),1);
++c.set('c',3);
++assert.equal(c.has('a'),true);
++assert.equal(c.has('b'),false);
++assert.equal(c.get('c'),3);
++});
++
++test('has and size do not refresh recency',()=>{
++const c=new LRUCache(2);
++c.set('a',1).set('b',2);
++assert.equal(c.has('a'),true);
++assert.equal(c.size,2);
++c.set('c',3);
++assert.equal(c.has('a'),false);
++assert.equal(c.has('b'),true);
++});
++
++test('updates refresh recency without evicting an existing entry',()=>{
++const c=new LRUCache(2);
++c.set('a',1).set('b',2);
++assert.equal(c.set('a',3),c);
++assert.equal(c.size,2);
++c.set('c',4);
++assert.equal(c.get('a'),3);
++assert.equal(c.has('b'),false);
++});
++
++test('uses Map key identity',()=>{
++const c=new LRUCache(2);
++const first={id:1};
++const second={id:1};
++c.set(first,'first').set(second,'second');
++assert.equal(c.get(first),'first');
++assert.equal(c.get(second),'second');
++});

@@ -119,6 +119,7 @@ jobs:
         run: |
           bash evals/run-evals.sh
           bash evals/behavioral/run-behavioral-evals.sh --validate
+          npm run test:economics
 
   nl-sql:
     name: NL-to-SQL MCP / Node ${{ matrix.node }}

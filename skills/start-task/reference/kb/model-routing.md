@@ -15,7 +15,7 @@ It is a separate execution kind, never a substitute for native audit receipts or
 ## Choose and resolve
 
 The workflow profile (`lightweight|standard|audit`) and the model profile (`frugal|standard|frontier`) are different.
-Use `frugal` for narrow, independently verifiable work; `standard` for ordinary implementation or analysis;
+Use `frugal` for simple, independently verifiable implementation or inspection; `standard` for moderate work or bounded complex implementation;
 `frontier` when failure cost or demonstrated capability needs justify it. Set `risk=high` for a child's security,
 authorization, irreversible-effects or production-risk decisions; the helper enforces the frontier floor. Do not
 infer permissions, quality or health from a model's name. Honor the operator's explicit model policy and budget.
@@ -59,14 +59,35 @@ instead of a manual `--profile`; omit `--agent-config`. The resolver returns exp
 | Task | Default model profile |
 |---|---|
 | Deterministic command/check | No model |
-| Simple lookup, documentation, review, or testing | Frugal |
-| Ordinary implementation, research, architecture, or moderate work | Standard |
-| Complex work or high failure risk | Frontier |
+| Simple, low-risk lookup, documentation, implementation, review, or testing | Frugal |
+| Moderate work; bounded complex implementation/review/testing | Standard |
+| Complex architecture or research; high failure risk | Frontier |
 
 The default Codex candidate order starts with Luna/low, Terra/medium, and Astra/high respectively. Availability
 comes from the fresh runtime catalog; these names are policy choices, not measured quality guarantees. An explicit
 profile is honored subject to the high-risk floor and budget. Selection never silently escalates after failure.
 New sessions receive no native agent config; their mode, task, runtime pin, limits, and route live in the capsule.
+
+For bounded complex implementation, the classifier recommends standard and reports
+`complex_work_decompose_before_escalation`: split work into bounded steps with concrete acceptance checks.
+Complex architecture and research begin at frontier because their scope requires open-ended reasoning. These
+classifications are supplied task facts, not a paid model classifier or a guarantee of quality.
+
+`resolveTaskEscalation()` in `task-router.js` returns a decision without launching a model. Supply the original
+request, actual previous route, observed usage, independently checked `verification`, attempts used/cap, and the
+settled shared-budget snapshot. Only `failed` plus `failureClass: "model-quality"` advances Luna → Terra → frontier.
+Passed checks, environment/authority/unknown failures, unknown usage, unsettled or exhausted budget, explicit
+profile pins, and exhausted frontier stop. The total cap is three attempts or the caller’s smaller cap. A parent
+may pass the returned profile in a new session task after recording the failure and reconciling prior usage;
+worker self-reports alone do not authorize escalation.
+
+Before preparing a session, `selectTaskExecution({taskType, difficulty, risk, fileCount, delegation})` selects
+ownership from the same caller-supplied facts. Simple, low-risk lookup, documentation, implementation, review, or
+testing across one or two declared files stays primary-owned to avoid a new session's overhead. Missing or empty
+file scope, broader work, architecture, research, and high risk do not use this shortcut. Task-level
+`delegation: "independent-session"` explicitly requests a session; omission or `"auto"` uses the heuristic.
+Deterministic work always stays deterministic without model allocation. This ownership choice does not change the
+direct route API's explicit transport semantics or the model profile for delegated implementation.
 
 ## Native preflight and invoke
 
@@ -90,9 +111,16 @@ block or retain the primary-owned path within the original authority. Do not rew
 
 Reserve the estimated tokens and relative units from the shared run budget before each child starts, including
 parallel children. Reconcile with observed usage before further work; when usage is unavailable retain the
-reservation rather than assuming zero. The resolver's per-attempt arithmetic does not enforce cumulative spend,
-provider billing, output-token limits or retries. Hard billing limits need an operator-controlled gateway. Audit
-work additionally uses its existing receipt/attempt ledger and deterministic failure-transition classifier.
+reservation rather than assuming zero. The resolver's arithmetic is per-attempt. Independent sessions additionally
+require a shared budget created with `session budget-init --out /absolute/budget.json --tokens 100000 --units 60`
+and supplied to `prepare --budget /absolute/budget.json`. Keep it outside the task workspace. The runner reserves
+at launch and settles observed input plus output without double-counting cached input or reasoning. Unknown usage
+retains the reservation; unknown usage and observed overruns block new launches. Inspect `session budget-status
+--budget /absolute/budget.json`; `session reconcile --capsule /absolute/attempt/capsule.json` retries settlement
+from a persisted result after a busy budget update. No supplied manual usage or budget reset clears uncertainty.
+These controls do not impose provider billing or total-token hard caps. Hard billing limits need an
+operator-controlled gateway. Audit work additionally uses its existing receipt/attempt ledger and deterministic
+failure-transition classifier. See [independent sessions](independent-sessions.md) for the complete command flow.
 
 ## Observe honestly
 

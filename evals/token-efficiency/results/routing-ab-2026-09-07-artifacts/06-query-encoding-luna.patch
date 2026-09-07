@@ -1,0 +1,60 @@
+diff --git a/src/query.js b/src/query.js
+index ccd7d9e..557ff39 100644
+--- a/src/query.js
++++ b/src/query.js
+@@ -1,3 +1,14 @@
+ 'use strict';
+-function queryPairs(filters){return Object.entries(filters).filter(([,value])=>value).map(([key,value])=>[key,String(value)]);}
++function queryPairs(filters){
++  const pairs=[];
++  for(const [key,value] of Object.entries(filters)){
++    const values=Array.isArray(value)?value:[value];
++    for(const item of values){
++      if(typeof item==='string'||typeof item==='number'||typeof item==='boolean'){
++        pairs.push([key,String(item)]);
++      }
++    }
++  }
++  return pairs;
++}
+ module.exports={queryPairs};
+diff --git a/src/search.js b/src/search.js
+index 65f12d1..c8cabd4 100644
+--- a/src/search.js
++++ b/src/search.js
+@@ -1,3 +1,7 @@
+ 'use strict';
+-function buildSearch(filters){return '?'+Object.entries(filters).map(([key,value])=>key+'='+value).join('&');}
++const {queryPairs}=require('./query.js');
++function buildSearch(filters){
++  const pairs=queryPairs(filters);
++  return pairs.length?`?${new URLSearchParams(pairs).toString()}`:'';
++}
+ module.exports={buildSearch};
+diff --git a/test/search.test.js b/test/search.test.js
+index ca55db6..824fcfc 100644
+--- a/test/search.test.js
++++ b/test/search.test.js
+@@ -1,4 +1,22 @@
+ 'use strict';
+ const test=require('node:test'),assert=require('node:assert/strict');
++const {queryPairs}=require('../src/query.js');
+ const {buildSearch}=require('../src/search.js');
+ test('basic',()=>assert.equal(buildSearch({q:'term'}),'?q=term'));
++test('queryPairs preserves scalar values and entry order',()=>{
++  assert.deepEqual(queryPairs({a:0,b:false,c:'',d:null,e:undefined}),[
++    ['a','0'],['b','false'],['c','']
++  ]);
++});
++test('queryPairs expands arrays without mutation',()=>{
++  const values=[0,null,'',false,undefined,2];
++  assert.deepEqual(queryPairs({x:values}),[['x','0'],['x',''],['x','false'],['x','2']]);
++  assert.deepEqual(values,[0,null,'',false,undefined,2]);
++});
++test('queryPairs ignores unsupported and nested values',()=>{
++  assert.deepEqual(queryPairs({object:{a:1},fn:()=>{},symbol:Symbol('x'),bigint:1n,nested:[[1]],nil:null}),[]);
++});
++test('buildSearch encodes query pairs and is empty without pairs',()=>{
++  assert.equal(buildSearch({q:'a b&c',tag:['x/y',''],zero:0}),'?q=a+b%26c&tag=x%2Fy&tag=&zero=0');
++  assert.equal(buildSearch({a:null,b:undefined,object:{}}),'');
++});
