@@ -1,0 +1,11 @@
+{
+  "runResultId": "run-order-17-01",
+  "traceability": "REQ-ORDER-17 -> TC-ORDER-001 -> E2E-ORDER-001 -> orderCreateRejectSpec -> run-order-17-01",
+  "environment": "run-owned Testcontainers with dynamic endpoint",
+  "counts": {"collected": 3, "executed": 3, "pass": 3, "fail": 0, "skipped": 0, "failed_dependency": 0, "probe_error": 0},
+  "seed": "orders:test:run-order-17-01",
+  "teardown": "PASS",
+  "absence_probe": "PASS: orders:test:run-order-17-01 absent",
+  "orphan_audit": "PASS",
+  "artifacts": ["artifacts/run-order-17-01.json", "artifacts/run-order-17-01.trace.zip"]
+}

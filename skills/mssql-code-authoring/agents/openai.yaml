@@ -1,0 +1,4 @@
+interface:
+  display_name: "Microsoft SQL Server Authoring"
+  short_description: "Write safe T-SQL for legacy SQL Server systems"
+  default_prompt: "Use $mssql-code-authoring to write version-compatible T-SQL with rollback and verification evidence."

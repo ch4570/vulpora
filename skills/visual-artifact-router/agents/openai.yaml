@@ -1,0 +1,4 @@
+interface:
+  display_name: "Visual Artifact Router"
+  short_description: "Route documents and diagrams through visual QA"
+  default_prompt: "Use $visual-artifact-router to choose and verify the right document or diagram pipeline."

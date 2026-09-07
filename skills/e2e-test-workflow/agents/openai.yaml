@@ -1,0 +1,4 @@
+interface:
+  display_name: "E2E Test Workflow"
+  short_description: "Run catalog, API, browser, and report E2E safely"
+  default_prompt: "Use $e2e-test-workflow to execute the requested E2E lanes with one verified lifecycle."

@@ -1,0 +1,142 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core:
+    name: Core / ${{ matrix.os }} / Node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    # Source and extracted-tarball lifecycle gates each exercise the complete
+    # catalog. Keep both checks without a tight cutoff on slower macOS runners.
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+        node:
+          - 22.x
+          - 24.x
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install Linux test prerequisites
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ripgrep poppler-utils util-linux
+          test -x /opt/google/chrome/chrome
+          /opt/google/chrome/chrome --version
+          echo "MARKDOWN_PUBLISHER_BROWSER=/opt/google/chrome/chrome" >> "$GITHUB_ENV"
+          echo "$GITHUB_WORKSPACE/.github/ci-bin" >> "$GITHUB_PATH"
+
+      - name: Install macOS test prerequisites
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          brew install ripgrep poppler
+
+      - name: Verify test prerequisites and real network denial
+        shell: bash
+        run: |
+          rg --version
+          python3 skills/pdf-qa/scripts/preflight.py --pretty
+          probe_rc=0
+          bash evals/behavioral/fixtures/repos/sample-start-task-live/run-offline.sh \
+            node evals/behavioral/fixtures/repos/sample-start-task-live/network-probe.js || probe_rc=$?
+          test "$probe_rc" -eq 77
+
+      - name: Check platform-sensitive contracts first
+        shell: bash
+        run: |
+          bash install/test-start-task-canonical-writer.sh
+          bash install/test-start-task-cleanup.sh
+          bash install/test-start-task-inputs.sh
+          bash skills/markdown-publisher/tests/contract.test.sh
+          bash skills/pdf-qa/tests/contract.test.sh
+
+      - name: Check whitespace and shell syntax
+        shell: bash
+        run: |
+          git diff --check
+          bash -n vulpora .github/ci-bin/unshare
+          while IFS= read -r -d '' script; do
+            bash -n "$script"
+          done < <(find . -type f -name '*.sh' -not -path '*/node_modules/*' -print0)
+
+      - name: Validate release source
+        run: npm run check:release
+
+      - name: Run package integration tests
+        run: npm test
+
+      - name: Validate evaluation contracts
+        shell: bash
+        run: |
+          bash evals/run-evals.sh
+          bash evals/behavioral/run-behavioral-evals.sh --validate
+
+  nl-sql:
+    name: NL-to-SQL MCP / Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - 22.x
+          - 24.x
+
+    defaults:
+      run:
+        working-directory: mcp/nl-sql
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: mcp/nl-sql/package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+
+      - name: Run tests
+        run: npm test --if-present
+
+      - name: Type-check and build
+        run: |
+          npm run typecheck
+          npm run build

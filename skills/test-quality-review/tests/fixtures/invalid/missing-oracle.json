@@ -1,0 +1,11 @@
+{
+  "schema": "vulpora.test-quality-review/v1",
+  "scope": {"repository_root": ".", "requested_paths": ["test.kt"], "modules": ["."], "test_symbols": ["ExampleTest.case"]},
+  "revision": {"head": "0123456789abcdef", "index_tree": "fedcba9876543210", "review_started_at_epoch_ms": 1},
+  "framework": {"primary": "JUnit", "runner": "./gradlew test", "config_paths": ["build.gradle.kts"], "nearby_tests": [], "report_globs": ["build/*.xml"], "fixture_conventions": "none"},
+  "baseline": {"schema": "vulpora.test-quality-workspace-baseline/v1", "staged_patch_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "unstaged_patch_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "dirty_entries": [], "test_fixture_overlaps": []},
+  "behavior_inventory": [{"id": "BEH-1", "path": "test.kt", "line": 1, "test_symbol": "ExampleTest.case", "observable_contract": "Reject invalid input", "plausible_fault": {"description": "Validation removed", "status": "NOT_RUN", "method": "audit", "evidence": [{"path": "test.kt", "line": 1, "summary": "No run"}]}, "rule_ids": ["TST-6"]}],
+  "findings": [], "coverage_gaps": [],
+  "environment_ownership": {"status": "NOT_APPLICABLE", "operations": [], "evidence": [{"path": "test.kt", "line": 1, "summary": "No environment"}]},
+  "execution_evidence": [], "execution_integrity": {"status": "NOT_RUN", "execution_evidence_ids": [], "reason": "Audit only"}, "verdict": "REVIEWED_WITHOUT_EXECUTION"
+}

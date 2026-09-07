@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vulpora Behavioral Evaluation Runtime Metrics Report</title>
+  <style>
+    :root {
+      --ink: #172026;
+      --muted: #596873;
+      --line: #d8e0e5;
+      --paper: #f7f9fa;
+      --panel: #ffffff;
+      --accent: #0f766e;
+      --accent-weak: #e3f4f1;
+      --warn: #9a5a00;
+      --warn-weak: #fff4da;
+      --code: #101820;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
+
+    header {
+      padding: 28px 0 22px;
+      border-bottom: 2px solid var(--ink);
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(30px, 5vw, 48px);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 34px 0 12px;
+      padding-top: 6px;
+      font-size: 24px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 24px 0 8px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 8px 0;
+    }
+
+    .subtitle {
+      max-width: 840px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .meta-item,
+    .panel,
+    .callout {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .meta-item {
+      padding: 12px 14px;
+    }
+
+    .meta-item strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .meta-item span {
+      font-weight: 650;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .panel {
+      padding: 18px;
+    }
+
+    .callout {
+      padding: 16px 18px;
+      background: var(--accent-weak);
+      border-color: #a9d8d0;
+    }
+
+    .callout.warning {
+      background: var(--warn-weak);
+      border-color: #e2c47a;
+    }
+
+    ul,
+    ol {
+      margin: 8px 0 0 22px;
+      padding: 0;
+    }
+
+    li {
+      margin: 6px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #edf2f4;
+      font-weight: 700;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    code {
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: #e9eef2;
+      color: var(--code);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.92em;
+    }
+
+    pre {
+      margin: 12px 0 0;
+      padding: 14px 16px;
+      overflow-x: auto;
+      border-radius: 8px;
+      background: var(--code);
+      color: #eef7f8;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .flow div {
+      min-height: 96px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .flow strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--accent);
+    }
+
+    .status {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--accent-weak);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    @media (max-width: 860px) {
+      .meta,
+      .grid,
+      .flow {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <h1>Vulpora 작업 상세 보고서</h1>
+      <p class="subtitle">
+        에이전트 평가를 단순한 최종 답변 검사가 아니라, 실행 과정과 안전성, 비용까지 함께 보는
+        behavioral evaluation 기반으로 확장한 작업 내역입니다.
+      </p>
+      <section class="meta" aria-label="작업 메타데이터">
+        <div class="meta-item">
+          <strong>작업 브랜치</strong>
+          <span>feat/behavioral-eval-runtime-metrics</span>
+        </div>
+        <div class="meta-item">
+          <strong>대상 저장소</strong>
+          <span>vulpora</span>
+        </div>
+        <div class="meta-item">
+          <strong>작업 상태</strong>
+          <span>구현 완료, 미커밋</span>
+        </div>
+        <div class="meta-item">
+          <strong>작성일</strong>
+          <span>2026-06-25</span>
+        </div>
+      </section>
+    </header>
+
+    <section>
+      <h2>1. 이 작업의 한 줄 요약</h2>
+      <div class="callout">
+        <strong>이번 변경은 vulpora을 "에이전트가 무슨 답을 했는가"만 보는 구조에서
+        "답을 만들기 위해 어떻게 행동했는가"까지 기록하고 평가할 수 있는 구조로 확장한 작업입니다.</strong>
+      </div>
+      <p>
+        기존 behavioral eval은 주로 최종 답변 텍스트가 기대 조건을 만족하는지를 확인했습니다.
+        하지만 개발용 에이전트는 답변만 맞으면 충분하지 않습니다. 어떤 파일을 읽었는지, 불필요한 명령을
+        많이 실행했는지, 위험한 행동을 시도했는지, 비용을 과하게 썼는지도 품질의 일부입니다.
+      </p>
+    </section>
+
+    <section>
+      <h2>2. 왜 이게 필요한가</h2>
+      <div class="grid">
+        <div class="panel">
+          <h3>기존 평가의 약점</h3>
+          <ul>
+            <li>최종 답변 텍스트가 그럴듯하면 통과하기 쉽습니다.</li>
+            <li>실행 과정이 비효율적이거나 위험해도 점수에 반영하기 어렵습니다.</li>
+            <li>Claude Code, Codex, OpenCode 같은 런타임을 같은 기준으로 비교하기 어렵습니다.</li>
+            <li>에이전트 설계를 바꿨을 때 진짜 좋아졌는지 회귀 테스트하기 어렵습니다.</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>이번 변경이 여는 가능성</h3>
+          <ul>
+            <li>최종 결과, 실행 과정, 안전성, 비용을 같은 결과 파일에 기록할 수 있습니다.</li>
+            <li>런타임별 adapter만 붙이면 동일한 behavioral case를 반복 실행할 수 있습니다.</li>
+            <li>에이전트 프롬프트나 skill bundle 변경 전후를 비교할 수 있습니다.</li>
+            <li>나중에 agent design methodology를 점수 기반으로 검증할 수 있습니다.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>3. 평가 기준의 변화</h2>
+      <p>기존 관점은 아래에 가까웠습니다.</p>
+      <pre>최종 답변이 기대 키워드와 산출물을 포함했는가?</pre>
+      <p>이번 작업 이후 목표 구조는 아래와 같습니다.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>평가 축</th>
+            <th>결과 필드</th>
+            <th>의미</th>
+            <th>예시</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>결과 품질</td>
+            <td><code>outcome_score</code></td>
+            <td>최종 답변이 기대 조건을 만족했는지</td>
+            <td>필수 키워드, 필수 artifact, 금지 패턴 검사</td>
+          </tr>
+          <tr>
+            <td>과정 품질</td>
+            <td><code>process_score</code></td>
+            <td>실행 과정이 적절하고 과도하지 않았는지</td>
+            <td>툴 호출, 파일 읽기, 파일 쓰기, 명령 실행 수</td>
+          </tr>
+          <tr>
+            <td>안전성</td>
+            <td><code>safety_score</code></td>
+            <td>금지 행동이나 guardrail 위반이 있었는지</td>
+            <td>forbidden action, guardrail trip</td>
+          </tr>
+          <tr>
+            <td>비용/효율</td>
+            <td><code>cost_score</code></td>
+            <td>시간, 명령 수, token 사용량이 과도하지 않았는지</td>
+            <td>elapsed seconds, estimated tokens, command count</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>4. 새 실행 흐름</h2>
+      <div class="flow" aria-label="behavioral eval 실행 흐름">
+        <div>
+          <strong>1. Case 로드</strong>
+          behavioral case YAML에서 prompt, fixture, threshold를 읽습니다.
+        </div>
+        <div>
+          <strong>2. Adapter 실행</strong>
+          Claude Code, Codex, OpenCode 등 런타임 adapter가 최종 답변을 stdout으로 출력합니다.
+        </div>
+        <div>
+          <strong>3. Metrics 기록</strong>
+          adapter가 <code>VULPORA_METRICS_FILE</code>에 실행 메트릭을 남깁니다.
+        </div>
+        <div>
+          <strong>4. Grader 평가</strong>
+          텍스트 grader와 metrics sidecar grader가 각각 결과와 과정을 평가합니다.
+        </div>
+        <div>
+          <strong>5. YAML 저장</strong>
+          outcome, process, safety, cost 점수를 하나의 결과 파일로 저장합니다.
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>5. 변경된 파일</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>파일</th>
+            <th>변경 내용</th>
+            <th>의미</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>evals/behavioral/run-behavioral-evals.sh</code></td>
+            <td>adapter 실행 시 metrics sidecar 경로를 전달하고, 결과 YAML에 process/safety/cost 필드를 기록하도록 확장했습니다.</td>
+            <td>평가 runner의 핵심 배관입니다.</td>
+          </tr>
+          <tr>
+            <td><code>evals/behavioral/graders/metrics-sidecar.sh</code></td>
+            <td>sidecar 파일을 읽어 process, safety, cost 점수와 failure signal을 계산하는 새 grader를 추가했습니다.</td>
+            <td>실행 과정 평가의 시작점입니다.</td>
+          </tr>
+          <tr>
+            <td><code>evals/behavioral/adapters/README.md</code></td>
+            <td>런타임 adapter가 지켜야 하는 환경 변수, stdout, stderr, metrics sidecar 계약을 문서화했습니다.</td>
+            <td>Claude Code, Codex, OpenCode adapter를 붙이기 위한 명세입니다.</td>
+          </tr>
+          <tr>
+            <td><code>evals/behavioral/adapters/sample-adapter.sh</code></td>
+            <td>LLM을 호출하지 않고 평가 배관만 검증하는 샘플 adapter를 추가했습니다.</td>
+            <td>실제 adapter 구현 전 runner가 제대로 동작하는지 확인할 수 있습니다.</td>
+          </tr>
+          <tr>
+            <td><code>evals/behavioral/README.md</code></td>
+            <td>새 adapter 계약, sidecar 예시, 결과 스키마, 현재 한계를 반영했습니다.</td>
+            <td>평가 시스템 사용자를 위한 운영 문서입니다.</td>
+          </tr>
+          <tr>
+            <td><code>STANDARD.md</code></td>
+            <td>behavioral eval 표준에 metrics sidecar 규칙을 추가했습니다.</td>
+            <td>앞으로 vulpora에 들어오는 에이전트가 따라야 할 기준입니다.</td>
+          </tr>
+          <tr>
+            <td><code>README.md</code></td>
+            <td>현재 agent, bundle, skill 수와 behavioral eval 상태를 최신화했습니다.</td>
+            <td>저장소 첫 화면의 설명을 현재 구현 상태와 맞췄습니다.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>6. Metrics sidecar 계약</h2>
+      <p>
+        adapter는 실행 중 관측한 값을 아래처럼 <code>VULPORA_METRICS_FILE</code>에 기록할 수 있습니다.
+        현재 구현은 flat YAML 또는 단순 JSON에 가까운 key-value 형식을 읽습니다.
+      </p>
+      <pre>elapsed_seconds: 12
+tool_calls: 8
+files_read: 15
+files_written: 2
+command_count: 4
+estimated_tokens: 4200
+forbidden_action_hits: 0
+guardrail_trips: 0</pre>
+      <p>
+        이 값은 아직 정교한 trace 분석이 아닙니다. 지금 단계에서는 런타임 adapter가 제공하는 얕은 관측값을
+        같은 스키마에 담는 것이 목적입니다.
+      </p>
+    </section>
+
+    <section>
+      <h2>7. 결과 YAML 예시</h2>
+      <p>sample adapter를 실행하면 결과 파일에 아래와 같은 구조가 저장됩니다.</p>
+      <pre>expected: { outcome_threshold: 0.8, process_threshold: 0.7, safety_threshold: 1.0 }
+actual: { outcome_score: 1.000, process_score: 1.000, safety_score: 1.000, cost_score: 1.000 }
+metrics:
+  outcome_score: 1.000
+  process_score: 1.000
+  safety_score: 1.000
+  cost_score: 1.000
+  elapsed_seconds: 1
+  tool_calls: 2
+  files_read: 1
+  files_written: 0
+  command_count: 0
+  estimated_tokens: 256
+  forbidden_action_hits: 0
+  guardrail_trips: 0
+behavioral:
+  runtime: claude-code
+  baseline_mode: plain-runtime
+  artifact_hash: sha256:...
+  metrics_sidecar: present
+  process_score: 1.000
+  safety_score: 1.000
+  cost_score: 1.000</pre>
+    </section>
+
+    <section>
+      <h2>8. 검증 결과</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>검증 명령</th>
+            <th>결과</th>
+            <th>의미</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>bash -n evals/behavioral/run-behavioral-evals.sh</code></td>
+            <td><span class="status">통과</span></td>
+            <td>runner shell syntax 정상</td>
+          </tr>
+          <tr>
+            <td><code>bash -n evals/behavioral/graders/metrics-sidecar.sh</code></td>
+            <td><span class="status">통과</span></td>
+            <td>새 grader shell syntax 정상</td>
+          </tr>
+          <tr>
+            <td><code>bash -n evals/behavioral/adapters/sample-adapter.sh</code></td>
+            <td><span class="status">통과</span></td>
+            <td>sample adapter shell syntax 정상</td>
+          </tr>
+          <tr>
+            <td><code>bash evals/behavioral/run-behavioral-evals.sh --validate</code></td>
+            <td><span class="status">7/7 통과</span></td>
+            <td>behavioral case schema 검증 정상</td>
+          </tr>
+          <tr>
+            <td><code>bash install/check-manifest.sh</code></td>
+            <td><span class="status">통과</span></td>
+            <td>manifest 일관성 정상</td>
+          </tr>
+          <tr>
+            <td><code>bash evals/run-evals.sh</code></td>
+            <td><span class="status">7/7 통과</span></td>
+            <td>기존 eval suite 정상</td>
+          </tr>
+          <tr>
+            <td><code>VULPORA_BEHAVIORAL_RUNNER_CMD='bash evals/behavioral/adapters/sample-adapter.sh' bash evals/behavioral/run-behavioral-evals.sh --run --only=kotlin-spring-reviewer</code></td>
+            <td><span class="status">1/1 통과</span></td>
+            <td>sample adapter가 sidecar를 쓰고 새 결과 스키마가 생성됨</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="muted">
+        sample run은 <code>evals/behavioral/results/kotlin-spring-reviewer.sample-review.v1.2026-06-25T061438Z.yaml</code>
+        파일을 생성했습니다. 해당 경로는 git ignore 대상이라 커밋에 포함되지 않습니다.
+      </p>
+    </section>
+
+    <section>
+      <h2>9. 현재 상태와 한계</h2>
+      <div class="grid">
+        <div class="panel">
+          <h3>완료된 것</h3>
+          <ul>
+            <li>behavioral runner가 metrics sidecar를 받을 수 있습니다.</li>
+            <li>결과 YAML에 outcome/process/safety/cost 점수가 같이 저장됩니다.</li>
+            <li>adapter contract가 문서화되었습니다.</li>
+            <li>sample adapter로 전체 배관을 검증했습니다.</li>
+            <li>local Claude Code adapter 골격을 추가했습니다.</li>
+            <li>baseline matrix 실행기와 Markdown 결과 리포터를 추가했습니다.</li>
+            <li>README와 STANDARD 문서를 현재 구조에 맞게 업데이트했습니다.</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>아직 남은 것</h3>
+          <ul>
+            <li>설치된 Claude Code CLI의 stream-json 형식에 맞춘 local adapter 보정</li>
+            <li>실제 Codex adapter 구현</li>
+            <li>OpenCode adapter 구현</li>
+            <li>baseline matrix 결과의 regression 판정 자동화</li>
+            <li>trace 기반의 정교한 process/safety/cost 산식</li>
+            <li>여러 case 결과를 묶은 HTML 리포트 자동 생성</li>
+          </ul>
+        </div>
+      </div>
+      <div class="callout warning">
+        <strong>주의:</strong>
+        이번 작업은 완성된 에이전트 벤치마크가 아니라, 실제 벤치마크를 만들기 위한 runtime metrics 배관입니다.
+        지금의 process/cost 점수는 휴리스틱이며, 실제 런타임 adapter가 더 풍부한 trace를 제공할수록 정교해질 수 있습니다.
+      </div>
+    </section>
+
+    <section>
+      <h2>10. Claude에게 이어서 시킬 작업</h2>
+      <p>이 브랜치를 받은 Claude에게는 아래 지시를 주면 됩니다.</p>
+      <pre>현재 브랜치 feat/behavioral-eval-runtime-metrics에서 변경사항을 리뷰하고 테스트해줘.
+
+확인할 것:
+1. behavioral runner가 VULPORA_METRICS_FILE을 안전하게 넘기는지
+2. metrics-sidecar.sh가 sidecar 없음, 정상 sidecar, forbidden action case를 모두 잘 처리하는지
+3. 결과 YAML schema가 기존 eval 소비자와 충돌하지 않는지
+4. sample-adapter.sh가 adapter contract 예시로 충분한지
+5. claude-code-local-adapter.sh가 로컬 Claude Code stream-json을 올바르게 파싱하는지
+6. run-baseline-matrix.sh와 report-results.sh가 baseline 결과를 안정적으로 다루는지
+7. README, STANDARD, evals/behavioral/README.md가 실제 동작과 일치하는지
+
+테스트:
+- bash -n evals/behavioral/run-behavioral-evals.sh
+- bash -n evals/behavioral/graders/metrics-sidecar.sh
+- bash -n evals/behavioral/adapters/sample-adapter.sh
+- bash -n evals/behavioral/adapters/claude-code-local-adapter.sh
+- bash -n evals/behavioral/run-baseline-matrix.sh
+- bash -n evals/behavioral/report-results.sh
+- bash evals/behavioral/run-behavioral-evals.sh --validate
+- bash install/check-manifest.sh
+- bash evals/run-evals.sh
+- VULPORA_BEHAVIORAL_RUNNER_CMD='bash evals/behavioral/adapters/sample-adapter.sh' bash evals/behavioral/run-behavioral-evals.sh --run --only=kotlin-spring-reviewer
+- cd evals/behavioral && VULPORA_ADAPTER_ID=sample VULPORA_BEHAVIORAL_RUNNER_CMD='bash adapters/sample-adapter.sh' bash run-baseline-matrix.sh --modes=plain-runtime,agent-only --only=kotlin-spring-reviewer
+- bash evals/behavioral/report-results.sh
+
+문제 없으면 Lore Commit Protocol에 맞춰 커밋해줘.</pre>
+    </section>
+
+    <section>
+      <h2>11. 다음 단계 제안</h2>
+      <ol>
+        <li><strong>Claude Code adapter 보정:</strong> 실제 설치된 Claude Code CLI의 stream-json 스키마를 기준으로 최종 응답과 tool metrics 파싱을 확정합니다.</li>
+        <li><strong>Codex adapter 구현:</strong> 동일한 behavioral case를 Codex로 실행하고 결과를 같은 스키마에 저장합니다.</li>
+        <li><strong>Baseline regression 판정:</strong> plain-runtime, agent-only, agent-memory 결과를 비교해 하락을 자동 탐지합니다.</li>
+        <li><strong>리포트 고도화:</strong> Markdown 요약을 HTML 비교 리포트와 PR/로컬 리뷰용 요약으로 발전시킵니다.</li>
+        <li><strong>점수 산식 정교화:</strong> 단순 카운트 기반에서 trace event 기반 평가로 발전시킵니다.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>12. 최종 판단</h2>
+      <p>
+        이번 변경의 가치는 "당장 모든 에이전트를 완벽하게 평가한다"가 아닙니다.
+        핵심은 앞으로 다양한 agent, skill, runtime을 같은 평가 언어로 비교할 수 있는 기반을 만든 것입니다.
+      </p>
+      <div class="callout">
+        <strong>정리하면:</strong>
+        vulpora은 이제 에이전트 카탈로그에서 에이전트 실험실로 넘어가기 위한 첫 번째 평가 인프라를 갖췄습니다.
+        다음 작업은 local Claude adapter를 실제 설치 환경에 맞게 보정하고, baseline 비교 결과를 regression 판정으로 연결하는 것입니다.
+      </div>
+    </section>
+  </main>
+</body>
+</html>

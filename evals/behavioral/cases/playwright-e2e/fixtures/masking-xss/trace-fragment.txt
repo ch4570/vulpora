@@ -1,0 +1,4 @@
+status=FAIL
+user=qa.user@example.test
+authorization=Bearer secret-token-123
+response=<script>alert("x")</script>

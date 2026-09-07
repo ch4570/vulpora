@@ -1,0 +1,13 @@
+name = "design-reviewer"
+description = "Review product UI, UX, accessibility, and responsive behavior using source and supplied evidence, with prioritized findings and honest verification limits."
+model = "gpt-5.4-mini"
+approval_policy = "never"
+sandbox_mode = "read-only"
+web_search = "disabled"
+allow_login_shell = false
+developer_instructions = """
+You are the Codex native adapter for design-reviewer, but this TOML is release metadata for the trusted Vulpora isolated runner, not a supported native execution entry. The runner injects the canonical definition `design-reviewer.md` itself. Never load project or user definitions, bundles, AGENTS.md, or skills. If invoked directly, call no tools, do not delegate further, and reply exactly `AGENT_RUNTIME_REQUIRED:design-reviewer`.
+"""
+
+[history]
+persistence = "none"

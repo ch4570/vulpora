@@ -1,0 +1,97 @@
+{
+  "schema_version": "vulpora.orchestration-report/v3",
+  "workflow_contract": "vulpora.start-task/v1",
+  "run_id": "run-12345678",
+  "runtime_instance_id": "instance-12345678",
+  "runtime_configuration_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "runtime": "codex",
+  "runtime_entrypoint": "$start-task",
+  "korean_summary": "요구를 명확히 한 뒤 구현과 테스트를 완료했습니다.",
+  "clarified_spec": {
+    "schema": "vulpora.clarified-task-spec/v2", "id": "spec-1", "status": "approved",
+    "path": ".vulpora/tasks/run-12345678/clarified-spec.yaml",
+    "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "immutable": true
+  },
+  "task_dag": {
+    "schema": "vulpora.task-dag/v2", "id": "plan-1", "status": "ready",
+    "path": ".vulpora/tasks/run-12345678/task-dag.yaml",
+    "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "immutable": true
+  },
+  "clarity_gate_evidence": {
+    "projection_path": ".vulpora/tasks/run-12345678/clarity-projection.json",
+    "projection_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+  },
+  "execution_ledger": {
+    "path": ".vulpora/tasks/run-12345678/execution-ledger.jsonl",
+    "record_count": 14,
+    "head_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "integrity_level": "local_tamper_evident",
+    "validator_outcome": "pass",
+    "external_anchor": null
+  },
+  "ownership": {"mode": "primary-inline", "primary_owner_count": 1, "task_orchestrator_child_spawned": false},
+  "phases": [
+    {"name": "clarify", "outcome": "pass"}, {"name": "approve", "outcome": "pass"},
+    {"name": "split", "outcome": "pass"}, {"name": "execute", "outcome": "pass"},
+    {"name": "integrate", "outcome": "pass"}, {"name": "verify", "outcome": "pass"},
+    {"name": "terminal", "outcome": "pass"}
+  ],
+  "children": [
+    {
+      "agent_id": "requirement-dialogue", "native_child_id": "child-clarify", "task_argument": "requirement-dialogue: clarify fixture task", "runtime_reported_model": "unavailable", "inheritance_used": false, "outcome": "pass",
+      "handoff": {"schema": "vulpora.subagent-handoff/v1", "task_id": "clarify", "objective": "produce approved spec", "read_scope": ["README.md"], "write_scope": [], "forbidden_actions": ["recursive delegation"], "model_profile": "fixed", "model_selection": "fixed-agent-config", "requested_model": "gpt-5.4-mini", "requested_reasoning_effort": "high", "route_resolution_source": "fixed-agent-config", "timeout_seconds": 180, "result_schema": "vulpora.task-result/v1"}
+    },
+    {
+      "agent_id": "task-splitter", "native_child_id": "child-split", "task_argument": "task-splitter: split approved spec", "runtime_reported_model": "unavailable", "inheritance_used": false, "outcome": "pass",
+      "handoff": {"schema": "vulpora.subagent-handoff/v1", "task_id": "split", "objective": "produce task DAG", "read_scope": ["README.md", "src/numbers.js"], "write_scope": [], "forbidden_actions": ["recursive delegation"], "model_profile": "fixed", "model_selection": "fixed-agent-config", "requested_model": "gpt-5.4-mini", "requested_reasoning_effort": "high", "route_resolution_source": "fixed-agent-config", "timeout_seconds": 180, "result_schema": "vulpora.task-result/v1"}
+    },
+    {
+      "agent_id": "execution-1", "native_child_id": "child-execution-1", "task_argument": "execute T-001 from the immutable v2 handoff", "runtime_reported_model": "runtime-low-cost-1", "inheritance_used": false, "outcome": "pass",
+      "handoff": {
+        "schema": "vulpora.subagent-handoff/v2", "task_id": "T-001", "attempt_id": "T-001-A01", "objective": "implement the bounded change",
+        "spec_slice": {"spec_id": "spec-1", "acceptance_criterion_ids": ["AC-001"]}, "dependency_summary": [],
+        "read_scope": ["src/numbers.js", "test/numbers.test.js"], "write_scope": ["src/numbers.js", "test/numbers.test.js"],
+        "authority": {"tools": ["repository_read", "bounded_code_edit", "test_execution"], "forbidden_actions": ["recursive delegation"]},
+        "route_requirement_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+        "dispatch_receipt": {"path": ".vulpora/tasks/run-12345678/routing/T-001-A01-dispatch.json", "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "immutable": true},
+        "route_binding_sha256": "ae27c5cab5d8db463e5852ea468cff1989ac68b311ff4e3e38d1ee82699f94bd",
+        "acceptance_tests": [{"method": "node --test", "expected": "exit 0"}],
+        "budget_remaining": {"relative_units": 2, "estimated_tokens": 12000, "attempts": 2, "route_hops": 2},
+        "stop_condition": "return one structured result after the bounded test run", "delegation_depth": 0,
+        "result_schema": "vulpora.task-result/v2"
+      }
+    }
+  ],
+  "task_results": [{"schema": "vulpora.task-result/v2", "task_id": "T-001", "attempt_id": "T-001-A01", "status": "verified", "owner": "execution-1", "mutation_state": "known_effect", "actual_paths": ["src/numbers.js", "test/numbers.test.js"], "changed_files": ["src/numbers.js", "test/numbers.test.js"], "evidence": ["diff inspected", "node --test exit 0"], "acceptance_evidence": [{"acceptance_criterion_id": "AC-001", "verification_index": 1, "outcome": "pass", "observed_ref": "command-sha256:84118505f93824ca7c73a84ec82ca81eed6cfbc67028bb85e581b8fbab34592d"}], "failure_class_candidate": null, "risks": []}],
+  "routing_attempts": [{
+    "task_id": "T-001", "attempt_id": "T-001-A01",
+    "dispatch_receipt": {"path": ".vulpora/tasks/run-12345678/routing/T-001-A01-dispatch.json", "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "immutable": true},
+    "attempt_receipt": {"path": ".vulpora/tasks/run-12345678/routing/T-001-A01-attempt.json", "sha256": "9999999999999999999999999999999999999999999999999999999999999999", "immutable": true},
+    "mutation_state": "known_effect", "failure_class": null, "action": "success",
+    "budget_debit": {"relative_units": 1, "estimated_tokens": 6000},
+    "budget_remaining": {"relative_units": 2, "estimated_tokens": 12000, "attempts": 2, "route_hops": 2},
+    "runtime_reported_model": "runtime-low-cost-1"
+  }],
+  "verification": [
+    {"argv": ["node", ".agents/skills/start-task/scripts/validate-clarity-gate.js"], "stdin_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "exit_code": 0, "timeout_seconds": 30, "outcome": "pass", "network_attempts": 0, "network_successes": 0},
+    {"argv": ["node", "--test"], "stdin_sha256": null, "exit_code": 0, "timeout_seconds": 60, "outcome": "pass", "network_attempts": 0, "network_successes": 0}
+  ],
+  "integration": {"performed_by": "primary-owner", "candidate_diff_inspected": true, "result": "pass"},
+  "cleanup": {"attempted": true, "completed": true, "owned_paths_removed": true, "owned_children_stopped": true, "orphan_processes": 0, "timeout_seconds": 30},
+  "changed_files": ["src/numbers.js", "test/numbers.test.js"],
+  "conflicts": [], "retries": [], "risks": [], "gaps": [],
+  "continuation": {
+    "status": "none", "resumable": false, "same_session_only": false,
+    "resume_from": "none", "completed_task_ids": [],
+    "pending_task_ids": [], "remaining_acceptance_criterion_ids": [],
+    "blocker": null, "next_action": null, "question": null,
+    "resume_conditions": [],
+    "workspace_snapshot": {
+      "head_sha": "1111111111111111111111111111111111111111",
+      "diff_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "captured_at_phase": "terminal"
+    },
+    "preserved_artifacts": []
+  },
+  "terminal_status": "complete"
+}

@@ -1,0 +1,13 @@
+name = "ux-designer"
+description = "Design product user flows, information architecture, complete interaction states, responsive behavior, and evidence-linked implementation handoffs."
+model = "gpt-5.4-mini"
+approval_policy = "never"
+sandbox_mode = "read-only"
+web_search = "disabled"
+allow_login_shell = false
+developer_instructions = """
+You are the Codex native adapter for ux-designer, but this TOML is release metadata for the trusted Vulpora isolated runner, not a supported native execution entry. The runner injects the canonical definition `ux-designer.md` itself. Never load project or user definitions, bundles, AGENTS.md, or skills. If invoked directly, call no tools, do not delegate further, and reply exactly `AGENT_RUNTIME_REQUIRED:ux-designer`.
+"""
+
+[history]
+persistence = "none"

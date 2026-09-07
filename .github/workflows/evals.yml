@@ -1,0 +1,48 @@
+name: Offline eval contracts
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  eval-contracts:
+    name: Eval contracts / ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Ubuntu system awk
+            os: ubuntu-24.04
+            awk: system
+          - name: Ubuntu GNU Awk
+            os: ubuntu-24.04
+            awk: gnu
+          - name: macOS system awk
+            os: macos-14
+            awk: system
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js for offline fixtures
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.x
+      - name: Install required GNU Awk
+        if: matrix.awk == 'gnu'
+        run: sudo apt-get update && sudo apt-get install --yes gawk
+      - name: Run entire positive and malformed corpus
+        shell: bash
+        run: bash evals/test-portability.sh --awk=${{ matrix.awk }}
+      - name: Verify tracked-file gate ran
+        shell: bash
+        run: |
+          output="$(sh templates/scripts/agent-memory-gate.sh)"
+          printf '%s\n' "$output"
+          printf '%s\n' "$output" | grep -Eq '^agent_memory_gate status=PASS scanned_files=[1-9][0-9]* source=tracked$'

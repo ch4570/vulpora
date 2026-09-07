@@ -1,0 +1,17 @@
+schema_version: vulpora.improvement-record/v1
+id: invalid-promoted-example
+status: promoted
+lineage:
+  source_failure_or_incident: untriaged report
+  source_id: incident-example
+hypothesis: This record intentionally lacks promotion evidence.
+affected_asset:
+  kind: agent
+  id: example-agent
+proposed_change: Change a prompt without evidence.
+change_author: author@example.invalid
+evaluation:
+  before_evidence: []
+  after_evidence: []
+approval: {}
+rollback: {}

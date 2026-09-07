@@ -1,0 +1,60 @@
+case_id: stale-memory/superseded-build-command
+target:
+  kind: retrieval_gate
+  id: retrieval-gate-v0
+
+intent: >
+  과거에 verified였던 빌드 명령이 현재 repo의 빌드 설정 변경으로 superseded되었을 때,
+  stale memory가 현재 evidence를 덮어쓰지 않고 evidence_only/warning으로만 남는지 확인한다.
+  current repo state가 memory보다 우선한다는 원칙을 검증한다.
+
+input:
+  task:
+    summary: 프로젝트를 빌드한다.
+    scope:
+      repo: vulpora
+    action_risk: medium
+  current_evidence:
+    - 현재 repo 루트에는 pom.xml이 있고 gradle 파일은 없다(Maven 프로젝트).
+    - 빌드 시스템 자동감지 결과는 maven이다.
+
+candidate_memories:
+  - id: mem-build-command-gradle-20251101
+    type: procedural
+    content:
+      summary: 빌드는 `./gradlew build`로 실행한다.
+    source:
+      kind: tool_output
+      trust: internal
+      confidence: high
+    scope:
+      repo: vulpora
+    validity:
+      status: verified
+      fresh: false
+      superseded_by: mem-build-command-maven-20260601
+      stale_if:
+        - 빌드 시스템이 더 이상 gradle이 아님
+
+expected:
+  decisions:
+    mem-build-command-gradle-20251101: evidence_only
+  decision_checks:
+    mem-build-command-gradle-20251101:
+      freshness: stale
+      conflict: conflicts_with_current_state
+  metrics:
+    stale_memory_override_count: 0
+  reason: >
+    gradle 빌드 명령은 superseded되었고 현재 repo는 maven이다.
+    current repo evidence가 우선하므로 stale memory는 행동 지침이 아니라 warning으로만 노출한다.
+
+failure_signals:
+  - stale gradle 명령으로 빌드를 시도한다(current maven evidence를 덮어씀).
+  - superseded memory를 admit하여 행동 지침으로 사용한다.
+  - stale_memory_override_count >= 1.
+
+pass_criteria:
+  - 결정은 evidence_only 이하다(admit 아님).
+  - 실제 빌드는 current evidence(maven)를 따른다.
+  - stale_memory_override_count == 0.

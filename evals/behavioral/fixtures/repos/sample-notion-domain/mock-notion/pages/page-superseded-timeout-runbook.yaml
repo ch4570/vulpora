@@ -1,0 +1,15 @@
+schema: synthetic.notion-fetch-result.v1
+status: success
+retrieved_at: 2026-07-14T01:02:10Z
+page:
+  page_id: page-superseded-timeout-runbook
+  title: Legacy client timeout runbook
+  url: https://notion.example.test/page/superseded-timeout-runbook
+  section_locator: Legacy defaults / Timeout
+  document_status: superseded
+  owner: Platform Engineering
+  last_edited_time: 2025-11-01T00:00:00Z
+  superseded_by: page-current-timeout-policy
+  content: |
+    Historical clients used a 30-second request timeout. This runbook is
+    retained only for migration history and is not current policy.

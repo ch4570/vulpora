@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "contractVersion": 1,
+  "runId": "run-43",
+  "startedAt": "2026-08-28T00:00:00Z",
+  "finishedAt": "2026-08-28T00:00:01Z",
+  "environment": {},
+  "catalog": {"sha": "abc123", "stale": false},
+  "scope": {},
+  "summary": {"total": 1, "pass": 0, "fail": 1, "skipped": 0, "failedDependency": 0, "probeError": 0},
+  "results": [
+    {
+      "id": "E2E-MASK-001",
+      "status": "FAIL",
+      "target": "GET /mask",
+      "dataset": {},
+      "dependsOn": [],
+      "actual": "qa.user@example.test Bearer secret-token-123 <script>alert('x')</script>",
+      "expected": "safe response",
+      "latencyMs": 12,
+      "skippedReason": null,
+      "evidence": {"rawBodyPath": "raw/E2E-MASK-001.json", "logTailPath": "logs/E2E-MASK-001.log"}
+    }
+  ]
+}

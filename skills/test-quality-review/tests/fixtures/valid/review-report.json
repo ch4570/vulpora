@@ -1,0 +1,113 @@
+{
+  "schema": "vulpora.test-quality-review/v1",
+  "scope": {
+    "repository_root": ".",
+    "requested_paths": ["src/test/kotlin/example/PriceCalculatorTest.kt"],
+    "modules": ["."],
+    "test_symbols": ["example.PriceCalculatorTest.rejectsNegativePrice"]
+  },
+  "revision": {
+    "head": "0123456789abcdef",
+    "index_tree": "fedcba9876543210",
+    "review_started_at_epoch_ms": 1735689600000
+  },
+  "framework": {
+    "primary": "JUnit Jupiter",
+    "runner": "./gradlew test --tests example.PriceCalculatorTest.rejectsNegativePrice",
+    "config_paths": ["build.gradle.kts"],
+    "nearby_tests": ["src/test/kotlin/example/PriceCalculatorTest.kt"],
+    "report_globs": ["build/test-results/test/TEST-*.xml"],
+    "fixture_conventions": "JUnit Jupiter assertions with local object fixtures"
+  },
+  "baseline": {
+    "schema": "vulpora.test-quality-workspace-baseline/v1",
+    "staged_patch_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "unstaged_patch_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "dirty_entries": [],
+    "test_fixture_overlaps": []
+  },
+  "behavior_inventory": [
+    {
+      "id": "BEH-PRICE-NEGATIVE",
+      "path": "src/test/kotlin/example/PriceCalculatorTest.kt",
+      "line": 18,
+      "test_symbol": "example.PriceCalculatorTest.rejectsNegativePrice",
+      "observable_contract": "A negative price is rejected with IllegalArgumentException.",
+      "oracle": {
+        "source_kind": "requirement",
+        "evidence": {
+          "path": "docs/pricing-contract.md",
+          "line": 12,
+          "summary": "The public pricing contract forbids negative amounts."
+        },
+        "rationale": "The expected exception comes from the published contract, not the calculator implementation."
+      },
+      "plausible_fault": {
+        "description": "Removing the negative-value guard would accept an invalid price.",
+        "status": "KILLED",
+        "method": "controlled_mutation",
+        "evidence": [
+          {
+            "path": "src/main/kotlin/example/PriceCalculator.kt",
+            "line": 9,
+            "summary": "Removing the guard made the selected test fail before exact restoration."
+          }
+        ]
+      },
+      "rule_ids": ["TST-6", "TST-16", "TST-20"]
+    }
+  ],
+  "findings": [],
+  "coverage_gaps": [],
+  "environment_ownership": {
+    "status": "PASS",
+    "operations": [
+      {
+        "id": "ENV-PRICE-DB",
+        "path": "src/test/kotlin/example/PriceRepositoryTest.kt",
+        "line": 14,
+        "operation": "truncate price_test rows",
+        "target": "run-owned PostgreSQL container",
+        "disposable_endpoint": true,
+        "namespace": "price-test-${runId}",
+        "parallel_policy": "isolated_namespace",
+        "evidence": [
+          {
+            "path": "src/test/kotlin/example/PriceRepositoryTest.kt",
+            "line": 10,
+            "summary": "The container endpoint and schema namespace are allocated per test run."
+          }
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "path": "src/test/kotlin/example/PriceRepositoryTest.kt",
+        "line": 10,
+        "summary": "Cleanup is limited to the disposable run-owned namespace."
+      }
+    ]
+  },
+  "execution_evidence": [
+    {
+      "id": "EXEC-PRICE-NEGATIVE",
+      "command": "./gradlew test --tests example.PriceCalculatorTest.rejectsNegativePrice --rerun-tasks",
+      "exit_code": 0,
+      "started_at_epoch_ms": 1735689600000,
+      "report_path": "build/test-results/test/TEST-example.PriceCalculatorTest.xml",
+      "report_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "report_mtime_epoch_ms": 1735689601000,
+      "fresh": true,
+      "cache_state": "EXECUTED",
+      "executed_count": 1,
+      "requested_test_symbols": ["example.PriceCalculatorTest.rejectsNegativePrice"],
+      "executed_test_symbols": ["example.PriceCalculatorTest.rejectsNegativePrice"]
+    }
+  ],
+  "execution_integrity": {
+    "status": "PASS",
+    "execution_evidence_ids": ["EXEC-PRICE-NEGATIVE"],
+    "reason": "Fresh XML report contains the requested selected test symbol."
+  },
+  "verdict": "PASS"
+}

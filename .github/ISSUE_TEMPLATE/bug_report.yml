@@ -1,0 +1,77 @@
+name: Bug report
+description: Report reproducible incorrect behavior in Vulpora.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve Vulpora. Search existing issues first. For a security concern, stop here and follow SECURITY.md instead of filing a public issue.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-flight checks
+      options:
+        - label: I searched open and closed issues for this behavior.
+          required: true
+        - label: This report contains no credentials, private source, internal hostname, or sensitive logs.
+          required: true
+        - label: This is not a security vulnerability.
+          required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Vulpora version
+      description: Paste the output of `vulpora version`, or provide the commit SHA.
+      placeholder: vulpora x.y.z.micro
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include OS, architecture, shell, Node.js version, host runtime, scope, and installation method.
+      placeholder: |
+        OS: macOS 15 arm64
+        Shell: zsh
+        Node.js: 24.x
+        Runtime: Codex, project scope
+        Install: npx from Git
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Provide exact, reduced steps and commands using public or synthetic data.
+      placeholder: |
+        1. Run ...
+        2. Select ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happened? Include a short, redacted error or receipt excerpt when useful.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add sanitized logs, screenshots, or a minimal public repository if they materially help.

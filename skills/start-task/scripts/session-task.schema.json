@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vulpora.local/schemas/session-task-v1.schema.json",
+  "title": "Bounded independent session task",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "goal", "cwd", "files", "acceptance"],
+  "properties": {
+    "schema": {"const": "vulpora.session-task/v1"},
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "goal": {"type": "string", "minLength": 1, "maxLength": 8192},
+    "runtime": {"type": "string", "enum": ["codex"], "default": "codex"},
+    "taskType": {"type": "string", "enum": ["deterministic", "lookup", "documentation", "implementation", "review", "testing", "architecture", "research"], "default": "implementation"},
+    "difficulty": {"type": "string", "enum": ["simple", "moderate", "complex"], "default": "moderate"},
+    "risk": {"type": "string", "enum": ["low", "high"], "default": "low"},
+    "cwd": {"type": "string", "minLength": 1, "description": "Existing absolute workspace directory."},
+    "files": {"type": "array", "maxItems": 128, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 2048}},
+    "acceptance": {"type": "array", "minItems": 1, "maxItems": 32, "items": {"type": "string", "minLength": 1, "maxLength": 2048}},
+    "constraints": {"type": "array", "maxItems": 32, "items": {"type": "string", "minLength": 1, "maxLength": 2048}},
+    "mode": {"type": "string", "enum": ["read-only", "workspace-write"], "default": "read-only"},
+    "estimatedTokens": {"type": "integer", "minimum": 0, "maximum": 1000000000, "default": 4000},
+    "remainingTokens": {"type": "integer", "minimum": 0, "maximum": 1000000000, "default": 4000},
+    "maxRelativeUnits": {"type": "integer", "minimum": 0, "maximum": 1000000000, "default": 30},
+    "limits": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "timeoutMs": {"type": "integer", "minimum": 50, "maximum": 3600000, "default": 300000},
+        "maxOutputBytes": {"type": "integer", "minimum": 256, "maximum": 16777216, "default": 4194304},
+        "maxResultBytes": {"type": "integer", "minimum": 256, "maximum": 65536, "default": 16384},
+        "maxPromptBytes": {"type": "integer", "minimum": 256, "maximum": 65536, "default": 16384}
+      }
+    }
+  }
+}

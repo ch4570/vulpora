@@ -1,0 +1,4 @@
+interface:
+  display_name: "Diagram Styler"
+  short_description: "Render Mermaid sources into styled accessible SVG files"
+  default_prompt: "Use $diagram-styler to render this Mermaid source as a themed accessible SVG."

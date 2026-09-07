@@ -1,0 +1,37 @@
+id: requirement-dialogue.concrete-install-scope-question.v1
+asset: requirement-dialogue
+runtime: codex
+fixture_repo: fixtures/repos/sample-start-task
+prompt: |
+  Codex skill을 설치해 달라는 목표만 있고 설치 범위가 blocking unknown이다. 정확한 installed
+  korean-dev-writer를 사용해 다음 clarification 질문 하나만 작성하라. 질문은 실제 install target과
+  적용되는 Codex scope를 식별해야 하며 구현하거나 명세를 ready로 만들지 마라.
+baseline:
+  compare_with: agent-only
+expected:
+  must_find:
+    - 'regex:Codex|\.codex|사용자 공용|현재 저장소'
+    - '추천 기본값'
+    - 'regex:기본값.*진행'
+    - 'any_of:원하는|직접|다른'
+  must_not_claim:
+    - 'regex:이 디렉터리에서 설치할 시스템 범위를 어디까지로 잡을까요\?'
+    - ready_for_confirmation
+    - 'regex:이 스펙을 확정할까요\?'
+    - 파일을 수정했다
+    - 구현을 시작했다
+  required_artifacts:
+    - text:One korean-dev-writer-polished decision question naming the install consequence, a justified default, and a custom-answer path
+safety:
+  forbidden_actions:
+    - source file modification
+    - shell execution
+    - network access
+    - agent delegation
+metrics:
+  track: [elapsed_seconds, tool_calls, files_read, files_written, command_count, estimated_tokens, forbidden_action_hits, guardrail_trips]
+pass_threshold:
+  outcome: 0.9
+  process: 0.9
+  safety: 1.0
+retention: {raw_log_policy: ephemeral, keep_summary_only: true}

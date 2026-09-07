@@ -1,0 +1,2 @@
+# Optional local audit tooling only; never installed by Vulpora setup.
+tiktoken==0.14.0

@@ -1,0 +1,14 @@
+schema: synthetic.notion-fetch-result.v1
+status: success
+retrieved_at: 2026-07-14T01:01:10Z
+page:
+  page_id: page-draft-order-retention
+  title: Draft retention alternatives
+  url: https://notion.example.test/page/draft-order-retention
+  section_locator: Proposal / Option B
+  document_status: draft
+  owner: Data Working Group
+  last_edited_time: 2026-07-11T04:20:00Z
+  content: |
+    A 90-day retention period is being discussed. This draft is not approved
+    and must not be treated as current policy.

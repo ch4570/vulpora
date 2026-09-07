@@ -1,0 +1,10 @@
+interface:
+  display_name: "Test Refactoring"
+  short_description: "Kotlin/JVM 테스트의 탐지력을 보존하며 선택된 finding만 작게 개선"
+  default_prompt: "Use $test-refactoring with a validated test-quality-review report and explicit finding IDs to make one Kotlin/JVM test smell improvement at a time, preserving detection strength with baseline, negative proof, and fresh execution evidence."
+  workflow_contract: "vulpora.test-refactoring/v1"
+  codex_entrypoints: ["$test-refactoring", "/skills selection"]
+  claude_code_entrypoint: "/test-refactoring"
+dependencies:
+  skills:
+    - "test-authoring"

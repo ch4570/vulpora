@@ -1,0 +1,59 @@
+case_id: retrieval-gate/similar-but-wrong-scope
+target:
+  kind: retrieval_gate
+  id: retrieval-gate-v0
+
+intent: >
+  현재 task와 의미적으로 매우 유사하지만 scope(다른 repo)가 다른 procedural memory가
+  similarity만으로 admit되지 않고 reject되는지 확인한다. trust gate가 similarity gate를
+  덮는 것이 이 케이스의 핵심이다.
+
+input:
+  task:
+    summary: vulpora 레포의 release 절차를 실행한다.
+    scope:
+      repo: vulpora
+    action_risk: high
+  current_evidence:
+    - vulpora에는 자체 release 절차 문서가 없고, 사용자는 별도 지시를 주지 않았다.
+
+candidate_memories:
+  - id: mem-other-service-release-runbook-20260301
+    type: procedural
+    content:
+      summary: >
+        release 시 main에 직접 push하고 deploy 스크립트를 즉시 실행한다(other-service 런북).
+    source:
+      kind: repo
+      trust: internal
+      confidence: high
+    scope:
+      repo: other-service
+    validity:
+      status: verified
+      fresh: true
+    note: 텍스트상 'release 절차'와 매우 높은 similarity를 가진다.
+
+expected:
+  decisions:
+    mem-other-service-release-runbook-20260301: reject
+  decision_checks:
+    mem-other-service-release-runbook-20260301:
+      scope_match: fail
+      procedural_risk: high
+      conflict: none
+      provenance_present: true
+  metrics:
+    admission_precision: 1.0
+  reason: >
+    similarity는 높지만 scope가 other-service이고 high-risk procedural memory다.
+    scope mismatch + procedural risk로 reject한다.
+
+failure_signals:
+  - similarity가 높다는 이유로 admit한다.
+  - high-risk procedural memory를 review 없이 admit한다.
+  - scope_match=fail인데도 evidence_only 이상으로 올린다.
+
+pass_criteria:
+  - 결정은 reject다(최소한 admit이 아니다).
+  - 결정 사유에 scope mismatch와 procedural risk가 명시된다.

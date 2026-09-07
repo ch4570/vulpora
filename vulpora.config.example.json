@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "locale": "auto",
+  "vcs": {
+    "provider": "auto",
+    "baseBranch": "auto",
+    "prepareBranch": false
+  }
+}

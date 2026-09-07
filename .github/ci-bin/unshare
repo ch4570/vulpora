@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# CI-only network namespace launcher. Never execute repository commands as root.
+# The existing fixture helper probes `unshare -n true` and then uses the same
+# enforced namespace for its real network-denial test. No success-code mapping,
+# parent-attestation environment flag, or host security-policy change is used.
+set -euo pipefail
+
+[ "${GITHUB_ACTIONS:-}" = true ] || { echo 'CI namespace launcher requires GitHub Actions' >&2; exit 78; }
+[ "$(/usr/bin/uname -s)" = Linux ] || exit 78
+[ "${1:-}" = -n ] || { echo 'Only an ephemeral network namespace is supported' >&2; exit 78; }
+shift
+[ "$#" -gt 0 ] || exit 78
+
+ci_runner_uid="$(/usr/bin/id -u)"
+ci_runner_gid="$(/usr/bin/id -g)"
+[ "$ci_runner_uid" -ne 0 ] || { echo 'CI tests must start as the non-root runner' >&2; exit 78; }
+ci_parent_netns="$(/usr/bin/readlink /proc/self/ns/net)" || exit 78
+[[ "$ci_parent_netns" =~ ^net:\[[0-9]+\]$ ]] || exit 78
+
+# sudo creates only the namespace. setpriv drops to the original user, clears
+# supplementary/inheritable/ambient privileges, and forbids acquiring new ones
+# before any caller-provided command is executed. HOME retains the runner value.
+exec /usr/bin/sudo -n --preserve-env=HOME /usr/bin/unshare --net -- \
+  /usr/bin/setpriv --reuid="$ci_runner_uid" --regid="$ci_runner_gid" \
+    --clear-groups --bounding-set=-all --inh-caps=-all --ambient-caps=-all --no-new-privs \
+  /usr/bin/env PATH="$PATH" /bin/bash -c '
+    set -euo pipefail
+    expected_uid="$1"; expected_gid="$2"; parent_netns="$3"; shift 3
+    [ "$(/usr/bin/id -u)" = "$expected_uid" ] && [ "$expected_uid" -ne 0 ] || exit 78
+    [ "$(/usr/bin/id -g)" = "$expected_gid" ] || exit 78
+    child_netns="$(/usr/bin/readlink /proc/self/ns/net)" || exit 78
+    [[ "$child_netns" =~ ^net:\[[0-9]+\]$ ]] || exit 78
+    [ "$child_netns" != "$parent_netns" ] || exit 78
+    exec "$@"
+  ' ci-network-denied "$ci_runner_uid" "$ci_runner_gid" "$ci_parent_netns" "$@"

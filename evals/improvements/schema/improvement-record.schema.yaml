@@ -1,0 +1,85 @@
+schema: vulpora.improvement-record-schema/v1
+record_schema_version: vulpora.improvement-record/v1
+required:
+  - id
+  - status
+  - lineage.source_failure_or_incident
+  - lineage.source_id
+  - hypothesis
+  - affected_asset.kind
+  - affected_asset.id
+  - proposed_change
+  - change_author
+  - evaluation.before_evidence
+  - evaluation.after_evidence
+  - approval.independent_approver
+  - approval.approved_at
+  - rollback.plan
+  - rollback.trigger
+status_enum: [quarantined, validated, promoted, rejected, rolled_back]
+promotion_gate:
+  before_evidence_min_items: 1
+  after_evidence_min_items: 1
+  independent_approval_required: true
+  approval_timestamp_rfc3339_required: true
+  rollback_plan_required: true
+  rollback_trigger_required: true
+  strict_linked_evaluation:
+    required_result_metadata:
+      - case_id
+      - target.kind
+      - target.id
+      - behavioral.runtime
+      - behavioral.baseline_mode
+      - run.model_id
+      - run.config_id
+      - run.case_digest
+      - behavioral.fixture_before_digest
+      - run.adapter_id
+      - run.asset_definition_digest
+      - run.source_revision
+      - run.harness_definition_digest
+      - run.run_group_id
+      - run.timestamp
+      - run.trial_index
+      - run.trial_count
+      - actual.outcome_score
+      - actual.process_score
+      - actual.safety_score
+      - verdict
+    comparable_dimensions: [case_id, target.kind, target.id, behavioral.runtime, behavioral.baseline_mode, run.run_group_id, run.model_id, run.config_id, run.case_digest, behavioral.fixture_before_digest, run.adapter_id, run.harness_definition_digest]
+    record_asset_target_match_required: true
+    asset_definition_digest_recorded_but_not_compared: true
+    source_revision_recorded_but_not_compared: true
+    harness_definition_digest_must_match: true
+    candidate_outcome_must_increase: true
+    candidate_process_must_not_regress: true
+    candidate_safety_must_not_regress: true
+    candidate_verdict_must_pass: true
+    result_verdict_enum: [pass, fail]
+    authoritative_scores: [actual.outcome_score, actual.process_score, actual.safety_score]
+    duplicate_metrics_or_behavioral_scores_must_agree: true
+    multi_trial:
+      trial_indexes_must_be_complete_and_unique: true
+      trial_counts_must_match: true
+      pair_key_adds: [run.trial_index]
+      before_and_after_each_require_single_asset_definition_digest: true
+      before_and_after_each_require_single_runtime: true
+      before_and_after_each_require_single_baseline_mode: true
+      before_and_after_each_require_single_run_group_id: true
+      before_after_runtime_and_baseline_mode_must_match: true
+      before_after_run_group_id_must_match: true
+      approval_must_not_precede_after_evidence_timestamp: true
+      mean_outcome_delta_must_exceed: 0.01
+      mean_process_must_not_regress: true
+      mean_safety_must_not_regress: true
+notes:
+  - Ordinary and strict validation are lint only; exit 0 and a promoted status never authorize an agent change or release.
+  - Explicit --verify-promotion invokes signed evidence verification but remains BLOCKED until operational controls and record-to-bundle binding are verified.
+  - Evidence values are constrained stable tokens, result_id:<token>, incident_id:<token>, or uri:/path: references pinned with #sha256=<64-hex>.
+  - Independent approval must name a canonical lower-case ASCII principal other than `change_author`; ASCII case-folded aliases are rejected.
+  - The validator accepts a deliberately restricted YAML subset: top-level sections, two-space child keys, and four-space evidence list items. General YAML features are rejected fail-closed.
+  - Strict linked evaluation resolves each before/after result and requires one-to-one comparable pairs; it does not attest that an external URI or a result file itself is authentic.
+  - Asset definition digests must be recorded for both results but may differ because the candidate is the proposed asset change.
+  - Strict multi-trial verification accepts 1..10000 complete unique trials per comparable identity; each side must use one runtime, baseline mode, run group, asset, source-revision, and harness digest. It uses aggregate means, not a per-trial outcome-win requirement.
+  - Strict results-dir inputs must be unambiguous vulpora.eval-result YAML records; unsupported schemas and duplicate core fields are rejected.

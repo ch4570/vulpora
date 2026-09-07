@@ -1,0 +1,161 @@
+#!/bin/sh
+# pre-commit 훅 — 시크릿 차단 + "변경 관련 좁은 테스트 green" 강제 (빌드시스템 자동감지).
+#
+# 1) 시크릿 가드: 자격증명/키 파일이 스테이징되면 즉시 차단.
+# 2) 테스트 게이트: 빌드시스템을 자동감지(gradle/maven/npm·pnpm·yarn/go/cargo)해 변경 범위 테스트를 돌리고
+#    실패하면 커밋을 차단한다. 범위는 의도적으로 좁다(변경 모듈/프로젝트) — 전체 스위트는 CI(push/MR)가 백스톱.
+#
+#   - 비코드 변경(.md / .claude / docs / 루트 설정 등 코드가 아닌 경로)만 있으면 테스트를 건너뛴다.
+#   - 통합 테스트가 로컬 DB/인프라 의존으로 "missing table" 등 환경 사유로 실패하면, 코드 문제가 아니므로
+#     로컬 DB/마이그레이션을 맞춘 뒤 다시 커밋한다.
+#   - 우회는 지양한다(--no-verify / --amend). 정말 필요한 환경 예외만 의식적으로 --no-verify.
+#
+# 설치(클론마다 1회): git config core.hooksPath .githooks   — githooks/README.md 참고
+
+set -eu
+
+ROOT="$(git rev-parse --show-toplevel)" || exit 1
+cd "$ROOT" || exit 1
+
+HOOK_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+if [ ! -f "$HOOK_DIR/gate-path.sh" ]; then
+  echo 'agent_memory_gate status=INCONCLUSIVE scanned_files=0 reason=missing_gate_resolver' >&2
+  exit 2
+fi
+. "$HOOK_DIR/gate-path.sh"
+GATE_INPUT="$(mktemp "${TMPDIR:-/tmp}/agent-pre-commit.XXXXXX")"
+trap 'rm -f "$GATE_INPUT"' EXIT HUP INT TERM
+git diff --cached --name-only --diff-filter=ACMR -z > "$GATE_INPUT"
+# Empty staging can be deliberate (--allow-empty commit); it remains NOT_RUN.
+run_memory_gate --stdin0 --allow-empty < "$GATE_INPUT"
+
+FILES="$(git diff --cached --name-only --diff-filter=ACMR)"
+[ -z "$FILES" ] && exit 0
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 1) 시크릿 가드 (하드 차단)
+# ─────────────────────────────────────────────────────────────────────────────
+SECRETS=""
+OLDIFS="$IFS"
+IFS='
+'
+for f in $FILES; do
+  # 테스트 픽스처는 검사 제외(샘플 키/토큰 픽스처 허용)
+  case "$f" in */test/*|*/testFixtures/*|*/resources/**/sample*|*/fixtures/*) continue ;; esac
+  base="${f##*/}"
+
+  # (a) 확장자 기반 — 항상 차단(키/인증서/키스토어)
+  case "$base" in
+    *.key|*.pem|*.p12|*.pfx|*.jks|*.keystore|id_rsa|id_rsa.*|id_dsa|id_ecdsa|id_ed25519)
+      SECRETS="$SECRETS$f
+"; continue ;;
+  esac
+
+  # (b) .env — .env.example 만 허용
+  case "$base" in
+    .env|.env.*)
+      [ "$base" = ".env.example" ] || SECRETS="$SECRETS$f
+"
+      continue ;;
+  esac
+
+  # (c) 이름 부분일치(credentials/secret/token) — 소스/문서 파일은 제외(오탐 방지)
+  case "$base" in
+    *.kt|*.kts|*.java|*.go|*.rs|*.ts|*.js|*.py|*.rb|*.md|*.html|*.css|*.png|*.svg|*.gradle) continue ;;
+  esac
+  low="$(printf '%s' "$base" | tr '[:upper:]' '[:lower:]')"
+  case "$low" in
+    credential*|*secret*|*token*) SECRETS="$SECRETS$f
+" ;;
+  esac
+done
+IFS="$OLDIFS"
+
+# (d) 내용 기반 — 개인키 헤더 / AWS Access Key ID 가 staged diff 에 들어오면 차단
+CONTENT_HIT="$(git diff --cached -U0 --no-color 2>/dev/null \
+  | grep -E '^\+' \
+  | grep -Ec 'BEGIN ([A-Z]+ )?PRIVATE KEY|AKIA[0-9A-Z]{16}' || true)"
+
+SECRETS="$(printf '%s' "$SECRETS" | sed '/^$/d' | sort -u)"
+if [ -n "$SECRETS" ] || [ "${CONTENT_HIT:-0}" -gt 0 ]; then
+  echo "⛔ pre-commit: 시크릿 의심이 스테이징됨 — 커밋 차단."
+  [ -n "$SECRETS" ] && printf '%s\n' "$SECRETS" | sed 's/^/   - 파일: /'
+  [ "${CONTENT_HIT:-0}" -gt 0 ] && echo "   - 내용: 개인키 헤더 또는 AWS Access Key ID 패턴 감지"
+  echo "   git restore --staged <파일> 로 제외하라. 정말 예외면 의식적으로 --no-verify."
+  exit 1
+fi
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 2) 테스트 게이트 — 코드 변경이 있을 때만, 감지된 빌드시스템으로 좁게 실행
+# ─────────────────────────────────────────────────────────────────────────────
+# 코드로 간주하는 변경이 하나라도 있는지 판단(비코드만이면 스킵).
+HAS_CODE=0
+OLDIFS="$IFS"; IFS='
+'
+for f in $FILES; do
+  case "$f" in
+    *.md|.claude/*|docs/*|*.txt|*.yml|*.yaml|*.json|*.toml|*.cfg|*.editorconfig|.gitignore|.gitattributes) : ;;
+    *) HAS_CODE=1 ;;
+  esac
+done
+IFS="$OLDIFS"
+if [ "$HAS_CODE" -eq 0 ]; then
+  echo "ℹ️  pre-commit: 코드 변경 없음(비코드 변경) — 테스트 건너뜀."
+  exit 0
+fi
+
+run() { echo "▶  pre-commit: $*"; "$@"; }
+
+# 빌드시스템 자동감지
+if [ -x "./gradlew" ] || ls build.gradle build.gradle.kts >/dev/null 2>&1; then
+  GRADLE="./gradlew"; [ -x "./gradlew" ] || GRADLE="gradle"
+  # 변경 파일 → 가장 가까운 build.gradle(.kts) 디렉터리 = gradle 프로젝트 경로
+  MODULES=""
+  OLDIFS="$IFS"; IFS='
+'
+  for f in $FILES; do
+    d=$(dirname "$f")
+    while [ "$d" != "." ] && [ "$d" != "/" ]; do
+      if [ -f "$d/build.gradle" ] || [ -f "$d/build.gradle.kts" ]; then
+        MODULES="$MODULES
+:$(printf '%s' "$d" | tr '/' ':')"; break
+      fi
+      d=$(dirname "$d")
+    done
+  done
+  IFS="$OLDIFS"
+  MODULES="$(printf '%s\n' "$MODULES" | sed '/^$/d' | sort -u)"
+  if [ -n "$MODULES" ]; then
+    TASKS=""; for m in $MODULES; do TASKS="$TASKS $m:test"; done
+    # shellcheck disable=SC2086
+    run $GRADLE $TASKS --console=plain || { echo "❌ pre-commit: 테스트 실패 — 원인을 고쳐 새 커밋."; exit 1; }
+  else
+    run $GRADLE test --console=plain || { echo "❌ pre-commit: 테스트 실패."; exit 1; }
+  fi
+
+elif [ -f "pom.xml" ]; then
+  run mvn -q test || { echo "❌ pre-commit: mvn test 실패."; exit 1; }
+
+elif [ -f "package.json" ]; then
+  PM=npm
+  [ -f "pnpm-lock.yaml" ] && PM=pnpm
+  [ -f "yarn.lock" ] && PM=yarn
+  if grep -q '"test"' package.json; then
+    run "$PM" test || { echo "❌ pre-commit: $PM test 실패."; exit 1; }
+  else
+    echo "ℹ️  pre-commit: package.json 에 test 스크립트 없음 — 건너뜀."
+  fi
+
+elif [ -f "go.mod" ]; then
+  run go test ./... || { echo "❌ pre-commit: go test 실패."; exit 1; }
+
+elif [ -f "Cargo.toml" ]; then
+  run cargo test || { echo "❌ pre-commit: cargo test 실패."; exit 1; }
+
+else
+  echo "ℹ️  pre-commit: 인식된 빌드시스템 없음 — 테스트 게이트 건너뜀."
+  exit 0
+fi
+
+echo "✅ pre-commit: 테스트 통과 — 커밋 진행."
+exit 0

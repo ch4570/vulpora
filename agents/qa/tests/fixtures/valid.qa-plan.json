@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "vulpora.qa-test-plan/v1",
+  "title": "Synthetic order creation",
+  "target": "docs/requirements/order.md",
+  "requirements": [
+    {
+      "id": "REQ-ORDER-CREATE",
+      "description": "A valid order is created",
+      "priority": "P0",
+      "sourceRef": "docs/requirements/order.md#creation"
+    }
+  ],
+  "risks": [
+    {
+      "id": "RISK-ORDER-RESIDUE",
+      "description": "A test order can remain after execution",
+      "priority": "P0",
+      "sourceRef": "docs/requirements/order.md#cleanup-risk"
+    }
+  ],
+  "testCases": [
+    {
+      "id": "TC-ORDER-001",
+      "requirementIds": ["REQ-ORDER-CREATE"],
+      "riskIds": ["RISK-ORDER-RESIDUE"],
+      "preconditions": ["The synthetic member fixture exists"],
+      "input": {
+        "classification": "synthetic",
+        "values": {"memberId": "{{seed.MEMBER_ID}}", "quantity": 1}
+      },
+      "steps": ["Submit one order"],
+      "expected": ["The response status is 201", "The response contains an order identifier"],
+      "priority": "P0",
+      "type": "happy-path plus lifecycle risk",
+      "level": "e2e",
+      "grounding": [
+        {"sourceId": "REQ-ORDER-CREATE", "evidence": "docs/requirements/order.md#creation"},
+        {"sourceId": "RISK-ORDER-RESIDUE", "evidence": "docs/requirements/order.md#cleanup-risk"}
+      ]
+    }
+  ],
+  "traceability": [
+    {"sourceId": "REQ-ORDER-CREATE", "testCaseIds": ["TC-ORDER-001"], "status": "covered", "rationale": null},
+    {"sourceId": "RISK-ORDER-RESIDUE", "testCaseIds": ["TC-ORDER-001"], "status": "covered", "rationale": null}
+  ],
+  "handoffs": [
+    {
+      "scenarioId": "E2E-ORDER-CREATE-HAPPY",
+      "executor": "e2e-test-runner",
+      "testCaseIds": ["TC-ORDER-001"],
+      "priority": "P0",
+      "syntheticData": {"classification": "synthetic", "seedRef": "fixture:order-member"},
+      "seed": {"owner": "e2e-test-runner", "method": "Create a unique synthetic member and product"},
+      "cleanup": {"owner": "e2e-test-runner", "method": "Delete the captured order and fixture rows in finally"},
+      "absenceProbe": {"method": "Query the captured order identifier", "expected": "The order is absent"},
+      "expected": ["201 response with an order identifier"]
+    }
+  ]
+}

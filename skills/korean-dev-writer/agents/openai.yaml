@@ -1,0 +1,4 @@
+interface:
+  display_name: "Korean Dev Writer"
+  short_description: "한국 개발자가 쓰는 자연스럽고 정확한 기술 한국어"
+  default_prompt: "Use $korean-dev-writer to write this developer-facing text in natural, concise Korean without translationese."

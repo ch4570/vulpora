@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>start-task model routing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--paper:#f6f7f8;--surface:#fff;--ink:#1a1a1e;--muted:#575f6c;--soft:#768091;--rule:rgba(26,26,30,.12);--accent:#2563eb;--accent-tint:rgba(37,99,235,.08);--sans:'Pretendard','Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;--serif:'Instrument Serif',serif;--mono:'Geist Mono','Noto Sans Mono CJK KR',monospace}
+    body{font-family:var(--sans);background:var(--paper);color:var(--ink);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:48px 32px}
+    .frame{max-width:1280px;width:100%}.eyebrow{font:500 12px var(--mono);letter-spacing:.16em;color:var(--muted);margin-bottom:8px;text-transform:uppercase}h1{font:400 32px/1.15 var(--serif);letter-spacing:-.02em;margin-bottom:24px}svg{width:100%;min-width:960px;display:block}.name{font:600 12px var(--sans);fill:var(--ink)}.sub{font:400 8px var(--mono);fill:var(--muted)}.label{font:600 8px var(--mono);fill:var(--muted);letter-spacing:.08em}.accent{fill:var(--accent)}
+  </style>
+</head>
+<body><main class="frame"><p class="eyebrow">Flowchart · Vulpora</p><h1>dispatch-time routing: capability first, exact model second</h1>
+  <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="model-routing-title model-routing-desc">
+    <title id="model-routing-title">start-task model routing flowchart</title>
+    <desc id="model-routing-desc">A flowchart routes deterministic work directly to commands and model work through frugal, standard, or frontier profiles before spawning a child with an explicit model, reasoning effort, and no inherited context.</desc>
+    <defs><marker id="route-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#575f6c"/></marker><marker id="route-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2563eb"/></marker></defs>
+    <rect width="1280" height="720" fill="#f6f7f8"/>
+    <path d="M640 96 V112" fill="none" stroke="#575f6c" marker-end="url(#route-arrow)"/>
+    <path d="M744 160 H856" fill="none" stroke="#575f6c" marker-end="url(#route-arrow)"/>
+    <path d="M640 208 V240" fill="none" stroke="#2563eb" stroke-width="1.2" marker-end="url(#route-arrow-accent)"/>
+    <path d="M536 288 H304 Q296 288 296 296 V400" fill="none" stroke="#575f6c" marker-end="url(#route-arrow)"/>
+    <path d="M640 336 V400" fill="none" stroke="#575f6c" marker-end="url(#route-arrow)"/>
+    <path d="M744 288 H976 Q984 288 984 296 V400" fill="none" stroke="#575f6c" marker-end="url(#route-arrow)"/>
+    <path d="M296 456 V480 Q296 488 304 488 H568 Q576 488 576 496 V536" fill="none" stroke="#575f6c" marker-end="url(#route-arrow)"/>
+    <path d="M640 456 V536" fill="none" stroke="#2563eb" stroke-width="1.2" marker-end="url(#route-arrow-accent)"/>
+    <path d="M984 456 V480 Q984 488 976 488 H712 Q704 488 704 496 V536" fill="none" stroke="#575f6c" marker-end="url(#route-arrow)"/>
+    <rect x="772" y="148" width="36" height="16" rx="4" fill="#f6f7f8"/><text class="label" x="790" y="160" text-anchor="middle">YES</text>
+    <rect x="648" y="216" width="28" height="16" rx="4" fill="#f6f7f8"/><text class="label" x="662" y="228" text-anchor="middle">NO</text>
+    <rect x="384" y="276" width="52" height="16" rx="4" fill="#f6f7f8"/><text class="label" x="410" y="288" text-anchor="middle">FRUGAL</text>
+    <rect x="648" y="356" width="64" height="16" rx="4" fill="#f6f7f8"/><text class="label" x="680" y="368" text-anchor="middle">STANDARD</text>
+    <rect x="844" y="276" width="60" height="16" rx="4" fill="#f6f7f8"/><text class="label" x="874" y="288" text-anchor="middle">FRONTIER</text>
+    <rect x="560" y="48" width="160" height="48" rx="24" fill="#fff" stroke="#1a1a1e"/><text class="name" x="640" y="68" text-anchor="middle">READY task</text><text class="sub" x="640" y="84" text-anchor="middle">frozen DAG node</text>
+    <polygon points="640,112 744,160 640,208 536,160" fill="#fff" stroke="#1a1a1e"/><text class="name" x="640" y="156" text-anchor="middle">결정론적 검증?</text><text class="sub" x="640" y="172" text-anchor="middle">no judgment needed</text>
+    <rect x="856" y="132" width="224" height="56" rx="8" fill="#fff" stroke="#575f6c"/><text class="name" x="968" y="156" text-anchor="middle">command / validator</text><text class="sub" x="968" y="172" text-anchor="middle">model cost = 0 · exit + hash</text>
+    <polygon points="640,240 744,288 640,336 536,288" fill="rgba(37,99,235,.08)" stroke="#2563eb" stroke-width="1.2"/><text class="name" x="640" y="284" text-anchor="middle">필요 capability?</text><text class="sub" x="640" y="300" text-anchor="middle">risk + ambiguity + scope</text>
+    <rect x="176" y="400" width="240" height="56" rx="8" fill="#fff" stroke="#575f6c"/><text class="name" x="296" y="424" text-anchor="middle">FRUGAL</text><text class="sub" x="296" y="440" text-anchor="middle">bounded lookup · low reasoning</text>
+    <rect x="520" y="400" width="240" height="56" rx="8" fill="#fff" stroke="#575f6c"/><text class="name" x="640" y="424" text-anchor="middle">STANDARD</text><text class="sub" x="640" y="440" text-anchor="middle">implementation · review · tests</text>
+    <rect x="864" y="400" width="240" height="56" rx="8" fill="#fff" stroke="#575f6c"/><text class="name" x="984" y="424" text-anchor="middle">FRONTIER</text><text class="sub" x="984" y="440" text-anchor="middle">security · public contract · conflict</text>
+    <rect x="520" y="536" width="240" height="72" rx="8" fill="rgba(37,99,235,.08)" stroke="#2563eb" stroke-width="1.2"/><text class="name" x="640" y="560" text-anchor="middle">EXPLICIT NATIVE SPAWN</text><text class="sub" x="640" y="576" text-anchor="middle">exact model + reasoning_effort</text><text x="640" y="596" text-anchor="middle" font-size="8" font-weight="600" font-family="var(--mono)" fill="#2563eb">fork_turns:none · NO INHERITANCE</text>
+    <line x1="48" y1="640" x2="1232" y2="640" stroke="rgba(26,26,30,.12)" stroke-width=".8"/><text x="48" y="664" fill="#575f6c" font-size="8" font-family="var(--mono)" letter-spacing=".16em">ROUTING CONTRACT</text><text x="216" y="664" fill="#575f6c" font-size="8" font-family="var(--sans)">DAG stores portable profile</text><text x="464" y="664" fill="#575f6c" font-size="8" font-family="var(--sans)">host resolves exact model at dispatch</text><text x="760" y="664" fill="#575f6c" font-size="8" font-family="var(--sans)">ledger records requested + observed route</text>
+  </svg>
+</main></body></html>

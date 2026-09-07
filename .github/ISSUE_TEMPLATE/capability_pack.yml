@@ -1,0 +1,61 @@
+name: Capability pack proposal
+description: Propose a reusable, bounded group of agents and skills.
+title: "[Pack]: "
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Proposed pack ID
+      description: Use a short lowercase kebab-case ID; treat it as a compatibility identifier.
+      placeholder: example-platform
+    validations:
+      required: true
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Reusable use case
+      description: Explain the cross-project need and intended users. Remove organization-specific details.
+    validations:
+      required: true
+
+  - type: textarea
+    id: roots
+    attributes:
+      label: Explicit root assets
+      description: List proposed `agent:<id>` and `skill:<id>` roots. Dependencies belong in the manifest.
+      placeholder: |
+        - agent:example-reviewer
+        - skill:example-review-workflow
+    validations:
+      required: true
+
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Scope and trust boundaries
+      description: State inputs, outputs, permissions, side effects, failure behavior, and what the pack will not do.
+    validations:
+      required: true
+
+  - type: textarea
+    id: runtimes
+    attributes:
+      label: Runtime behavior
+      description: Describe how the source remains portable and identify any adapter-specific behavior.
+    validations:
+      required: true
+
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification plan
+      description: List contract tests, behavioral evals, fixtures, and installation/uninstallation checks.
+    validations:
+      required: true
+
+  - type: textarea
+    id: maintenance
+    attributes:
+      label: Maintenance plan
+      description: Identify upstream sources, freshness triggers, dependency cost, and who can help maintain the pack.

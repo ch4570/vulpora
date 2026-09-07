@@ -1,0 +1,47 @@
+# Operating-system and editor metadata
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Local configuration and credentials
+.env
+.env.*
+!**/.env.example
+nl-sql.config.json
+
+# Dependencies and generated output
+node_modules/
+dist/
+coverage/
+.nyc_output/
+*.log
+*.tgz
+*.tsbuildinfo
+.cache/
+*.tmp
+*.bak
+*.orig
+*.rej
+
+# Python caches used by fixture tests
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Local Vulpora execution state
+.vulpora/
+.agent-runtime/
+/.codex/
+/.claude/
+/.opencode/
+/vulpora.config.json
+
+# Root execution output only. Nested test-report fixtures are authored inputs.
+/test-report/
+/test-results/
+/playwright-report/

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kotlin·Spring 통합 리뷰"
+  short_description: "Kotlin·Spring·OOP·패턴 관점의 통합 코드 리뷰"
+  default_prompt: "Use $kotlin-spring-review-workflow to run a consolidated Kotlin and Spring code review."

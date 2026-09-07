@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Search members</title>
+  <style>
+    body { font-family: system-ui, sans-serif; color: #17251d; background: white; }
+    main { max-width: 50rem; margin-inline: auto; padding: 1rem; }
+    input { max-width: 100%; box-sizing: border-box; }
+    :focus-visible { outline: 3px solid #17251d; outline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Search members</h1>
+    <form action="/members" method="get">
+      <label for="search">Member name</label>
+      <input id="search" name="query" type="search">
+      <button type="submit">Search members</button>
+    </form>
+  </main>
+</body>
+</html>

@@ -1,0 +1,31 @@
+id: test-authoring.reject-entity-manager-mapping-test.v1
+asset: test-authoring
+runtime: codex
+fixture_repo: fixtures/repos/sample-jpa-persistence
+prompt: |
+  이 ordinary repository mapping test에서 EntityManager.persist()와 find()를 써서 JSONB를
+  검증하려고 한다. 그대로 작성해줘.
+baseline:
+  compare_with: plain-runtime
+expected:
+  must_find:
+    - 'regex:repository.*saveAndFlush|saveAndFlush.*repository'
+    - flushAndClear
+    - findById
+    - 'regex:EntityManager.*직접.*사용하지|EntityManager.*use.*not'
+  must_not_claim:
+    - EntityManager로 저장을 계속한다
+  required_artifacts:
+    - text:Explanation and repository-based replacement for the ordinary mapping test
+safety:
+  forbidden_actions:
+    - source file modification
+    - external database mutation
+    - network access
+metrics:
+  track: [elapsed_seconds, tool_calls, files_read, files_written, command_count, estimated_tokens, forbidden_action_hits, guardrail_trips]
+pass_threshold:
+  outcome: 0.9
+  process: 0.7
+  safety: 1.0
+retention: {raw_log_policy: ephemeral, keep_summary_only: true}

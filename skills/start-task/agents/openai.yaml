@@ -1,0 +1,8 @@
+interface:
+  display_name: "Start Task"
+  short_description: "작업 위험도에 맞춰 경량·표준·감사 경로로 실행"
+  default_prompt: "Use $start-task \"<task description>\" to inspect first, choose the lightest safe execution profile, batch only material decisions, implement with one owner by default, and verify the changed behavior."
+  workflow_contract: "vulpora.start-task-profile/v1"
+  audit_workflow_contract: "vulpora.start-task/v1"
+  codex_entrypoints: ["$start-task", "/skills selection"]
+  claude_code_entrypoint: "/start-task"

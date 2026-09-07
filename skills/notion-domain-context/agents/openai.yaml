@@ -1,0 +1,13 @@
+interface:
+  display_name: "Notion Domain Context"
+  short_description: "Search private Notion with cited, read-only evidence"
+  default_prompt: "Use $notion-domain-context to research the private Notion domain context needed for this task and return a cited Evidence Packet."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "vulpora-notion"
+      description: "Official Notion MCP; Vulpora restricts Codex to read tools and Claude through a restricted researcher"
+      transport: "streamable_http"
+      url: "https://mcp.notion.com/mcp"
+policy:
+  allow_implicit_invocation: true

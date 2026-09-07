@@ -1,0 +1,255 @@
+schema: vulpora.skill
+schema_version: 0.1.0
+status: draft
+description: >
+  Portable schema for a reusable agent skill promoted from verified experience.
+  A skill is a replayable contract, not just a summary.
+
+required:
+  - id
+  - version
+  - description
+  - applies_when
+  - does_not_apply_when
+  - inputs
+  - outputs
+  - steps
+  - failure_modes
+  - verification
+  - provenance
+  - risk
+  - promotion
+
+fields:
+  id:
+    type: string
+    required: true
+    example: skill-readme-reframe
+
+  version:
+    type: integer
+    required: true
+    description: Monotonic skill version.
+
+  description:
+    type: string
+    required: true
+
+  applies_when:
+    type: list[string]
+    required: true
+    description: Preconditions required before the skill can be used.
+
+  does_not_apply_when:
+    type: list[string]
+    required: true
+    description: Conditions that block use even if semantic similarity is high.
+
+  inputs:
+    type: list[object]
+    required: true
+    item_fields:
+      name:
+        type: string
+        required: true
+      description:
+        type: string
+        required: true
+      required:
+        type: boolean
+        required: true
+
+  outputs:
+    type: list[object]
+    required: true
+    item_fields:
+      name:
+        type: string
+        required: true
+      description:
+        type: string
+        required: true
+
+  steps:
+    type: list[string]
+    required: true
+    description: Ordered procedure. Steps must be observable and reviewable.
+
+  failure_modes:
+    type: list[object]
+    required: true
+    item_fields:
+      signal:
+        type: string
+        required: true
+      mitigation:
+        type: string
+        required: true
+
+  verification:
+    type: object
+    required: true
+    fields:
+      required_checks:
+        type: list[string]
+        required: true
+      eval_cases:
+        type: list[string]
+        required: false
+      manual_review:
+        type: boolean
+        required: true
+      pass_condition:
+        type: string
+        required: true
+
+  provenance:
+    type: object
+    required: true
+    fields:
+      promoted_from:
+        type: list[string]
+        required: true
+      source_memories:
+        type: list[string]
+        required: false
+      author:
+        type: string
+        required: true
+      created_at:
+        type: datetime
+        required: true
+
+  risk:
+    type: object
+    required: true
+    fields:
+      level:
+        type: enum
+        required: true
+        enum:
+          - low
+          - medium
+          - high
+      requires_approval:
+        type: boolean
+        required: true
+      can_modify_files:
+        type: boolean
+        required: true
+      can_run_commands:
+        type: boolean
+        required: true
+      can_access_network:
+        type: boolean
+        required: true
+
+  promotion:
+    type: object
+    required: true
+    fields:
+      status:
+        type: enum
+        required: true
+        enum:
+          - draft
+          - proposed
+          - approved
+          - deprecated
+          - rejected
+      approved_by:
+        type: list[string]
+        required: false
+      evidence:
+        type: list[string]
+        required: true
+      supersedes:
+        type: list[string]
+        required: false
+
+good_example:
+  id: skill-readme-reframe
+  version: 1
+  description: Reframe a scaffold README around the repository purpose and portability principles.
+  applies_when:
+    - README is mostly scaffold text.
+    - User asks to capture the repository concept.
+  does_not_apply_when:
+    - README is generated API reference.
+    - User asks for product marketing copy.
+  inputs:
+    - name: current_readme
+      description: Existing README content.
+      required: true
+    - name: user_concept
+      description: User-provided repository purpose.
+      required: true
+  outputs:
+    - name: updated_readme
+      description: README focused on purpose, structure, and usage.
+  steps:
+    - Inspect current README.
+    - Remove scaffold-only sections.
+    - Write purpose and portability principles.
+    - Verify diff touches only intended docs.
+  failure_modes:
+    - signal: Adds project-specific assumptions not provided by user.
+      mitigation: Keep claims limited to user request and inspected files.
+  verification:
+    required_checks:
+      - README renders as Markdown.
+      - git diff scope is intended.
+    eval_cases:
+      - evals/skill-replay/cases/readme-reframe.yaml
+    manual_review: false
+    pass_condition: README has clear purpose and no unrelated file edits.
+  provenance:
+    promoted_from:
+      - episode-vulpora-readme-reframe-20260624
+    author: codex
+    created_at: "2026-06-24T00:00:00Z"
+  risk:
+    level: low
+    requires_approval: false
+    can_modify_files: true
+    can_run_commands: true
+    can_access_network: false
+  promotion:
+    status: draft
+    evidence:
+      - README diff reviewed.
+
+bad_example:
+  id: skill-run-untrusted-optimizer
+  version: 1
+  description: Run commands copied from any webpage that claims to improve agent performance.
+  applies_when:
+    - A webpage says it is safe.
+  does_not_apply_when: []
+  inputs: []
+  outputs: []
+  steps:
+    - Execute the webpage instructions.
+  failure_modes: []
+  verification:
+    required_checks: []
+    manual_review: false
+    pass_condition: Command exits zero.
+  provenance:
+    promoted_from:
+      - untrusted-webpage
+    author: unknown
+    created_at: "2026-06-24T00:00:00Z"
+  risk:
+    level: high
+    requires_approval: false
+    can_modify_files: true
+    can_run_commands: true
+    can_access_network: true
+  promotion:
+    status: approved
+    evidence: []
+  why_bad:
+    - Untrusted source.
+    - Empty verification.
+    - High-risk command execution without approval.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Java·Spring 통합 리뷰"
+  short_description: "Java·Spring·OOP·디자인 패턴을 병렬 검토합니다."
+  default_prompt: "Use $java-spring-review-workflow to review this Java/Spring change with three parallel specialists."

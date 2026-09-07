@@ -1,0 +1,11 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-application
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+        - name: application
+          image: example.invalid/sample-application:fixture

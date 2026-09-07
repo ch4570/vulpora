@@ -1,0 +1,10 @@
+interface:
+  display_name: "Test Quality Review"
+  short_description: "Audit test defect-detection evidence without edits"
+  default_prompt: "Use $test-quality-review to audit the requested tests and return a validated read-only evidence report."
+  workflow_contract: "vulpora.test-quality-review/v1"
+  codex_entrypoints: ["$test-quality-review", "/skills selection"]
+  claude_code_entrypoint: "/test-quality-review"
+dependencies:
+  skills:
+    - "test-authoring"

@@ -1,0 +1,36 @@
+{
+  "settings": {
+    "analysis": {
+      "tokenizer": {
+        "article_nori": { "type": "nori_tokenizer", "decompound_mode": "mixed" }
+      },
+      "filter": {
+        "article_synonyms": {
+          "type": "synonym_graph",
+          "synonyms": ["주문, order", "회원, member"],
+          "updateable": true
+        }
+      },
+      "analyzer": {
+        "article_body": {
+          "type": "custom",
+          "tokenizer": "article_nori"
+        },
+        "article_search": {
+          "type": "custom",
+          "tokenizer": "article_nori",
+          "filter": ["article_synonyms"]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "article_id": { "type": "keyword" },
+      "member_id":  { "type": "long" },
+      "title":      { "type": "text", "analyzer": "article_body", "search_analyzer": "article_search" },
+      "body":       { "type": "text", "analyzer": "article_body", "search_analyzer": "article_search" },
+      "status":     { "type": "keyword" }
+    }
+  }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mermaid Diagrams"
+  short_description: "Create accurate, versionable Mermaid diagram sources"
+  default_prompt: "Use $mermaid-diagrams to model this process as an editable Mermaid diagram."

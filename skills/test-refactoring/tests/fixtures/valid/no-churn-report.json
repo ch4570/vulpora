@@ -1,0 +1,21 @@
+{
+  "schema_version": "vulpora.test-refactoring/v1",
+  "input": {"review_report_path": "reports/test-quality-review.json", "review_report_sha256": "review-sha", "finding_ids": ["TQR-STRONG-1"], "finding_owned_fixture_paths": []},
+  "profile": {"language": "kotlin", "runtime": "jvm", "framework": "kotest", "mode": "AUTO_REFACTOR", "evidence": ["app/build.gradle.kts configures Kotest"]},
+  "workflow_write_scope": [{"finding_id": "TQR-STRONG-1", "path": "src/test/kotlin/example/FeedQueryControllerTest.kt", "kind": "test"}],
+  "workspace_baseline": {"head": "abc", "index_tree": "def", "user_changes": []},
+  "baseline": {"command": "./gradlew :app:test --tests example.FeedQueryControllerTest", "exit_code": 0, "executed_count": 1, "fresh": true, "report_path": "app/build/test-results/test/TEST-example.FeedQueryControllerTest.xml", "report_sha256": "baseline-sha", "selected_test_symbols": ["example.FeedQueryControllerTest.mapsRequest"], "completed_before_first_edit": true},
+  "smell_iterations": [{"sequence": 1, "finding_id": "TQR-STRONG-1", "status": "NOT_APPLICABLE"}],
+  "finding_results": [{"finding_id": "TQR-STRONG-1", "outcome": "NOT_APPLICABLE", "evidence": "The public HTTP response and captured request prove durable boundary behavior without topology coupling."}],
+  "changes": [],
+  "mutation_capability": {"status": "unavailable", "tool": null, "target": null, "authority": "No refactor was needed and no mutation was attempted.", "restoration": null},
+  "negative_proof": {"status": "NOT_RUN", "method": "preexisting_red", "plausible_fault": "A controller that maps the request incorrectly would fail the existing public assertion.", "selected_test_observation": "NOT_RUN", "restored_green": "NOT_RUN"},
+  "verification_ladder": [
+    {"rung": "selected", "applicable": true, "status": "PASS", "command": "./gradlew :app:test --tests example.FeedQueryControllerTest", "exit_code": 0, "executed_count": 1, "fresh": true, "report_path": "app/build/test-results/test/TEST-example.FeedQueryControllerTest.xml", "report_sha256": "selected-sha", "selected_test_symbols": ["example.FeedQueryControllerTest.mapsRequest"]},
+    {"rung": "affected_module", "applicable": true, "status": "PASS", "command": "./gradlew :app:test", "exit_code": 0, "executed_count": 7, "fresh": true, "report_path": "app/build/test-results/test/TESTS.xml", "report_sha256": "module-sha"},
+    {"rung": "boundary", "applicable": false, "status": "NOT_RUN"},
+    {"rung": "repository_required", "applicable": false, "status": "NOT_RUN"}
+  ],
+  "postflight": {"user_changes": [], "workflow_changed_paths": [], "forbidden_paths_changed": []},
+  "verdict": "PASS"
+}

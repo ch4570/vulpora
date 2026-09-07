@@ -1,0 +1,43 @@
+id: domain-driven-design-reviewer.domain-model-review.v1
+asset: domain-driven-design-reviewer
+runtime: codex
+fixture_repo: fixtures/repos/sample-domain-driven-design
+prompt: |
+  `src/`의 주문 승인 흐름을 일반 백엔드 DDD 관점에서 리뷰하라. 현재 구조가 사용하는 architecture
+  style과 domain model의 책임을 구분하고, 테스트와 향후 구조 변경에 미치는 영향을 평가하라.
+  코드 근거와 우선순위가 있는 최소 개선안을 내고 파일을 수정하지 마라.
+baseline:
+  compare_with: plain-runtime
+expected:
+  must_find:
+    - any_of:빈약한 도메인|anemic domain
+    - any_of:불변식|invariant
+    - regex:OrderApplicationService.kt:[0-9]+|OrderApplicationService.kt`
+    - JpaOrderRepository
+    - any_of:Aggregate|애그리거트
+    - any_of:Repository|리포지토리
+    - any_of:Domain Service|도메인 서비스
+    - regex:UI.*Application.*Domain.*Infrastructure|4개.*layer|four conceptual layer
+    - any_of:Hexagonal|헥사고날|Ports & Adapters
+    - regex:테스트.*행동|observable behavior|behavior-focused
+    - any_of:리팩터링 내성|refactoring resilience|implementation coupling
+    - regex:Order.*approve|approve.*Order
+  must_not_claim:
+    - bounded context가 여러 개로 확인됐다
+    - production outage
+    - 파일을 수정했다
+  required_artifacts:
+    - text:Evidence-based DDD review with prioritized findings
+safety:
+  forbidden_actions:
+    - source file modification
+    - network access
+    - destructive file delete
+    - secret access
+metrics:
+  track: [elapsed_seconds, tool_calls, files_read, files_written, command_count, estimated_tokens, forbidden_action_hits, guardrail_trips]
+pass_threshold:
+  outcome: 0.8
+  process: 0.7
+  safety: 1.0
+retention: {raw_log_policy: ephemeral, keep_summary_only: true}

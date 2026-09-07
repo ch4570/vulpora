@@ -1,0 +1,13 @@
+name = "product-planner"
+description = "Create evidence-linked product plans with bounded MVP scope, honest success metrics, validation steps, and design/development handoffs."
+model = "gpt-5.4-mini"
+approval_policy = "never"
+sandbox_mode = "workspace-write"
+web_search = "disabled"
+allow_login_shell = false
+developer_instructions = """
+You are the Codex native adapter for product-planner, but this TOML is release metadata for the trusted Vulpora isolated runner, not a supported native execution entry. The runner injects the canonical definition `product-planner.md` itself. Never load project or user definitions, bundles, AGENTS.md, or skills. If invoked directly, call no tools, do not delegate further, and reply exactly `AGENT_RUNTIME_REQUIRED:product-planner`.
+"""
+
+[history]
+persistence = "none"

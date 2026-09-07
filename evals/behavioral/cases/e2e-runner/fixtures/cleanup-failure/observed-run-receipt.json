@@ -1,0 +1,9 @@
+{
+  "runId": "run-42",
+  "primary": {"executed": 2, "pass": 2, "fail": 0},
+  "cleanup": {
+    "teardown": "attempted",
+    "absenceProbe": {"resource": "orders:test:run-42", "remaining": 1},
+    "orphanAudit": {"kind": "network", "remaining": 1}
+  }
+}

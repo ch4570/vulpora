@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>E2E 테스트 리포트</title>
+<meta name="lang" content="ko" />
+<style>
+  :root {
+    --bg: #ffffff; --fg: #111418; --muted: #5b6470; --border: #e1e5ea; --surface: #f5f7fa;
+    --pass: #137333; --fail: #b3261e; --skip: #5b6470; --dep:  #b06000; --accent: #1a73e8;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1116; --fg: #e7eaee; --muted: #99a3ad; --border: #232a33; --surface: #161b22;
+      --pass: #4ade80; --fail: #f87171; --skip: #99a3ad; --dep: #fbbf24; --accent: #60a5fa;
+    }
+  }
+  html[data-theme="light"] {
+    --bg: #ffffff; --fg: #111418; --muted: #5b6470; --border: #e1e5ea; --surface: #f5f7fa;
+    --pass: #137333; --fail: #b3261e; --skip: #5b6470; --dep: #b06000; --accent: #1a73e8;
+  }
+  html[data-theme="dark"] {
+    --bg: #0e1116; --fg: #e7eaee; --muted: #99a3ad; --border: #232a33; --surface: #161b22;
+    --pass: #4ade80; --fail: #f87171; --skip: #99a3ad; --dep: #fbbf24; --accent: #60a5fa;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 14px; line-height: 1.5; }
+  main { max-width: 1200px; margin: 0 auto; padding: 24px 20px 96px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  h2 { font-size: 13px; margin: 32px 0 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .meta { color: var(--muted); font-size: 13px; }
+  .meta code { font-family: var(--mono); background: var(--surface); padding: 1px 5px; border-radius: 3px; }
+  .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
+  .theme-toggle { background: var(--surface); border: 1px solid var(--border); color: var(--fg); padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-family: inherit; }
+  .summary-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 16px 0; }
+  .card { border: 1px solid var(--border); background: var(--surface); padding: 14px 12px; border-radius: 8px; }
+  .card .n { font-size: 26px; font-weight: 600; line-height: 1; margin-bottom: 4px; font-family: var(--mono); }
+  .card .l { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .card.pass .n { color: var(--pass); }
+  .card.fail .n { color: var(--fail); }
+  .card.skip .n { color: var(--skip); }
+  .card.dep .n  { color: var(--dep);  }
+  .filters { display: flex; gap: 10px; margin: 16px 0; flex-wrap: wrap; }
+  .filters select, .filters input { background: var(--surface); border: 1px solid var(--border); color: var(--fg); padding: 6px 10px; border-radius: 6px; font-family: inherit; font-size: 13px; }
+  .filters input { flex: 1; min-width: 180px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+  tbody tr { border-bottom: 1px solid var(--border); }
+  tbody td { padding: 10px 8px; vertical-align: top; }
+  td.id { font-family: var(--mono); white-space: nowrap; }
+  td.lat { font-family: var(--mono); text-align: right; color: var(--muted); }
+  .status { font-weight: 600; font-family: var(--mono); white-space: nowrap; }
+  .status.pass { color: var(--pass); }
+  .status.fail { color: var(--fail); }
+  .status.skip { color: var(--skip); }
+  .status.dep  { color: var(--dep);  }
+  .row.detail { background: var(--surface); }
+  .row.detail td { padding: 12px 16px; }
+  .row.detail pre { background: var(--bg); border: 1px solid var(--border); padding: 10px; border-radius: 6px; max-height: 320px; overflow: auto; font-family: var(--mono); font-size: 12px; white-space: pre-wrap; word-break: break-word; margin: 8px 0 0; }
+  .kv { display: grid; grid-template-columns: 110px 1fr; gap: 4px 12px; font-size: 12px; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; font-family: var(--mono); }
+  .expand-btn { background: none; border: 1px solid var(--border); color: var(--accent); padding: 2px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; font-family: inherit; }
+  .risks { margin: 0; padding-left: 20px; color: var(--muted); }
+  .risks li { margin: 4px 0; }
+  .footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 11px; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <div class="topbar">
+    <div>
+      <h1>E2E 테스트 리포트</h1>
+      <div class="meta">
+        런 <code id="run-id">—</code> · 모드 <code id="mode">—</code> · 생성 <code id="generated-at">—</code>
+      </div>
+      <div class="meta" style="margin-top:4px">
+        브랜치 <code id="branch">—</code> @ <code id="sha">—</code> · 카탈로그 <code id="catalog-sha">—</code> (stale 여부: <span id="stale">—</span>)
+      </div>
+    </div>
+    <button class="theme-toggle" id="theme-toggle" aria-label="테마 전환">테마</button>
+  </div>
+
+  <section class="summary-row" aria-label="요약">
+    <div class="card pass"><div class="n" id="sum-pass">0</div><div class="l">통과 ✓</div></div>
+    <div class="card fail"><div class="n" id="sum-fail">0</div><div class="l">실패 ✕</div></div>
+    <div class="card skip"><div class="n" id="sum-skip">0</div><div class="l">건너뜀 –</div></div>
+    <div class="card dep"><div class="n" id="sum-dep">0</div><div class="l">의존 실패 ⤴</div></div>
+    <div class="card"><div class="n" id="sum-total">0</div><div class="l">전체 · <span id="wall">0ms</span></div></div>
+  </section>
+
+  <div class="filters" role="region" aria-label="필터">
+    <select id="filter-area" aria-label="영역"><option value="">전체 영역</option></select>
+    <select id="filter-status" aria-label="상태">
+      <option value="">전체 상태</option>
+      <option value="PASS">통과 (PASS)</option>
+      <option value="FAIL">실패 (FAIL)</option>
+      <option value="SKIPPED">건너뜀 (SKIPPED)</option>
+      <option value="FAILED-DEPENDENCY">의존 실패 (FAILED-DEPENDENCY)</option>
+    </select>
+    <input id="filter-text" type="search" placeholder="ID 또는 목적으로 검색…" aria-label="검색" />
+  </div>
+
+  <h2>결과</h2>
+  <table aria-label="결과">
+    <thead><tr><th></th><th>ID</th><th>목적</th><th>데이터셋</th><th>예상</th><th>실제</th><th>상태</th><th class="lat">지연</th></tr></thead>
+    <tbody id="results-body"></tbody>
+  </table>
+
+  <h2>잔여 리스크 (자체 점검)</h2>
+  <ul class="risks" id="risks"></ul>
+
+  <div class="footer">
+    <code>e2e-report-renderer</code> 로 생성. 외부 의존성 없는 단일 HTML 파일 — 오프라인에서 그대로 열람 가능. SSOT 는 같은 디렉터리의 <code>.json</code> 이며, 본 HTML 은 프로젝트 정책상 git-ignored 입니다.
+  </div>
+</main>
+
+<script type="application/json" id="run-data">{{RUN_JSON}}</script>
+<script>
+(function () {
+  "use strict";
+  var data;
+  try { data = JSON.parse(document.getElementById("run-data").textContent); }
+  catch (e) {
+    document.body.innerHTML = "<main><h1>잘못된 런 JSON</h1><pre></pre></main>";
+    document.querySelector("pre").textContent = String(e); return;
+  }
+  if (!data || data.schemaVersion !== 1) {
+    document.body.innerHTML = "<main><h1>지원하지 않는 schemaVersion</h1></main>"; return;
+  }
+  var $ = function (id) { return document.getElementById(id); };
+
+  $("run-id").textContent = data.runId || "—";
+  $("mode").textContent = data.mode || "—";
+  $("generated-at").textContent = data.generatedAt || "—";
+  $("branch").textContent = (data.git && data.git.branch) || "—";
+  $("sha").textContent = (data.git && data.git.sha) || "—";
+  $("catalog-sha").textContent = (data.catalog && data.catalog.sha) || "—";
+  $("stale").textContent = data.catalog && data.catalog.stale ? "YES" : "NO";
+  $("sum-pass").textContent = data.summary.pass || 0;
+  $("sum-fail").textContent = data.summary.fail || 0;
+  $("sum-skip").textContent = data.summary.skipped || 0;
+  $("sum-dep").textContent = data.summary.failedDependency || 0;
+  $("sum-total").textContent = data.summary.total || 0;
+  $("wall").textContent = (data.wallTimeMs || 0) + "ms";
+
+  var areas = Array.from(new Set((data.results || []).map(function (r) { return r.area; }))).filter(Boolean).sort();
+  areas.forEach(function (a) {
+    var opt = document.createElement("option");
+    opt.value = a; opt.textContent = a;
+    $("filter-area").appendChild(opt);
+  });
+
+  var statusClass = { "PASS": "pass", "FAIL": "fail", "SKIPPED": "skip", "FAILED-DEPENDENCY": "dep" };
+  var statusGlyph = { "PASS": "✓", "FAIL": "✕", "SKIPPED": "–", "FAILED-DEPENDENCY": "⤴" };
+
+  function cell(text, cls) {
+    var td = document.createElement("td");
+    if (cls) td.className = cls;
+    td.textContent = text == null ? "" : String(text);
+    return td;
+  }
+
+  var tbody = $("results-body");
+  (data.results || []).forEach(function (r) {
+    var tr = document.createElement("tr");
+    tr.dataset.area = r.area || "";
+    tr.dataset.status = r.status || "";
+    tr.dataset.text = ((r.id || "") + " " + (r.purpose || "")).toLowerCase();
+
+    var expandTd = document.createElement("td");
+    var btn = document.createElement("button");
+    btn.className = "expand-btn"; btn.type = "button";
+    btn.textContent = (r.status === "FAIL") ? "−" : "+";
+    btn.setAttribute("aria-expanded", r.status === "FAIL" ? "true" : "false");
+    expandTd.appendChild(btn);
+    tr.appendChild(expandTd);
+
+    tr.appendChild(cell(r.id, "id"));
+    tr.appendChild(cell(r.purpose));
+    tr.appendChild(cell(typeof r.dataset === "string" ? r.dataset : JSON.stringify(r.dataset || {})));
+    tr.appendChild(cell(r.expected));
+    tr.appendChild(cell(r.actual));
+
+    var s = document.createElement("td");
+    var span = document.createElement("span");
+    span.className = "status " + (statusClass[r.status] || "");
+    span.textContent = (statusGlyph[r.status] || "") + " " + (r.status || "");
+    s.appendChild(span);
+    tr.appendChild(s);
+
+    tr.appendChild(cell(r.latencyMs == null ? "" : (r.latencyMs + "ms"), "lat"));
+    tbody.appendChild(tr);
+
+    var detail = document.createElement("tr");
+    detail.className = "row detail";
+    if (r.status !== "FAIL") detail.classList.add("hidden");
+    var dtd = document.createElement("td");
+    dtd.colSpan = 8;
+    var dl = document.createElement("dl");
+    dl.className = "kv";
+    function kv(k, v) {
+      var dt = document.createElement("dt"); dt.textContent = k;
+      var dd = document.createElement("dd"); dd.textContent = v == null ? "—" : String(v);
+      dl.appendChild(dt); dl.appendChild(dd);
+    }
+    kv("전제조건", r.preconditions);
+    kv("의존", (r.dependsOn || []).join(", ") || "—");
+    if (r.status === "SKIPPED") kv("건너뜀 사유", r.skippedReason);
+    if (r.evidence) {
+      kv("원본 본문 경로", r.evidence.rawBodyPath || "—");
+      kv("로그 꼬리 경로", r.evidence.logTailPath || "—");
+    }
+    dtd.appendChild(dl);
+
+    if (r.embeddedBody) {
+      var hb = document.createElement("div");
+      hb.textContent = "응답 본문 (앞 4KB):";
+      hb.style.cssText = "margin-top:10px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.05em";
+      var pre = document.createElement("pre"); pre.textContent = r.embeddedBody;
+      dtd.appendChild(hb); dtd.appendChild(pre);
+    }
+    if (r.embeddedLog) {
+      var hl = document.createElement("div");
+      hl.textContent = "로그 꼬리:";
+      hl.style.cssText = "margin-top:10px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.05em";
+      var prel = document.createElement("pre"); prel.textContent = r.embeddedLog;
+      dtd.appendChild(hl); dtd.appendChild(prel);
+    }
+    detail.appendChild(dtd);
+    tbody.appendChild(detail);
+
+    btn.addEventListener("click", function () {
+      var hidden = detail.classList.toggle("hidden");
+      btn.setAttribute("aria-expanded", String(!hidden));
+      btn.textContent = hidden ? "+" : "−";
+    });
+  });
+
+  function applyFilters() {
+    var a = $("filter-area").value, s = $("filter-status").value, t = $("filter-text").value.trim().toLowerCase();
+    tbody.querySelectorAll("tr:not(.detail)").forEach(function (tr) {
+      var visible = (!a || tr.dataset.area === a) && (!s || tr.dataset.status === s) && (!t || tr.dataset.text.indexOf(t) !== -1);
+      tr.classList.toggle("hidden", !visible);
+      var detail = tr.nextElementSibling;
+      if (detail && detail.classList.contains("detail") && !visible) detail.classList.add("hidden");
+    });
+  }
+  $("filter-area").addEventListener("change", applyFilters);
+  $("filter-status").addEventListener("change", applyFilters);
+  $("filter-text").addEventListener("input", applyFilters);
+
+  var ul = $("risks");
+  (data.remainingRisks || []).forEach(function (r) {
+    var li = document.createElement("li"); li.textContent = r; ul.appendChild(li);
+  });
+  if (!ul.children.length) {
+    var li = document.createElement("li"); li.textContent = "— 기록된 리스크 없음 —"; ul.appendChild(li);
+  }
+
+  var saved = (function () { try { return localStorage.getItem("e2e-theme"); } catch (e) { return null; } })();
+  if (saved === "light" || saved === "dark") document.documentElement.setAttribute("data-theme", saved);
+  $("theme-toggle").addEventListener("click", function () {
+    var cur = document.documentElement.getAttribute("data-theme");
+    var next = cur === "dark" ? "light" : (cur === "light" ? "dark" : (matchMedia("(prefers-color-scheme: dark)").matches ? "light" : "dark"));
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("e2e-theme", next); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

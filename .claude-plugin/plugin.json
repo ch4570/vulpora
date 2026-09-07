@@ -1,0 +1,20 @@
+{
+  "name": "vulpora",
+  "description": "Vulpora — 전문 에이전트 28종과 스킬 62종을 Claude Code에 제공하는 catalog 플러그인",
+  "version": "1.0.0",
+  "author": {
+    "name": "Vulpora Contributors"
+  },
+  "homepage": "https://github.com/ch4570/vulpora",
+  "repository": "https://github.com/ch4570/vulpora.git",
+  "license": "Apache-2.0",
+  "keywords": [
+    "agents",
+    "skills",
+    "code-review",
+    "postgres",
+    "opensearch",
+    "kotlin-spring",
+    "knowledge-base"
+  ]
+}

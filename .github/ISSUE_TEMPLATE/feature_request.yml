@@ -1,0 +1,52 @@
+name: Feature request
+description: Propose a user-facing improvement or new portable capability.
+title: "[Feature]: "
+body:
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-flight checks
+      options:
+        - label: I searched existing issues and proposals.
+          required: true
+        - label: The proposal is not specific to a private service or repository.
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the user need and who experiences it, without prescribing a solution first.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed outcome
+      description: Describe the behavior, scope boundary, and what success looks like.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What existing capability or workaround did you evaluate?
+
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Portability and compatibility
+      description: Note affected runtimes, scopes, manifests, receipts, schemas, permissions, or migration needs.
+
+  - type: dropdown
+    id: participation
+    attributes:
+      label: Participation
+      options:
+        - I can implement this with guidance.
+        - I can help test or document it.
+        - I am proposing it for others to consider.
+    validations:
+      required: true

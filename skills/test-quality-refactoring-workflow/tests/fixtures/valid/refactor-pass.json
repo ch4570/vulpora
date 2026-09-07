@@ -1,0 +1,106 @@
+{
+  "schema": "vulpora.test-quality-refactoring-workflow/v1",
+  "repository_root": "/work/sample",
+  "revision": { "head": "abc123", "index_tree": "def456" },
+  "component_inventory": [
+    { "id": "test-quality-review", "path": "skills/test-quality-review/SKILL.md", "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+    { "id": "test-refactoring", "path": "skills/test-refactoring/SKILL.md", "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" },
+    { "id": "agent:test-runner", "path": "agents/test-runner.md", "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" }
+  ],
+  "component_evidence": [
+    { "id": "test-quality-review", "report_path": "test-quality-reports/review.json", "report_digest": "6666666666666666666666666666666666666666666666666666666666666666", "finding_result_ids": [ "review:FIND-ORACLE-001" ] },
+    { "id": "test-refactoring", "report_path": "test-quality-reports/refactoring.json", "report_digest": "7777777777777777777777777777777777777777777777777777777777777777", "finding_result_ids": [ "refactor:FIND-ORACLE-001" ] },
+    { "id": "agent:test-runner", "report_path": "test-quality-reports/runner.json", "report_digest": "8888888888888888888888888888888888888888888888888888888888888888", "finding_result_ids": [] }
+  ],
+  "component_finding_results": [
+    { "id": "review:FIND-ORACLE-001", "finding_id": "FIND-ORACLE-001", "component": "test-quality-review" },
+    { "id": "refactor:FIND-ORACLE-001", "finding_id": "FIND-ORACLE-001", "component": "test-refactoring" }
+  ],
+  "baseline": {
+    "schema": "vulpora.test-quality-workspace-baseline/v1",
+    "head": "abc123",
+    "index_tree": "def456",
+    "staged_patch_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "unstaged_patch_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "user_entries": [
+      { "path": "notes/user-plan.md", "byte_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "mode": "100644", "entry_type": "regular", "state": "present" },
+      { "path": "assets/baseline.bin", "byte_hash": "1111111111111111111111111111111111111111111111111111111111111111", "mode": "100755", "entry_type": "binary", "state": "mode_changed" },
+      { "path": "docs/renamed.md", "rename_from": "docs/original.md", "byte_hash": "2222222222222222222222222222222222222222222222222222222222222222", "mode": "100644", "entry_type": "regular", "state": "renamed" }
+    ],
+    "prior_artifacts": [
+      { "path": "build/test-results/test/TEST-Old.xml", "byte_hash": "3333333333333333333333333333333333333333333333333333333333333333", "mtime": "2026-09-03T00:00:00.000Z" }
+    ]
+  },
+  "workflow_write_scope": [
+    { "finding_id": "FIND-ORACLE-001", "path": "src/test/kotlin/example/ExampleTest.kt", "kind": "test" }
+  ],
+  "routing": {
+    "route": "REFACTOR",
+    "edit_status": "COMPLETE",
+    "finding_routes": [ { "finding_id": "FIND-ORACLE-001", "route": "REFACTOR", "review_path": "src/test/kotlin/example/ExampleTest.kt", "review_result_id": "review:FIND-ORACLE-001", "resolution_result_id": "refactor:FIND-ORACLE-001" } ]
+  },
+  "mutation_capability": {
+    "status": "controlled_allowed",
+    "tool": "controlled-source-mutation",
+    "target": "src/main/kotlin/example/Example.kt",
+    "authority": { "clean_target": true, "no_user_overlap": true, "isolated": true },
+    "restoration": {
+      "status": "PASS",
+      "original_byte_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+      "restored_byte_hash": "4444444444444444444444444444444444444444444444444444444444444444",
+      "diff_exact": true
+    }
+  },
+  "execution": {
+    "started_at": "2026-09-03T01:00:00.000Z",
+    "selected": {
+      "status": "PASS",
+      "exit_code": 0,
+      "executed_count": 1,
+      "expected_symbols": [ "example.ExampleTest#rejectsWrongResult" ],
+      "expected_xml_globs": [ "build/test-results/test/TEST-*.xml" ],
+      "fresh_xml": [ {
+        "path": "build/test-results/test/TEST-ExampleTest.xml",
+        "byte_hash": "5555555555555555555555555555555555555555555555555555555555555555",
+        "mtime": "2026-09-03T01:01:00.000Z",
+        "testcases": [ { "symbol": "example.ExampleTest#rejectsWrongResult" } ]
+      } ],
+      "unexpected_symbols": [],
+      "run_scope": "SELECTED_ONLY"
+    },
+    "verification_ladder": [
+      { "kind": "selected", "status": "PASS", "required": true, "artifact_path": "test-quality-reports/selected.json", "artifact_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+      { "kind": "module", "status": "PASS", "required": true, "artifact_path": "test-quality-reports/module.json", "artifact_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" },
+      { "kind": "boundary", "status": "PASS", "required": true, "artifact_path": "test-quality-reports/boundary.json", "artifact_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" },
+      { "kind": "repository", "status": "PASS", "required": false, "artifact_path": "test-quality-reports/repository.json", "artifact_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd" }
+    ]
+  },
+  "postflight": {
+    "user_entries": [
+      { "path": "notes/user-plan.md", "byte_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "mode": "100644", "entry_type": "regular", "state": "present" },
+      { "path": "assets/baseline.bin", "byte_hash": "1111111111111111111111111111111111111111111111111111111111111111", "mode": "100755", "entry_type": "binary", "state": "mode_changed" },
+      { "path": "docs/renamed.md", "rename_from": "docs/original.md", "byte_hash": "2222222222222222222222222222222222222222222222222222222222222222", "mode": "100644", "entry_type": "regular", "state": "renamed" }
+    ],
+    "workflow_owned_entries": [ { "finding_id": "FIND-ORACLE-001", "path": "src/test/kotlin/example/ExampleTest.kt" } ],
+    "prohibited_paths": [],
+    "cleanup_actions": [ { "scope": "case", "owned": true, "command": "remove test-owned case key" } ],
+    "diff_evidence": { "path": "test-quality-reports/postflight.json", "digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" }
+  },
+  "negative_proof": {
+    "status": "PASS",
+    "plausible_fault": "return an incorrect computed result",
+    "before": "KILLED",
+    "after": "KILLED",
+    "green_after_restore": true,
+    "artifact_path": "test-quality-reports/negative-proof.json",
+    "artifact_digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  },
+  "post_review": { "reconciled": true, "original_report_path": "test-quality-reports/review.json", "original_report_digest": "6666666666666666666666666666666666666666666666666666666666666666", "follow_up_report_path": "test-quality-reports/follow-up-review.json", "follow_up_report_digest": "9999999999999999999999999999999999999999999999999999999999999999", "new_same_or_higher_severity": false },
+  "verdict_inputs": [
+    { "source": "test-quality-review", "status": "PASS" },
+    { "source": "test-refactoring", "status": "PASS" },
+    { "source": "test-runner", "status": "PASS" }
+  ],
+  "verdict": "PASS",
+  "reason_codes": []
+}

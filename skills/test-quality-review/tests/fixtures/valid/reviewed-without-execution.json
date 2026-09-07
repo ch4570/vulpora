@@ -1,0 +1,101 @@
+{
+  "schema": "vulpora.test-quality-review/v1",
+  "scope": {
+    "repository_root": ".",
+    "requested_paths": ["src/test/kotlin/example/LegacyTest.kt"],
+    "modules": ["."],
+    "test_symbols": ["example.LegacyTest.acceptsAnything"]
+  },
+  "revision": {
+    "head": "0123456789abcdef",
+    "index_tree": "fedcba9876543210",
+    "review_started_at_epoch_ms": 1735689600000
+  },
+  "framework": {
+    "primary": "JUnit Jupiter",
+    "runner": "unavailable in audit-only mode",
+    "config_paths": ["build.gradle.kts"],
+    "nearby_tests": ["src/test/kotlin/example/LegacyTest.kt"],
+    "report_globs": ["build/test-results/test/TEST-*.xml"],
+    "fixture_conventions": "JUnit Jupiter assertions"
+  },
+  "baseline": {
+    "schema": "vulpora.test-quality-workspace-baseline/v1",
+    "staged_patch_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "unstaged_patch_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "dirty_entries": [],
+    "test_fixture_overlaps": []
+  },
+  "behavior_inventory": [
+    {
+      "id": "BEH-LEGACY",
+      "path": "src/test/kotlin/example/LegacyTest.kt",
+      "line": 11,
+      "test_symbol": "example.LegacyTest.acceptsAnything",
+      "observable_contract": "Legacy input must be rejected when malformed.",
+      "oracle": {
+        "source_kind": "qa_case",
+        "evidence": {
+          "path": "docs/qa-cases.md",
+          "line": 20,
+          "summary": "Malformed legacy inputs must return validation errors."
+        },
+        "rationale": "The QA case defines the public outcome."
+      },
+      "plausible_fault": {
+        "description": "A removed validation branch would accept malformed input.",
+        "status": "NOT_RUN",
+        "method": "audit_only",
+        "evidence": [
+          {
+            "path": "src/test/kotlin/example/LegacyTest.kt",
+            "line": 11,
+            "summary": "No execution authority was supplied for this audit-only review."
+          }
+        ]
+      },
+      "rule_ids": ["TST-6", "TST-16"]
+    }
+  ],
+  "findings": [
+    {
+      "id": "FIND-LEGACY-VACUOUS",
+      "kind": "weak_oracle",
+      "severity": "high",
+      "confidence": "high",
+      "rule_ids": ["TST-6"],
+      "path": "src/test/kotlin/example/LegacyTest.kt",
+      "line": 11,
+      "observable_contract": "Malformed legacy input is rejected.",
+      "plausible_fault": "Removing validation still leaves assertTrue(true) green.",
+      "evidence": [
+        {
+          "path": "src/test/kotlin/example/LegacyTest.kt",
+          "line": 11,
+          "summary": "The test asserts only a constant truth value."
+        }
+      ],
+      "recommendation": "Assert the public validation error for a malformed input.",
+      "behavior_id": "BEH-LEGACY"
+    }
+  ],
+  "coverage_gaps": [],
+  "environment_ownership": {
+    "status": "NOT_APPLICABLE",
+    "operations": [],
+    "evidence": [
+      {
+        "path": "src/test/kotlin/example/LegacyTest.kt",
+        "line": 11,
+        "summary": "The reviewed unit test has no external cleanup or environment setup."
+      }
+    ]
+  },
+  "execution_evidence": [],
+  "execution_integrity": {
+    "status": "NOT_RUN",
+    "execution_evidence_ids": [],
+    "reason": "Audit-only request did not authorize execution."
+  },
+  "verdict": "REVIEWED_WITHOUT_EXECUTION"
+}

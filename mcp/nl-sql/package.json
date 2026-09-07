@@ -1,0 +1,41 @@
+{
+  "name": "nl-sql-mcp",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Read-only natural-language-to-SQL MCP for PostgreSQL/MySQL/SQL Server: schema introspection + guarded SELECT execution.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "nl-sql-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    ".env.example",
+    "nl-sql.config.example.json"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "start": "node dist/index.js",
+    "dev": "tsc -p tsconfig.json --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "dotenv": "^17.4.2",
+    "pg": "^8.23.0",
+    "mysql2": "^3.24.3",
+    "mssql": "^12.7.0",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.1",
+    "@types/pg": "^8.23.1",
+    "typescript": "^7.0.2",
+    "@types/mssql": "^12.3.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

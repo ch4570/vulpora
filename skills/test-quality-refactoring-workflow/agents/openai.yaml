@@ -1,0 +1,12 @@
+interface:
+  display_name: "Test Quality Refactoring Workflow"
+  short_description: "Audit and safely strengthen bounded tests"
+  default_prompt: "Use $test-quality-refactoring-workflow to freeze the test scope, audit it, and make only proven test-side improvements."
+workflow_contract: "vulpora.test-quality-refactoring-workflow/v1"
+entrypoints:
+  - "SKILL.md"
+  - "scripts/validate-workflow-report.js"
+dependencies:
+  - "test-quality-review"
+  - "test-refactoring"
+  - "agent:test-runner"

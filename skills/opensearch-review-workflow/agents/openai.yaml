@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenSearch Review Workflow"
+  short_description: "Run every OpenSearch review skill together"
+  default_prompt: "Use $opensearch-review-workflow to review this OpenSearch change end to end."

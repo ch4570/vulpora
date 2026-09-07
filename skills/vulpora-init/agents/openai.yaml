@@ -1,0 +1,6 @@
+interface:
+  display_name: "Vulpora Init"
+  short_description: "Detect repository stacks and refresh Vulpora routing guidance"
+  default_prompt: "Use $vulpora-init to inspect this repository and refresh the generated Vulpora routing block in AGENTS.md."
+policy:
+  allow_implicit_invocation: true

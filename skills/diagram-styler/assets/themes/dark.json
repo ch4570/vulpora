@@ -1,0 +1,31 @@
+{
+  "theme": "base",
+  "securityLevel": "strict",
+  "fontFamily": "Inter, Pretendard, Noto Sans KR, Apple SD Gothic Neo, ui-sans-serif, system-ui, sans-serif",
+  "htmlLabels": false,
+  "themeVariables": {
+    "background": "#111827",
+    "primaryColor": "#1F2937",
+    "primaryTextColor": "#F3F4F6",
+    "primaryBorderColor": "#94A3B8",
+    "lineColor": "#CBD5E1",
+    "secondaryColor": "#273449",
+    "tertiaryColor": "#111827",
+    "noteBkgColor": "#3A321F",
+    "noteTextColor": "#FFF4C7",
+    "fontSize": "16px"
+  },
+  "flowchart": {
+    "htmlLabels": false,
+    "nodeSpacing": 36,
+    "rankSpacing": 44,
+    "padding": 16,
+    "curve": "basis"
+  },
+  "sequence": {
+    "useMaxWidth": true,
+    "wrap": true,
+    "diagramMarginX": 40,
+    "diagramMarginY": 24
+  }
+}

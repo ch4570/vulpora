@@ -1,0 +1,5 @@
+{ "mappings": { "properties": {
+  "order_id": { "type": "long" },
+  "member_id": { "type": "long" },
+  "note": { "type": "text" }
+}}}

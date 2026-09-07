@@ -1,0 +1,4 @@
+interface:
+  display_name: "Markdown Publisher"
+  short_description: "Markdown를 테마 HTML과 검증 가능한 PDF로 발행합니다"
+  default_prompt: "Use $markdown-publisher to publish this Markdown as a self-contained themed HTML document and, when requested, a QA-gated PDF."

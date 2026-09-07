@@ -1,0 +1,28 @@
+{
+  "_README": "이 파일을 같은 폴더에 nl-sql.config.json 으로 복사해 값을 채우세요. 자세한 설명은 ./README.md. 비밀이 들어가므로 커밋 금지(.gitignore 됨). 환경변수가 있으면 그 값이 우선합니다. '_' 로 시작하는 키는 설명용이라 서버가 무시합니다.",
+
+  "_1_dialect": "대상 DB 종류 1개: postgres | mysql | mssql (기본 포트 pg=5432, mysql=3306, mssql=1433)",
+  "dialect": "postgres",
+
+  "_2_연결": "방법 ①(모든 dialect 공통) 아래 host~password 를 채운다.  /  방법 ②(pg·mysql) host~password 대신 connectionString 한 줄만 넣는다(둘 다 넣으면 connectionString 우선).",
+  "host": "localhost",
+  "port": 5432,
+  "database": "app",
+  "user": "readonly_user",
+  "password": "CHANGE_ME",
+
+  "_connectionString_예시": "pg:  postgresql://readonly_user:비밀@localhost:5432/app    |   mysql:  mysql://readonly_user:비밀@localhost:3306/app",
+
+  "_3_ssl": "require | verify-full(인증서 검증) | prefer(평문 허용). 운영은 require 이상 권장",
+  "ssl": "require",
+
+  "_4_allowedSchemas": "필수 조회 허용 스키마 목록(이 안에서만 조회). pg=[\"public\"], mysql=[\"<DB명>\"], mssql=[\"dbo\"]. 비우면 안전을 위해 서버가 시작되지 않음",
+  "allowedSchemas": ["public"],
+
+  "_5_limits": "maxRows=응답 최대 행 수, statementTimeoutMs=쿼리 제한시간(ms), maxCellChars=셀 출력 최대 글자. 생략하면 기본값(100/5000/2000)",
+  "limits": {
+    "maxRows": 100,
+    "statementTimeoutMs": 5000,
+    "maxCellChars": 2000
+  }
+}

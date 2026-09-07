@@ -1,0 +1,32 @@
+{
+  "schema_version": "vulpora.test-refactoring/v1",
+  "input": {
+    "review_report_path": "test-report/test-quality-review.json",
+    "review_report_sha256": "review-sha256",
+    "finding_ids": ["TQR-17"],
+    "finding_owned_fixture_paths": []
+  },
+  "profile": {"language": "kotlin", "runtime": "jvm", "framework": "junit-jupiter", "mode": "AUTO_REFACTOR", "evidence": ["app/build.gradle.kts declares JUnit Jupiter", "nearby tests use @Test"]},
+  "workflow_write_scope": [{"finding_id": "TQR-17", "path": "src/test/kotlin/example/OrderServiceTest.kt", "kind": "test"}],
+  "workspace_baseline": {"head": "abc123", "index_tree": "def456", "user_changes": []},
+  "baseline": {"command": "./gradlew :app:test --tests example.OrderServiceTest", "exit_code": 0, "executed_count": 1, "fresh": true, "report_path": "app/build/test-results/test/TEST-example.OrderServiceTest.xml", "report_sha256": "baseline-sha", "selected_test_symbols": ["example.OrderServiceTest.rejectsZeroQuantity"], "completed_before_first_edit": true},
+  "smell_iterations": [{"sequence": 1, "finding_id": "TQR-17", "status": "RESOLVED"}],
+  "finding_results": [{"finding_id": "TQR-17", "outcome": "RESOLVED", "evidence": "The public result is asserted instead of successful execution alone."}],
+  "changes": [{"finding_id": "TQR-17", "path": "src/test/kotlin/example/OrderServiceTest.kt", "classification": "strength-preserving-maintenance", "evidence": "The same invalid quantity remains rejected by a public exception assertion."}],
+  "mutation_capability": {
+    "status": "controlled_allowed",
+    "tool": null,
+    "target": "src/main/kotlin/example/OrderService.kt",
+    "authority": "clean production target with no user overlap",
+    "restoration": {"status": "RESTORED", "original_byte_hash": "original-sha", "restored_byte_hash": "original-sha", "diff_after_restore": "clean"}
+  },
+  "negative_proof": {"status": "PASS", "method": "controlled_mutation", "plausible_fault": "Accept a zero quantity instead of rejecting it.", "selected_test_observation": "FAIL", "restored_green": "PASS"},
+  "verification_ladder": [
+    {"rung": "selected", "applicable": true, "status": "PASS", "command": "./gradlew :app:test --tests example.OrderServiceTest", "exit_code": 0, "executed_count": 1, "fresh": true, "report_path": "app/build/test-results/test/TEST-example.OrderServiceTest.xml", "report_sha256": "selected-sha", "selected_test_symbols": ["example.OrderServiceTest.rejectsZeroQuantity"]},
+    {"rung": "affected_module", "applicable": true, "status": "PASS", "command": "./gradlew :app:test", "exit_code": 0, "executed_count": 18, "fresh": true, "report_path": "app/build/test-results/test/TESTS.xml", "report_sha256": "module-sha"},
+    {"rung": "boundary", "applicable": false, "status": "NOT_RUN"},
+    {"rung": "repository_required", "applicable": false, "status": "NOT_RUN"}
+  ],
+  "postflight": {"user_changes": [], "workflow_changed_paths": ["src/test/kotlin/example/OrderServiceTest.kt"], "forbidden_paths_changed": []},
+  "verdict": "PASS"
+}

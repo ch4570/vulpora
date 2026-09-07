@@ -1,0 +1,12 @@
+:root {
+  --font-body: system-ui, sans-serif;
+  --color-text: #17251d;
+  --color-surface: #ffffff;
+  --color-action: #145c35;
+  --space-small: 0.5rem;
+  --space-medium: 1rem;
+  --radius-control: 0.25rem;
+}
+body { font-family: var(--font-body); color: var(--color-text); background: var(--color-surface); }
+.button { background: var(--color-action); color: white; padding: var(--space-small) var(--space-medium); border-radius: var(--radius-control); }
+:focus-visible { outline: 3px solid #17251d; outline-offset: 3px; }

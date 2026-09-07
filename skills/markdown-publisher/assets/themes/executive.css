@@ -1,0 +1,22 @@
+:root {
+  --page-surround: #e9eef3;
+  --paper: #ffffff;
+  --text: #293341;
+  --heading: #11253d;
+  --strong: #142c47;
+  --muted: #536579;
+  --link: #075ea8;
+  --accent: #c5902f;
+  --border: #d5dee7;
+  --soft: #f5f8fa;
+  --shadow: 0 18px 48px rgba(17, 37, 61, 0.12);
+  --code-inline: #f2f5f7;
+  --code-block: #13283e;
+  --code-text: #f4f7fa;
+  --code-border: #cbd6df;
+  --table-head: #edf2f6;
+  --table-stripe: #f8fafb;
+  --callout-bg: #fff9eb;
+  --callout-border: #ead8ac;
+  --callout-accent: #b47b16;
+}

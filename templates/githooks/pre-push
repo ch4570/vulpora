@@ -1,0 +1,57 @@
+#!/bin/sh
+# pre-push 훅 — 휘발성 산출물(raw log/transcript/agent-runtime)이 원격으로 새지 않도록 차단.
+#
+# Claude/에이전트 hook 만으로는 부족하다: 사람이 터미널에서 직접 git push 하면 그 hook 은 관여 못 한다.
+# 그래서 git pre-push 에 같은 방어선을 둔다.
+#
+# 검사 2겹:
+#  1) 현재 추적 파일(git ls-files)
+#  2) push 되는 커밋 범위의 히스토리 — 커밋했다 지워도 blob 이 원격에 가므로 범위까지 본다.
+#
+# 의도적 분리: "메모리 큐레이션이 끝났는가" 는 보지 않는다(push 를 비동기 학습에 묶으면 과설계).
+# 오직 "금지 산출물이 들어오는가" 만 본다 — LLM·네트워크 0, 오프라인 OK.
+#
+# 설치(클론마다 1회): git config core.hooksPath .githooks   — githooks/README.md 참고
+# 우회는 지양: 정말 필요한 예외만 git push --no-verify.
+
+set -eu
+
+ROOT="$(git rev-parse --show-toplevel)" || exit 1
+HOOK_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+if [ ! -f "$HOOK_DIR/gate-path.sh" ]; then
+  echo 'agent_memory_gate status=INCONCLUSIVE scanned_files=0 reason=missing_gate_resolver' >&2
+  exit 2
+fi
+. "$HOOK_DIR/gate-path.sh"
+
+# stdin: "<local ref> <local sha> <remote ref> <remote sha>" 줄들. push 범위의 변경 파일을 모은다.
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/agent-pre-push.XXXXXX")"
+trap 'rm -rf "$WORK"' EXIT HUP INT TERM
+: > "$WORK/paths"
+while read -r _lref lsha _rref rsha; do
+  [ -z "${lsha:-}" ] && continue
+  # Git can use SHA-1 or SHA-256 object IDs; deletion/new-ref IDs are all zero.
+  case "$lsha" in *[!0]*) ;; *) continue ;; esac
+  case "$rsha" in *[!0]*) NEW_REF=0 ;; *) NEW_REF=1 ;; esac
+  if [ "$NEW_REF" -eq 1 ]; then
+    if ! git log --name-only --format= -z "$lsha" --not --remotes >> "$WORK/paths"; then
+      echo 'agent_memory_gate status=INCONCLUSIVE scanned_files=0 reason=unreadable_push_range' >&2
+      exit 2
+    fi
+  else
+    # Every outgoing commit matters: endpoint diffs miss added-then-deleted logs.
+    if ! git log --name-only --format= -z "$rsha..$lsha" >> "$WORK/paths"; then
+      echo 'agent_memory_gate status=INCONCLUSIVE scanned_files=0 reason=unreadable_push_range' >&2
+      exit 2
+    fi
+  fi
+done
+
+# 1) 현재 추적분
+run_memory_gate --allow-empty
+
+# 2) push 범위 히스토리
+# Delete-only pushes have no history paths and report explicit NOT_RUN.
+run_memory_gate --stdin0 --allow-empty < "$WORK/paths"
+
+exit 0

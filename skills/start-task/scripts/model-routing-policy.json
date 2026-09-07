@@ -1,0 +1,22 @@
+{
+  "schema": "vulpora.model-routing-policy/v1",
+  "id": "vulpora-default",
+  "maxCatalogAgeSeconds": 3600,
+  "profiles": {
+    "frugal": {"effort": "low", "relativeUnits": 1},
+    "standard": {"effort": "medium", "relativeUnits": 10},
+    "frontier": {"effort": "high", "relativeUnits": 30}
+  },
+  "runtimes": {
+    "codex": {
+      "frugal": ["gpt-5.6-luna"],
+      "standard": ["gpt-5.6-terra"],
+      "frontier": ["gpt-6-astra", "gpt-5.6-sol", "gpt-5.6"]
+    },
+    "claude-code": {
+      "frugal": ["haiku"],
+      "standard": ["sonnet"],
+      "frontier": ["opus"]
+    }
+  }
+}

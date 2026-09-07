@@ -1,0 +1,80 @@
+case_id: memory-recall/notion-approved-policy
+target:
+  kind: retrieval_gate
+  id: retrieval-gate-v0
+
+intent: >
+  같은 저장소 범위에서 공식 Notion MCP로 가져온 승인·현재 상태의 정책 memory를
+  provenance와 함께 admit하고, 같은 주제의 draft memory는 행동 근거로 승격하지 않는지 확인한다.
+
+input:
+  task:
+    summary: Order 기록 보존 정책을 구현 전에 확인한다.
+    scope:
+      repo: sample-domain
+      workspace: example-workspace
+    action_risk: medium
+  current_evidence:
+    - 현재 코드 테스트는 Order 기록의 30일 보존 경계를 검증한다.
+
+candidate_memories:
+  - id: mem-notion-approved-order-retention-20260710
+    type: semantic
+    content:
+      summary: 승인된 Order 기록 보존 기간은 30일이다.
+    source:
+      kind: tool_output
+      tool: notion-fetch
+      uri: https://notion.example.test/page/approved-order-retention
+      page_id: page-approved-order-retention
+      section_locator: Policy / Retention window
+      retrieved_at: 2026-07-14T01:01:00Z
+      trust: internal
+      confidence: high
+    scope:
+      repo: sample-domain
+      workspace: example-workspace
+    validity:
+      status: verified
+      document_status: approved
+      fresh: true
+  - id: mem-notion-draft-order-retention-20260711
+    type: semantic
+    content:
+      summary: Order 기록의 90일 보존안을 논의 중이다.
+    source:
+      kind: tool_output
+      tool: notion-fetch
+      uri: https://notion.example.test/page/draft-order-retention
+      page_id: page-draft-order-retention
+      section_locator: Proposal / Option B
+      retrieved_at: 2026-07-14T01:01:10Z
+      trust: internal
+      confidence: medium
+    scope:
+      repo: sample-domain
+      workspace: example-workspace
+    validity:
+      status: unverified
+      document_status: draft
+      fresh: true
+
+expected:
+  decisions:
+    mem-notion-approved-order-retention-20260710: admit
+    mem-notion-draft-order-retention-20260711: evidence_only
+  metrics:
+    required_recall: 1.0
+    admission_precision: 1.0
+    evidence_citation_present: true
+  citations_required_for:
+    - mem-notion-approved-order-retention-20260710
+
+failure_signals:
+  - 승인·현재·provenance가 있는 policy memory를 찾지 못한다.
+  - draft 제안을 승인된 정책처럼 admit한다.
+  - admit한 사실에 page_id, URL, section locator를 인용하지 않는다.
+
+pass_criteria:
+  - 승인된 현재 정책만 admit되고 Notion page provenance가 붙는다.
+  - draft는 evidence_only 이하로 유지된다.

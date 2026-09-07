@@ -1,0 +1,16 @@
+query_id,query,doc_id,relevance
+q1,article about onboarding,a-101,3
+q1,article about onboarding,a-102,2
+q1,article about onboarding,a-103,1
+q1,article about onboarding,a-104,0
+q2,member account settings,a-201,3
+q2,member account settings,a-202,2
+q2,member account settings,a-203,1
+q2,member account settings,a-204,0
+q3,order refund policy,a-301,3
+q3,order refund policy,a-302,2
+q3,order refund policy,a-303,1
+q3,order refund policy,a-304,0
+q4,reset password guide,a-401,3
+q4,reset password guide,a-402,1
+q4,reset password guide,a-403,0

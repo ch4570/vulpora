@@ -1,0 +1,4 @@
+interface:
+  display_name: "Product Requirements"
+  short_description: "제품 아이디어를 실행 가능한 PRD로 구체화합니다"
+  default_prompt: "Use $product-requirements to turn this product idea into an executable PRD."

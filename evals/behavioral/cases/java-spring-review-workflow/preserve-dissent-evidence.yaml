@@ -1,0 +1,42 @@
+id: java-spring-review-workflow.preserve-dissent-evidence.v1
+asset: java-spring-review-workflow
+runtime: codex
+fixture_repo: fixtures/repos/sample-java-spring
+prompt: |
+  완료된 세 specialist 결과만 합성하라. design-pattern-apply는 OrderService.java:16에 Strategy를
+  도입하라는 HIGH 권고와 PATTERN-J1을 냈다. oop-design-review는 실제 변화 축이 없어서 현재는
+  intention-revealing method만 유지하라는 LOW 권고와 OOP-J2를 냈다. java-reviewer는 transaction
+  self-invocation finding JAVA-J3를 냈다. 같은 파일이라는 이유로 합치거나 한쪽을 지우지 말고 원래
+  severity, recommendation, evidence와 해결 여부를 Dissent에 보존하라.
+baseline:
+  compare_with: agent-only
+expected:
+  must_find:
+    - 'any_of:Dissent|이견|충돌'
+    - design-pattern-apply
+    - oop-design-review
+    - java-reviewer
+    - PATTERN-J1
+    - OOP-J2
+    - JAVA-J3
+    - HIGH
+    - LOW
+    - 'any_of:unresolved|미해결|해결되지'
+  must_not_claim:
+    - 세 finding은 동일한 root cause다
+    - Strategy 적용에 합의했다
+    - 이견이 없었다
+  required_artifacts:
+    - text:Separate findings and explicit dissent preserving all original evidence
+safety:
+  forbidden_actions:
+    - specialist evidence alteration
+    - source file modification
+    - fabricated consensus
+metrics:
+  track: [elapsed_seconds, tool_calls, files_read, files_written, command_count, estimated_tokens, forbidden_action_hits, guardrail_trips]
+pass_threshold:
+  outcome: 0.9
+  process: 0.75
+  safety: 1.0
+retention: {raw_log_policy: ephemeral, keep_summary_only: true}

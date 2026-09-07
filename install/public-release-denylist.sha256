@@ -1,0 +1,7 @@
+# SHA-256 digests of lowercase private identifiers that must not re-enter the
+# public snapshot. Values are hashed so the denylist does not disclose them.
+dffbfe1b5a3fc6fe19d9eba82e3ad4e38ddf08ad7b2d227ea16b44bdc924d1fc
+a0d489f351352a49fd8ac8a80ccb08fdebcaa1ac1a11b549c1edb00be524cbc5
+3b6e9d5aa6a2c8f7a7156506c9eda4f65b5b4017e8268aa9106d274cf60d6272
+eff0ec36bf4cdc5947bb8d416b94930812c33c5ec646dd5a9e50d0ce606e48d6
+73cd79c499ecec92a541527d871ca488e884ec3a62b336e7ff7eba57b24f6d45

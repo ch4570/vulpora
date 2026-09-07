@@ -1,0 +1,40 @@
+{
+  "schema": "vulpora.routing-attempt-outcome/v1",
+  "failure_class": "transient_effect_none",
+  "mutation_state": "effect_none",
+  "bounds": {
+    "same_route_retries_used": 0,
+    "same_route_retries_max": 1,
+    "same_tier_failovers_used": 0,
+    "same_tier_failovers_max": 1,
+    "tier_escalations_used": 0,
+    "tier_escalations_max": 1,
+    "route_hops_used": 0,
+    "max_route_hops": 2,
+    "total_attempts_used": 1,
+    "max_total_attempts": 3,
+    "repair_cycles_used": 0,
+    "max_repair_cycles": 2
+  },
+  "budget": {
+    "task_total_relative_units": 3,
+    "spent_relative_units": 1,
+    "next_attempt_relative_units": 1,
+    "task_total_estimated_tokens": 18000,
+    "spent_estimated_tokens": 6000,
+    "next_attempt_estimated_tokens": 6000
+  },
+  "failover": {
+    "same_tier_candidate_available": true,
+    "crosses_provider": false,
+    "data_policy": {
+      "reference": "local-source-default",
+      "version": 1,
+      "cross_provider_transfer": "deny"
+    }
+  },
+  "verifier": {
+    "capability_insufficient": false,
+    "evidence_ref": null
+  }
+}

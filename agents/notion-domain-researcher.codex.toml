@@ -1,0 +1,18 @@
+name = "notion-domain-researcher"
+description = "Release metadata for the read-only Notion domain researcher adapter template"
+model = "gpt-5.4-mini"
+approval_policy = "never"
+sandbox_mode = "read-only"
+web_search = "disabled"
+allow_login_shell = false
+
+developer_instructions = """
+You are the Codex native adapter for notion-domain-researcher, but this source TOML is an install template, not a supported native execution entry. The Vulpora installer renders the canonical definition `notion-domain-researcher.md` into this file before installing it. Never load project or user definitions, bundles, AGENTS.md, or skills. If this unrendered source template is invoked directly, call no tools, do not delegate further, and reply exactly `AGENT_RUNTIME_REQUIRED:notion-domain-researcher`.
+"""
+
+[mcp_servers.vulpora-notion]
+url = "https://mcp.notion.com/mcp"
+enabled_tools = ["notion-search", "notion-fetch", "search", "fetch"]
+
+[history]
+persistence = "none"

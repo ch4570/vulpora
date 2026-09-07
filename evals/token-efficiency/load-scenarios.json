@@ -1,0 +1,183 @@
+{
+  "schema": "vulpora.skill-load-scenarios/v1",
+  "description": "Declared task-specific instruction loads. Runtime system prompts, repository evidence, tools, and outputs are excluded; all listed files are counted once.",
+  "scenarios": [
+    {
+      "id": "test-authoring-junit",
+      "task": "Write a pure Kotlin/JUnit unit test with real deterministic collaborators; no mocks, coroutine, JPA, or production edit.",
+      "baseline": [
+        "skills/test-authoring/SKILL.md",
+        "skills/test-authoring/reference/principles.md",
+        "skills/test-authoring/reference/kb/INDEX.md",
+        "skills/test-authoring/reference/kb/junit5-idioms.md"
+      ],
+      "candidate": [
+        "skills/test-authoring/SKILL.md",
+        "skills/test-authoring/reference/kb/junit5-idioms.md"
+      ],
+      "max_tokens": 4500
+    },
+    {
+      "id": "test-authoring-jpa",
+      "task": "Write a narrow Kotlin/JUnit JPA repository round-trip test with the existing DB slice.",
+      "baseline": [
+        "skills/test-authoring/SKILL.md",
+        "skills/test-authoring/reference/principles.md",
+        "skills/test-authoring/reference/kb/INDEX.md",
+        "skills/test-authoring/reference/kb/junit5-idioms.md",
+        "skills/test-authoring/reference/kb/jpa-persistence-testing.md"
+      ],
+      "candidate": [
+        "skills/test-authoring/SKILL.md",
+        "skills/test-authoring/reference/kb/junit5-idioms.md",
+        "skills/test-authoring/reference/kb/jpa-persistence-testing.md"
+      ],
+      "max_tokens": 5200
+    },
+    {
+      "id": "test-authoring-agentic-change",
+      "task": "Modify production and Kotlin/JUnit tests together; include independent oracle and negative-proof guidance.",
+      "baseline": [
+        "skills/test-authoring/SKILL.md",
+        "skills/test-authoring/reference/principles.md",
+        "skills/test-authoring/reference/kb/INDEX.md",
+        "skills/test-authoring/reference/kb/junit5-idioms.md",
+        "skills/test-authoring/reference/kb/agentic-coding-safety-net.md"
+      ],
+      "candidate": [
+        "skills/test-authoring/SKILL.md",
+        "skills/test-authoring/reference/kb/junit5-idioms.md",
+        "skills/test-authoring/reference/kb/agentic-coding-safety-net.md"
+      ],
+      "max_tokens": 6500
+    },
+    {
+      "id": "schema-doc-standard",
+      "task": "Extract a schema ERD and per-schema table specifications using the output-layout contract; no worked-example consultation.",
+      "baseline": [
+        "skills/schema-doc-extract/SKILL.md",
+        "skills/schema-doc-extract/reference/kb/output-layout.md"
+      ],
+      "candidate": [
+        "skills/schema-doc-extract/SKILL.md",
+        "skills/schema-doc-extract/reference/kb/output-layout.md"
+      ],
+      "max_tokens": 3600
+    },
+    {
+      "id": "schema-doc-with-examples",
+      "task": "Extract schema documents and consult the worked output examples.",
+      "baseline": [
+        "skills/schema-doc-extract/SKILL.md",
+        "skills/schema-doc-extract/reference/kb/output-layout.md"
+      ],
+      "candidate": [
+        "skills/schema-doc-extract/SKILL.md",
+        "skills/schema-doc-extract/reference/kb/output-layout.md",
+        "skills/schema-doc-extract/reference/output-examples.md"
+      ],
+      "max_tokens": 4400
+    },
+    {
+      "id": "e2e-author-spring",
+      "task": "Generate a Spring HTTP scenario catalog using the source-discovery topic and bundled version-1 contract; no worked examples.",
+      "baseline": [
+        "skills/e2e-scenario-author/SKILL.md",
+        "skills/e2e-scenario-author/reference/principles.md",
+        "skills/e2e-scenario-author/reference/kb/INDEX.md",
+        "skills/e2e-scenario-author/reference/kb/api-surface-discovery.md",
+        "skills/e2e-scenario-author/reference/e2e-scenario-contract.md"
+      ],
+      "candidate": [
+        "skills/e2e-scenario-author/SKILL.md",
+        "skills/e2e-scenario-author/reference/kb/api-surface-discovery.md",
+        "skills/e2e-scenario-author/reference/e2e-scenario-contract.md"
+      ],
+      "max_tokens": 9000
+    },
+    {
+      "id": "e2e-render-single",
+      "task": "Render one settled run using the HTML template and version-1 report/masking contract.",
+      "baseline": [
+        "skills/e2e-report-renderer/SKILL.md",
+        "skills/e2e-report-renderer/reference/principles.md",
+        "skills/e2e-report-renderer/reference/kb/INDEX.md",
+        "skills/e2e-report-renderer/fixtures/template.html",
+        "skills/e2e-scenario-author/reference/e2e-scenario-contract.md"
+      ],
+      "candidate": [
+        "skills/e2e-report-renderer/SKILL.md",
+        "skills/e2e-report-renderer/fixtures/template.html",
+        "skills/e2e-scenario-author/reference/e2e-scenario-contract.md"
+      ],
+      "max_tokens": 10000
+    },
+    {
+      "id": "e2e-render-trend",
+      "task": "Render a trend including cross-catalog handling and the formal flaky definition.",
+      "baseline": [
+        "skills/e2e-report-renderer/SKILL.md",
+        "skills/e2e-report-renderer/reference/principles.md",
+        "skills/e2e-report-renderer/reference/kb/INDEX.md",
+        "skills/e2e-report-renderer/fixtures/template.html",
+        "skills/e2e-scenario-author/reference/e2e-scenario-contract.md"
+      ],
+      "candidate": [
+        "skills/e2e-report-renderer/SKILL.md",
+        "skills/e2e-report-renderer/reference/comparison-modes.md",
+        "skills/e2e-report-renderer/fixtures/template.html",
+        "skills/e2e-scenario-author/reference/e2e-scenario-contract.md"
+      ],
+      "max_tokens": 10500
+    },
+    {
+      "id": "e2e-runner-owned-suite",
+      "task": "Run an existing Spring Testcontainers integration suite; load the complete ownership/cleanup/verdict contract and environment topic.",
+      "baseline": [
+        "skills/e2e-runner/SKILL.md",
+        "skills/e2e-runner/reference/principles.md",
+        "skills/e2e-runner/reference/kb/INDEX.md",
+        "skills/e2e-runner/reference/kb/operating-contract.md",
+        "skills/e2e-runner/reference/kb/test-environment-and-data.md"
+      ],
+      "candidate": [
+        "skills/e2e-runner/SKILL.md",
+        "skills/e2e-runner/reference/kb/operating-contract.md",
+        "skills/e2e-runner/reference/kb/test-environment-and-data.md"
+      ],
+      "max_tokens": 11600
+    },
+    {
+      "id": "git-flow-branch-only",
+      "task": "Prepare a clean task branch from an explicit target or develop, then return to implementation without publishing.",
+      "baseline": [
+        "skills/git-flow/SKILL.md",
+        "skills/git-flow/reference/principles.md",
+        "skills/git-flow/reference/kb/INDEX.md",
+        "skills/git-flow/reference/kb/operating-contract.md",
+        "skills/git-flow/reference/kb/branching-model.md"
+      ],
+      "candidate": [
+        "skills/git-flow/SKILL.md",
+        "skills/git-flow/reference/branch-preparation.md"
+      ],
+      "max_tokens": 1500
+    },
+    {
+      "id": "git-flow-publication",
+      "task": "Land existing branch changes through the full GitLab commit/push/MR contract; transport-specific external evidence is excluded on both sides.",
+      "baseline": [
+        "skills/git-flow/SKILL.md",
+        "skills/git-flow/reference/principles.md",
+        "skills/git-flow/reference/kb/INDEX.md",
+        "skills/git-flow/reference/kb/operating-contract.md"
+      ],
+      "candidate": [
+        "skills/git-flow/SKILL.md",
+        "skills/git-flow/reference/kb/operating-contract.md"
+      ],
+      "max_tokens": 8300
+    }
+  ],
+  "max_discovery_tokens": 4500
+}

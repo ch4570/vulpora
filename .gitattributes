@@ -1,0 +1,26 @@
+* text=auto eol=lf
+
+vulpora text eol=lf
+*.sh text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+
+*.gif binary
+*.ico binary
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.pdf binary
+*.pyc binary
+*.tgz binary
+*.zip binary
+
+# Historical scanner payloads are preserved privately, outside public source
+# release archives. The npm files allowlist excludes the same raw directory.
+docs/security/raw export-ignore

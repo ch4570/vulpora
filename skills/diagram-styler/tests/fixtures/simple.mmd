@@ -1,0 +1,4 @@
+flowchart LR
+  request[Request] --> validate{Valid?}
+  validate -->|yes| execute[Execute]
+  validate -->|no| reject[Return error]

@@ -1,0 +1,29 @@
+{
+  "schema": "vulpora.test-quality-refactoring-workflow/v1",
+  "repository_root": "/work/sample",
+  "revision": { "head": "abc123", "index_tree": "def456" },
+  "component_inventory": [
+    { "id": "test-quality-review", "path": "skills/test-quality-review/SKILL.md", "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+    { "id": "test-refactoring", "path": "skills/test-refactoring/SKILL.md", "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" },
+    { "id": "agent:test-runner", "path": "agents/test-runner.md", "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" }
+  ],
+  "component_evidence": [
+    { "id": "test-quality-review", "report_path": "test-quality-reports/review.json", "report_digest": "6666666666666666666666666666666666666666666666666666666666666666", "finding_result_ids": [ "review:FIND-1" ] },
+    { "id": "test-refactoring", "report_path": "test-quality-reports/refactoring.json", "report_digest": "7777777777777777777777777777777777777777777777777777777777777777", "finding_result_ids": [ "refactor:FIND-1" ] },
+    { "id": "agent:test-runner", "report_path": "test-quality-reports/runner.json", "report_digest": "8888888888888888888888888888888888888888888888888888888888888888", "finding_result_ids": [] }
+  ],
+  "component_finding_results": [
+    { "id": "review:FIND-1", "finding_id": "FIND-1", "component": "test-quality-review" },
+    { "id": "refactor:FIND-1", "finding_id": "FIND-1", "component": "test-refactoring" }
+  ],
+  "baseline": {
+    "schema": "vulpora.test-quality-workspace-baseline/v1", "head": "abc123", "index_tree": "def456",
+    "staged_patch_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "unstaged_patch_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "user_entries": [ { "path": "src/test/kotlin/example/ExampleTest.kt", "byte_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "mode": "100644", "entry_type": "regular", "state": "present" } ],
+    "prior_artifacts": []
+  },
+  "workflow_write_scope": [ { "finding_id": "FIND-1", "path": "src/test/kotlin/example/ExampleTest.kt", "kind": "test" } ],
+  "routing": { "route": "REFACTOR", "edit_status": "COMPLETE", "finding_routes": [ { "finding_id": "FIND-1", "route": "REFACTOR", "review_path": "src/test/kotlin/example/ExampleTest.kt", "review_result_id": "review:FIND-1", "resolution_result_id": "refactor:FIND-1" } ] },
+  "reason_codes": []
+}

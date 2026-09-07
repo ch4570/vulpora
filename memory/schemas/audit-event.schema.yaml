@@ -1,0 +1,156 @@
+schema: vulpora.audit-event
+schema_version: 0.1.0
+status: draft
+description: >
+  Append-only audit event schema for memory, policy, skill, and eval lifecycle
+  changes.
+
+required:
+  - event_id
+  - event_type
+  - target
+  - actor
+  - timestamp
+  - reason
+  - before
+  - after
+  - evidence
+
+fields:
+  event_id:
+    type: string
+    required: true
+
+  event_type:
+    type: enum
+    required: true
+    enum:
+      - create
+      - update
+      - verify
+      - reject
+      - quarantine
+      - promote
+      - deprecate
+      - supersede
+      - delete_request
+
+  target:
+    type: object
+    required: true
+    fields:
+      kind:
+        type: enum
+        required: true
+        enum:
+          - memory
+          - skill
+          - policy
+          - eval
+          - schema
+      id:
+        type: string
+        required: true
+      version:
+        type: string
+        required: false
+
+  actor:
+    type: object
+    required: true
+    fields:
+      kind:
+        type: enum
+        required: true
+        enum:
+          - agent
+          - human
+          - tool
+      id:
+        type: string
+        required: true
+
+  timestamp:
+    type: datetime
+    required: true
+
+  reason:
+    type: string
+    required: true
+
+  before:
+    type: object|null
+    required: true
+    description: Previous state summary or null for create events.
+
+  after:
+    type: object|null
+    required: true
+    description: New state summary or null for delete_request events.
+
+  evidence:
+    type: list[string]
+    required: true
+
+  review:
+    type: object
+    required: false
+    fields:
+      required:
+        type: boolean
+        required: true
+      reviewers:
+        type: list[string]
+        required: false
+      verdict:
+        type: enum
+        required: false
+        enum:
+          - approved
+          - rejected
+          - needs_changes
+
+good_example:
+  event_id: audit-promote-skill-readme-reframe-v1
+  event_type: promote
+  target:
+    kind: skill
+    id: skill-readme-reframe
+    version: "1"
+  actor:
+    kind: agent
+    id: memory-curator
+  timestamp: "2026-06-24T00:00:00Z"
+  reason: Skill replay case passed and evidence is linked.
+  before:
+    promotion_status: proposed
+  after:
+    promotion_status: approved
+  evidence:
+    - evals/skill-replay/cases/readme-reframe.yaml
+    - memory/schemas/skill.schema.yaml
+  review:
+    required: true
+    reviewers:
+      - memory-verifier
+    verdict: approved
+
+bad_example:
+  event_id: audit-direct-delete
+  event_type: promote
+  target:
+    kind: memory
+    id: mem-untrusted-web-instruction
+  actor:
+    kind: agent
+    id: executor
+  timestamp: "2026-06-24T00:00:00Z"
+  reason: It looked useful.
+  before: null
+  after:
+    verification_status: verified
+  evidence: []
+  why_bad:
+    - No evidence.
+    - Promotion reason is vague.
+    - Untrusted content cannot skip quarantine/review.

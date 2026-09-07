@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>start-task DAG scheduling</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--paper:#f6f7f8;--surface:#fff;--ink:#1a1a1e;--muted:#575f6c;--soft:#768091;--rule:rgba(26,26,30,.12);--accent:#2563eb;--accent-tint:rgba(37,99,235,.08);--sans:'Pretendard','Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;--serif:'Instrument Serif',serif;--mono:'Geist Mono','Noto Sans Mono CJK KR',monospace}
+    body{font-family:var(--sans);background:var(--paper);color:var(--ink);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:48px 32px}
+    .frame{max-width:1280px;width:100%}.eyebrow{font:500 12px var(--mono);letter-spacing:.16em;color:var(--muted);margin-bottom:8px;text-transform:uppercase}h1{font:400 32px/1.15 var(--serif);letter-spacing:-.02em;margin-bottom:24px}svg{width:100%;min-width:960px;display:block}.name{font:600 12px var(--sans);fill:var(--ink)}.sub{font:400 8px var(--mono);fill:var(--muted)}.rank{font:500 8px var(--mono);letter-spacing:.12em;fill:var(--soft)}
+  </style>
+</head>
+<body><main class="frame"><p class="eyebrow">Dependency graph · Vulpora</p><h1>DAG scheduler: dependencies decide readiness, runtime capacity decides start</h1>
+  <svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="dag-title dag-desc">
+    <title id="dag-title">start-task DAG scheduling</title>
+    <desc id="dag-desc">A dependency graph shows active leaf tasks and a queued leaf task under a runtime-derived work-in-progress limit, converging through integration, documentation, and verification into a terminal report.</desc>
+    <defs><marker id="dag-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#575f6c"/></marker><marker id="dag-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2563eb"/></marker></defs>
+    <rect width="1280" height="720" fill="#f6f7f8"/>
+    <line x1="48" y1="152" x2="1232" y2="152" stroke="rgba(26,26,30,.12)" stroke-width=".8"/><line x1="48" y1="328" x2="1232" y2="328" stroke="rgba(26,26,30,.12)" stroke-width=".8"/>
+    <text class="rank" x="48" y="104">RANK 0 · TERMINAL</text><text class="rank" x="48" y="280">RANK 1 · CONVERGENCE</text><text class="rank" x="48" y="456">RANK 2 · READY LEAVES</text>
+    <path d="M640 120 V160 H280 Q272 160 272 168 V216" fill="none" stroke="#575f6c" marker-end="url(#dag-arrow)"/><path d="M640 120 V216" fill="none" stroke="#575f6c" marker-end="url(#dag-arrow)"/><path d="M640 120 V160 H992 Q1000 160 1000 168 V216" fill="none" stroke="#575f6c" marker-end="url(#dag-arrow)"/>
+    <path d="M280 272 V320 H160 Q152 320 152 328 V392" fill="none" stroke="#575f6c" marker-end="url(#dag-arrow)"/>
+    <path d="M640 272 V320 H440 Q432 320 432 328 V392" fill="none" stroke="#2563eb" stroke-width="1.2" marker-end="url(#dag-arrow-accent)"/><path d="M640 272 V392" fill="none" stroke="#2563eb" stroke-width="1.2" marker-end="url(#dag-arrow-accent)"/>
+    <path d="M1000 272 V320 H720 Q712 320 712 328 V392" fill="none" stroke="#2563eb" stroke-width="1.2" marker-end="url(#dag-arrow-accent)"/><path d="M1000 272 V392" fill="none" stroke="#2563eb" stroke-width="1.2" marker-end="url(#dag-arrow-accent)"/>
+    <rect x="560" y="64" width="160" height="56" rx="8" fill="#fff" stroke="#1a1a1e"/><text class="name" x="640" y="88" text-anchor="middle">Terminal report</text><text class="sub" x="640" y="104" text-anchor="middle">all gates passed</text>
+    <rect x="200" y="216" width="160" height="56" rx="8" fill="#fff" stroke="#1a1a1e"/><text class="name" x="280" y="240" text-anchor="middle">Docs</text><text class="sub" x="280" y="256" text-anchor="middle">depends on T-08</text>
+    <rect x="560" y="216" width="160" height="56" rx="8" fill="#fff" stroke="#1a1a1e"/><text class="name" x="640" y="240" text-anchor="middle">Integrate</text><text class="sub" x="640" y="256" text-anchor="middle">implementation + tests</text>
+    <rect x="920" y="216" width="160" height="56" rx="8" fill="#fff" stroke="#1a1a1e"/><text class="name" x="1000" y="240" text-anchor="middle">Verify</text><text class="sub" x="1000" y="256" text-anchor="middle">tests + risk evidence</text>
+    <rect x="72" y="392" width="160" height="56" rx="8" fill="rgba(26,26,30,.035)" stroke="#768091" stroke-dasharray="4 4"/><text class="name" x="152" y="416" text-anchor="middle">T-08 Changelog</text><text class="sub" x="152" y="432" text-anchor="middle">QUEUED · slot unavailable</text>
+    <rect x="352" y="392" width="160" height="56" rx="8" fill="rgba(37,99,235,.08)" stroke="#2563eb" stroke-width="1.2"/><text class="name" x="432" y="416" text-anchor="middle">T-03 Implement</text><text class="sub" x="432" y="432" text-anchor="middle">ACTIVE · standard</text>
+    <rect x="632" y="392" width="160" height="56" rx="8" fill="rgba(37,99,235,.08)" stroke="#2563eb" stroke-width="1.2"/><text class="name" x="712" y="416" text-anchor="middle">T-04 Tests</text><text class="sub" x="712" y="432" text-anchor="middle">ACTIVE · standard</text><rect x="756" y="400" width="28" height="16" rx="8" fill="#2563eb"/><text x="770" y="412" text-anchor="middle" font-size="8" font-weight="600" font-family="var(--mono)" fill="#fff">2 IN</text>
+    <rect x="912" y="392" width="160" height="56" rx="8" fill="rgba(37,99,235,.08)" stroke="#2563eb" stroke-width="1.2"/><text class="name" x="992" y="416" text-anchor="middle">T-05 Risk scan</text><text class="sub" x="992" y="432" text-anchor="middle">ACTIVE · frugal</text>
+    <rect x="392" y="504" width="496" height="48" rx="8" fill="rgba(37,99,235,.08)" stroke="#2563eb"/><text x="640" y="524" text-anchor="middle" font-size="10" font-weight="600" font-family="var(--mono)" fill="#2563eb">DYNAMIC WIP LIMIT</text><text class="sub" x="640" y="540" text-anchor="middle">runtime slots · ready tasks · disjoint scopes · policy</text>
+    <line x1="48" y1="600" x2="1232" y2="600" stroke="rgba(26,26,30,.12)" stroke-width=".8"/><text x="48" y="624" fill="#575f6c" font-size="8" font-family="var(--mono)" letter-spacing=".16em">LEGEND</text><rect x="164" y="612" width="24" height="16" rx="4" fill="rgba(37,99,235,.08)" stroke="#2563eb"/><text x="200" y="624" fill="#575f6c" font-size="8" font-family="var(--sans)">ACTIVE child</text><rect x="356" y="612" width="24" height="16" rx="4" fill="rgba(26,26,30,.035)" stroke="#768091" stroke-dasharray="4 4"/><text x="392" y="624" fill="#575f6c" font-size="8" font-family="var(--sans)">QUEUED ready task</text><rect x="588" y="612" width="24" height="16" rx="4" fill="#fff" stroke="#1a1a1e"/><text x="624" y="624" fill="#575f6c" font-size="8" font-family="var(--sans)">blocked convergence</text><text x="920" y="624" fill="#575f6c" font-size="8" font-family="var(--mono)">ARROW · task → dependency</text>
+  </svg>
+</main></body></html>

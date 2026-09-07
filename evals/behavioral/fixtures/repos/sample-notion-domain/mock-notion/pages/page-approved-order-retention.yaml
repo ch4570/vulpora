@@ -1,0 +1,15 @@
+schema: synthetic.notion-fetch-result.v1
+status: success
+retrieved_at: 2026-07-14T01:01:00Z
+page:
+  page_id: page-approved-order-retention
+  title: Order record retention policy
+  url: https://notion.example.test/page/approved-order-retention
+  section_locator: Policy / Retention window
+  document_status: approved
+  owner: Data Governance
+  last_edited_time: 2026-07-10T09:30:00Z
+  content: |
+    Order records are retained for 30 days from creation. A daily cleanup job
+    removes expired records. This policy is approved and effective from
+    2026-07-10.

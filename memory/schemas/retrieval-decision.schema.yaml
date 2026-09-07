@@ -1,0 +1,173 @@
+schema: vulpora.retrieval-decision
+schema_version: 0.1.0
+status: draft
+description: >
+  Schema for the retrieval gate decision that sits between candidate memory
+  search and context admission.
+
+required:
+  - decision_id
+  - task
+  - candidate_memory_id
+  - decision
+  - checks
+  - reason
+  - warnings
+  - citations
+  - decided_by
+  - timestamp
+
+fields:
+  decision_id:
+    type: string
+    required: true
+
+  task:
+    type: object
+    required: true
+    fields:
+      summary:
+        type: string
+        required: true
+      scope:
+        type: object
+        required: true
+      action_risk:
+        type: enum
+        required: true
+        enum:
+          - low
+          - medium
+          - high
+
+  candidate_memory_id:
+    type: string
+    required: true
+
+  decision:
+    type: enum
+    required: true
+    enum:
+      - admit
+      - evidence_only
+      - reject
+      - quarantine
+
+  checks:
+    type: object
+    required: true
+    fields:
+      scope_match:
+        type: enum
+        required: true
+        enum:
+          - pass
+          - fail
+          - unknown
+      trust_allowed:
+        type: enum
+        required: true
+        enum:
+          - pass
+          - fail
+          - unknown
+      freshness:
+        type: enum
+        required: true
+        enum:
+          - fresh
+          - stale
+          - unknown
+      conflict:
+        type: enum
+        required: true
+        enum:
+          - none
+          - conflicts_with_current_state
+          - conflicts_with_user_instruction
+          - conflicts_with_policy
+      provenance_present:
+        type: boolean
+        required: true
+      procedural_risk:
+        type: enum
+        required: true
+        enum:
+          - low
+          - medium
+          - high
+
+  reason:
+    type: string
+    required: true
+
+  warnings:
+    type: list[string]
+    required: true
+
+  citations:
+    type: list[string]
+    required: true
+
+  decided_by:
+    type: string
+    required: true
+
+  timestamp:
+    type: datetime
+    required: true
+
+decision_semantics:
+  admit: Memory may be placed in the active context as scoped guidance or fact.
+  evidence_only: Memory may be shown as historical evidence but must not direct behavior.
+  reject: Memory must not be used for this task.
+  quarantine: Memory is suspicious and should be isolated for review.
+
+good_example:
+  decision_id: rd-vulpora-purpose-admit-20260624
+  task:
+    summary: Update memory implementation plan for Vulpora.
+    scope:
+      repo: vulpora
+    action_risk: low
+  candidate_memory_id: mem-vulpora-portability-principle-20260624
+  decision: admit
+  checks:
+    scope_match: pass
+    trust_allowed: pass
+    freshness: fresh
+    conflict: none
+    provenance_present: true
+    procedural_risk: low
+  reason: Memory is verified repo purpose from README and matches current task scope.
+  warnings: []
+  citations:
+    - README.md
+  decided_by: retrieval-gate
+  timestamp: "2026-06-24T00:00:00Z"
+
+bad_example:
+  decision_id: rd-untrusted-web-admit
+  task:
+    summary: Implement policy.
+    scope:
+      repo: vulpora
+    action_risk: high
+  candidate_memory_id: mem-web-ignore-rules
+  decision: admit
+  checks:
+    scope_match: unknown
+    trust_allowed: fail
+    freshness: unknown
+    conflict: conflicts_with_policy
+    provenance_present: false
+    procedural_risk: high
+  reason: Similar text was found.
+  warnings: []
+  citations: []
+  decided_by: example
+  timestamp: "2026-06-24T00:00:00Z"
+  why_bad:
+    - Similarity alone is insufficient.
+    - Trust and policy checks failed.
+    - Missing citations.

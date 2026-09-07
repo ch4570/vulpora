@@ -1,0 +1,13 @@
+# Vulpora banner prompts
+
+Mode: built-in image generation and image editing. Date: 2026-09-07.
+
+The first pass used a provisional wordmark. The second pass below applies the final name, **Vulpora**.
+
+## Initial generation
+
+Use case: logo-brand. Asset type: a polished wide GitHub README hero banner, about 1600 by 600 pixels, for the open-source coding toolkit Vulpra. Brand concept: an original mythical fox whose many tails symbolize specialist agents working together; intelligent, composed, precise, never menacing. Create an editorial illustration with a beautifully simplified ivory fox, a single clear fox face and nine elegant flowing tails fanning into an almost circular crest. The fox/crest occupies the right half; the left half holds the wordmark, so the full horizontal banner is balanced and readable at 800px width. Dark ink charcoal background (#111820), warm ivory (#F4EFE3), restrained amber/copper (#D6A45D), tiny subtle constellation points and fine engraved lines. Strong silhouette, refined printmaking / contemporary book-cover aesthetic, generous negative space, flat rich colors with very subtle paper texture. Text verbatim: 'VULPRA' in large elegant widely spaced uppercase sans serif, and beneath in much smaller clean typography 'SPECIALISTS IN SYNC'. Spell the name V U L P R A exactly. No other text, no logos of other products, no badges or metric claims, no gradients that look like generic AI marketing, no circuitry, no robots, no anime, no gaming emblem, no neon effects, no teeth-baring pose, no human figures. Keep the whole wordmark and fox inside generous safe margins, no crops. The creature is an original brand illustration, not a depiction copied from any existing franchise or product. Generate one finished banner.
+
+## Final edit
+
+Edit the supplied GitHub README banner. Keep the same single ivory mythical fox and flowing tail crest, its placement, amber accents, fine star geometry, and wide editorial composition. Change the large wordmark from VULPRA to exactly 'VULPORA' (V U L P O R A), adding the O between P and R, and keep 'SPECIALISTS IN SYNC' below. Rebalance wordmark spacing slightly to fit the same left-hand space. Crucially clean up the entire left typography/background region: completely remove the pixelated red/green/yellow noisy halos, mottled bright patches and glowing fog around the text. Use a calm flat opaque dark charcoal #111820 background behind crisp warm ivory lettering; no glow, bloom, rainbow dithering, glitch texture or transparency. The existing detailed fox illustration remains unchanged. Keep generous safe margins and make the banner look immaculate and readable in a GitHub README. No additional text or badges.

@@ -1,0 +1,12 @@
+schema: synthetic.notion-fetch-result.v1
+status: access_denied
+retrieved_at: 2026-07-14T01:04:00Z
+page:
+  page_id: page-restricted-incident-policy
+  title: Restricted incident policy
+  url: https://notion.example.test/page/restricted-incident-policy
+  last_edited_time: 2026-07-09T07:00:00Z
+error:
+  code: object_not_accessible
+  message: The authenticated user cannot read this page.
+  retryable: false

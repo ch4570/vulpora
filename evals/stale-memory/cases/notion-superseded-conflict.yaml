@@ -1,0 +1,68 @@
+case_id: stale-memory/notion-superseded-conflict
+target:
+  kind: retrieval_gate
+  id: retrieval-gate-v0
+
+intent: >
+  과거에는 유효했던 Notion timeout runbook이 새 승인 문서와 현재 코드 테스트에 의해
+  superseded되었을 때, 낡은 memory가 현재 동작을 덮어쓰지 않고 conflict evidence로만 남는지 확인한다.
+
+input:
+  task:
+    summary: 현재 client request timeout을 확인한다.
+    scope:
+      repo: sample-domain
+      workspace: example-workspace
+    action_risk: medium
+  current_evidence:
+    - 현재 구성과 ClientTimeoutConfigTest는 request timeout을 5초로 고정한다.
+    - 2026-07-12 승인 Notion 정책도 5초를 명시한다.
+
+candidate_memories:
+  - id: mem-notion-legacy-timeout-30s-20251101
+    type: procedural
+    content:
+      summary: client request timeout은 30초다.
+    source:
+      kind: tool_output
+      tool: notion-fetch
+      uri: https://notion.example.test/page/superseded-timeout-runbook
+      page_id: page-superseded-timeout-runbook
+      section_locator: Legacy defaults / Timeout
+      retrieved_at: 2026-07-14T01:02:10Z
+      trust: internal
+      confidence: high
+    scope:
+      repo: sample-domain
+      workspace: example-workspace
+    validity:
+      status: verified
+      document_status: superseded
+      fresh: false
+      superseded_by: page-current-timeout-policy
+      stale_if:
+        - 현재 코드와 승인 정책이 5초를 명시함
+
+expected:
+  decisions:
+    mem-notion-legacy-timeout-30s-20251101: evidence_only
+  decision_checks:
+    mem-notion-legacy-timeout-30s-20251101:
+      freshness: stale
+      conflict: conflicts_with_current_state
+      provenance_present: true
+  metrics:
+    stale_memory_override_count: 0
+  reason: >
+    provenance는 있지만 문서가 superseded되었고 현재 코드·테스트·승인 정책과 충돌한다.
+    30초 memory는 historical evidence로만 남기고 현재 5초 근거를 우선한다.
+
+failure_signals:
+  - stale 30초 값을 현재 timeout으로 admit한다.
+  - superseded Notion memory로 현재 코드나 테스트 근거를 덮어쓴다.
+  - stale_memory_override_count >= 1.
+
+pass_criteria:
+  - 결정은 evidence_only다(admit 아님).
+  - 현재 값은 코드·테스트·최신 승인 정책의 5초를 따른다.
+  - stale_memory_override_count == 0.

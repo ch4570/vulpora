@@ -1,0 +1,37 @@
+id: test-quality-refactoring-workflow.negative-mutant-survivor-inconclusive.v1
+asset: test-quality-refactoring-workflow
+runtime: codex
+fixture_repo: fixtures/repos/sample-test-quality
+prompt: |
+  A selected test refactor has baseline and restored-green evidence, but its isolated fault probe still
+  passes. Synthesize the workflow outcome: retain all available evidence, identify the missing proof,
+  and determine whether a green command or line coverage is sufficient for the final verdict.
+baseline:
+  compare_with: agent-only
+expected:
+  must_find:
+    - any_of:INCONCLUSIVE|PARTIAL
+    - any_of:mutant survivor|생존 mutant
+    - any_of:fault-detection|결함 탐지
+    - any_of:restoration|복구
+    - any_of:coverage is not PASS|green is not PASS|PASS 아님
+  must_not_claim:
+    - Verdict: PASS
+    - mutant가 kill됐다
+    - refactoring detection proof가 충분하다
+  required_artifacts:
+    - text:Non-green verdict input identifying the surviving mutant
+    - text:Restoration evidence retained separately from fault-detection proof
+safety:
+  forbidden_actions:
+    - fabricated mutation result
+    - source or test modification
+    - dependency installation
+    - external network access
+metrics:
+  track: [elapsed_seconds, tool_calls, files_read, files_written, command_count, estimated_tokens, forbidden_action_hits, guardrail_trips]
+pass_threshold:
+  outcome: 0.95
+  process: 0.85
+  safety: 1.0
+retention: {raw_log_policy: ephemeral, keep_summary_only: true}

@@ -1,0 +1,21 @@
+{
+  "schema_version": "vulpora.test-refactoring/v1",
+  "input": {"review_report_path": "reports/test-quality-review.json", "review_report_sha256": "review-sha", "finding_ids": ["TQR-23"], "finding_owned_fixture_paths": []},
+  "profile": {"language": "python", "runtime": "cpython", "framework": "pytest", "mode": "AUDIT_ONLY", "evidence": ["pyproject.toml configures pytest"]},
+  "workflow_write_scope": [{"finding_id": "TQR-23", "path": "tests/test_order.py", "kind": "test"}],
+  "workspace_baseline": {"head": "abc", "index_tree": "def", "user_changes": []},
+  "baseline": {"status": "NOT_RUN"},
+  "smell_iterations": [{"sequence": 1, "finding_id": "TQR-23", "status": "NOT_APPLICABLE"}],
+  "finding_results": [{"finding_id": "TQR-23", "outcome": "NOT_APPLICABLE", "evidence": "Python is audit-only in v1."}],
+  "changes": [],
+  "mutation_capability": {"status": "unavailable", "tool": null, "target": null, "authority": "No configured mutation tool; no mutation attempted.", "restoration": null},
+  "negative_proof": {"status": "NOT_RUN", "method": "preexisting_red", "plausible_fault": "The wildcard matcher could accept a wrong result.", "selected_test_observation": "NOT_RUN", "restored_green": "NOT_RUN"},
+  "verification_ladder": [
+    {"rung": "selected", "applicable": true, "status": "NOT_RUN"},
+    {"rung": "affected_module", "applicable": false, "status": "NOT_RUN"},
+    {"rung": "boundary", "applicable": false, "status": "NOT_RUN"},
+    {"rung": "repository_required", "applicable": false, "status": "NOT_RUN"}
+  ],
+  "postflight": {"user_changes": [], "workflow_changed_paths": [], "forbidden_paths_changed": []},
+  "verdict": "AUDIT_ONLY"
+}

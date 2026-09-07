@@ -1,0 +1,10 @@
+# Vulpora MCP pack catalog
+#
+# Format:
+#   id | transport | endpoint | auth | runtimes | description | codex_enabled_tools
+#
+# v1 intentionally contains only hosted HTTP servers with authoritative,
+# stable endpoints. OAuth credentials are owned by the runtime, never Vulpora.
+
+notion | http | https://mcp.notion.com/mcp | oauth | codex,claude-code | Notion workspace search and page operations | notion-search,notion-fetch,search,fetch
+openai-docs | http | https://developers.openai.com/mcp | none | codex,claude-code | Official OpenAI developer documentation | -

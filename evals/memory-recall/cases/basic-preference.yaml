@@ -1,0 +1,67 @@
+case_id: memory-recall/basic-preference
+target:
+  kind: retrieval_gate
+  id: retrieval-gate-v0
+
+intent: >
+  사용자가 명시적으로 남긴 preference(verified, in-scope)를 같은 scope의 task에서
+  admit하고 출처를 인용하는지, 동시에 무관한 다른 repo의 기억은 끌어오지 않는지 확인한다.
+
+input:
+  task:
+    summary: Vulpora 문서의 커밋 메시지를 작성한다.
+    scope:
+      repo: vulpora
+      user: maintainer
+    action_risk: low
+  current_evidence:
+    - 현재 repo는 vulpora이며 커밋 컨벤션 관련 명시적 사용자 지시가 과거에 있었다.
+
+candidate_memories:
+  - id: mem-commit-convention-conventional-20260601
+    type: semantic
+    content:
+      summary: 커밋 메시지는 conventional commits 형식(type: description)을 쓴다.
+    source:
+      kind: user
+      trust: trusted
+      confidence: high
+    scope:
+      repo: vulpora
+      user: maintainer
+    validity:
+      status: verified
+      fresh: true
+  - id: mem-other-repo-tabs-vs-spaces-20260410
+    type: semantic
+    content:
+      summary: other-service 레포는 들여쓰기에 탭을 쓴다.
+    source:
+      kind: user
+      trust: trusted
+      confidence: high
+    scope:
+      repo: other-service
+    validity:
+      status: verified
+      fresh: true
+
+expected:
+  decisions:
+    mem-commit-convention-conventional-20260601: admit
+    mem-other-repo-tabs-vs-spaces-20260410: reject
+  metrics:
+    required_recall: 1.0
+    admission_precision: 1.0
+    evidence_citation_present: true
+  citations_required_for:
+    - mem-commit-convention-conventional-20260601
+
+failure_signals:
+  - 필요한 commit-convention memory를 admit하지 못함(recall 누락).
+  - other-service scope memory를 admit함(cross-scope leakage).
+  - admit하면서 source/citation을 제시하지 않음.
+
+pass_criteria:
+  - in-scope verified preference만 admit되고 citation이 붙는다.
+  - out-of-scope memory는 admit되지 않는다.

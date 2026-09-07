@@ -1,0 +1,26 @@
+{
+  "name": "vulpora",
+  "owner": {
+    "name": "Vulpora Contributors"
+  },
+  "metadata": {
+    "description": "Vulpora — Codex와 Claude Code가 함께 쓰는 이식형 에이전트·스킬 catalog",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "vulpora",
+      "source": "./",
+      "description": "Vulpora 에이전트 28종과 스킬 62종을 설치하는 catalog 플러그인.",
+      "version": "1.0.0",
+      "category": "development",
+      "keywords": [
+        "agents",
+        "skills",
+        "code-review",
+        "database",
+        "search"
+      ]
+    }
+  ]
+}

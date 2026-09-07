@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+"use strict";
+const fs=require("node:fs"),path=require("node:path"),crypto=require("node:crypto");
+if(process.argv.length!==5||!["capture","compare"].includes(process.argv[2])){console.error("usage: fs-baseline.js capture|compare ROOT BASELINE");process.exit(2);}
+const [mode,rootArg,baseline]=process.argv.slice(2),root=fs.realpathSync(rootArg);
+function type(s){if(s.isFile())return"regular";if(s.isDirectory())return"directory";if(s.isSymbolicLink())return"symlink";if(s.isFIFO())return"fifo";if(s.isSocket())return"socket";if(s.isCharacterDevice())return"character";if(s.isBlockDevice())return"block";return"unknown";}
+function capture(){const rows=[];function walk(dir){for(const name of fs.readdirSync(dir).sort()){if(dir===root&&name===".git")continue;const full=path.join(dir,name),rel=path.relative(root,full),s=fs.lstatSync(full),t=type(s),meta={type:t,mode:s.mode&0o7777};if(t==="symlink")meta.target=Buffer.from(fs.readlinkSync(full)).toString("base64");if(t==="regular")meta.sha256=crypto.createHash("sha256").update(fs.readFileSync(full)).digest("hex");rows.push([rel,meta]);if(t==="directory")walk(full);}}walk(root);const chunks=[];for(const [p,m]of rows){chunks.push(Buffer.from(p),Buffer.from([0]),Buffer.from(JSON.stringify(m)),Buffer.from([0]));}return Buffer.concat(chunks);}
+const current=capture();if(mode==="capture"){fs.writeFileSync(baseline,current,{flag:"wx"});process.exit(0);}const expected=fs.readFileSync(baseline);if(!expected.equals(current)){console.error("repository_baseline_mismatch");process.exit(1);}console.log("repository_baseline_match");

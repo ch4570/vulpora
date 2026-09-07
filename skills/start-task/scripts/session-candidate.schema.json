@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vulpora.local/schemas/session-candidate-v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "task_id", "attempt_id", "status", "summary", "changed_files", "evidence", "risks", "blocker"],
+  "properties": {
+    "schema": {"type": "string", "const": "vulpora.session-candidate/v1"},
+    "task_id": {"type": "string", "maxLength": 128},
+    "attempt_id": {"type": "string", "maxLength": 128},
+    "status": {"type": "string", "enum": ["candidate", "blocked", "failed"]},
+    "summary": {"type": "string", "minLength": 1, "maxLength": 2048},
+    "changed_files": {"type": "array", "maxItems": 128, "items": {"type": "string", "maxLength": 2048}},
+    "evidence": {"type": "array", "maxItems": 32, "items": {"type": "string", "maxLength": 1024}},
+    "risks": {"type": "array", "maxItems": 16, "items": {"type": "string", "maxLength": 1024}},
+    "blocker": {"type": ["string", "null"], "maxLength": 2048}
+  }
+}

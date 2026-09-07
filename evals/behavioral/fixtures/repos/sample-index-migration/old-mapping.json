@@ -1,0 +1,17 @@
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "article_body": { "type": "standard" }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "article_id": { "type": "long" },
+      "member_id":  { "type": "long" },
+      "title":      { "type": "text", "analyzer": "article_body" },
+      "body":       { "type": "text", "analyzer": "article_body" }
+    }
+  }
+}

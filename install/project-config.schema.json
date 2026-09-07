@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:vulpora:schema:project-config:v1",
+  "title": "Vulpora project configuration",
+  "description": "Optional repository policy consumed by vulpora-init. Defaults preserve the current VCS state and follow repository language conventions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "locale": {
+      "type": "string",
+      "enum": ["auto", "ko", "en"],
+      "default": "auto"
+    },
+    "vcs": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "provider": {
+          "type": "string",
+          "enum": ["auto", "github", "gitlab", "none"],
+          "default": "auto"
+        },
+        "baseBranch": {
+          "oneOf": [
+            { "const": "auto" },
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^(?!.*(?:\\.\\.|//))[A-Za-z0-9](?:[A-Za-z0-9._/-]*[A-Za-z0-9])?$"
+            }
+          ],
+          "default": "auto"
+        },
+        "prepareBranch": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    }
+  }
+}

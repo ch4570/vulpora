@@ -1,0 +1,4 @@
+interface:
+  display_name: "Postgres Review Workflow"
+  short_description: "Reconcile PostgreSQL operations and modeling"
+  default_prompt: "Use $postgres-review-workflow to review this PostgreSQL change end to end."

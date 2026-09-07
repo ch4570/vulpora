@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Workspace members</title>
+  <style>
+    body { font-family: system-ui, sans-serif; }
+    main { min-width: 900px; }
+    input:focus, button:focus { outline: none; }
+    .action { cursor: pointer; color: #145c35; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Members</h1>
+    <input type="search" placeholder="Search members">
+    <div class="action" onclick="document.getElementById('invite').hidden = false">Invite member</div>
+    <div id="invite" hidden>
+      <h2>Invite member</h2>
+      <input type="email" placeholder="Email">
+      <button type="button">Send invitation</button>
+    </div>
+    <p id="members-state">No members</p>
+  </main>
+</body>
+</html>

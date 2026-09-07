@@ -1,0 +1,23 @@
+schema_version: vulpora.improvement-record/v1
+id: improve-text-matcher-v1
+status: promoted
+lineage:
+  source_failure_or_incident: behavioral false-negative due to quoted OR scalar
+  source_id: incident-eval-20260904-quoted-scalar
+hypothesis: Explicit matcher kinds make case expectations deterministic and reviewable.
+affected_asset:
+  kind: evaluator
+  id: deterministic-text
+proposed_change: Add explicit literal, any_of, and regex matcher prefixes with validation.
+change_author: harness-author@example.invalid
+evaluation:
+  before_evidence:
+    - behavioral-fixture-quoted-or-before
+  after_evidence:
+    - behavioral-contract-test-quoted-or-after
+approval:
+  independent_approver: evaluator-maintainer@example.invalid
+  approved_at: '2026-09-04T00:00:00Z'
+rollback:
+  plan: Revert the matcher parser and restore the prior versioned case syntax.
+  trigger: A regression in fixed-string matching or a failed behavioral contract test.

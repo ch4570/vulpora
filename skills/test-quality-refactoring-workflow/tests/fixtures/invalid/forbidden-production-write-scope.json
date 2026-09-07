@@ -1,0 +1,23 @@
+{
+  "schema": "vulpora.test-quality-refactoring-workflow/v1",
+  "repository_root": "/work/sample",
+  "revision": { "head": "abc123", "index_tree": "def456" },
+  "component_inventory": [
+    { "id": "test-quality-review", "path": "skills/test-quality-review/SKILL.md", "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+    { "id": "test-refactoring", "path": "skills/test-refactoring/SKILL.md", "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" },
+    { "id": "agent:test-runner", "path": "agents/test-runner.md", "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc" }
+  ],
+  "component_evidence": [
+    { "id": "test-quality-review", "report_path": "test-quality-reports/review.json", "report_digest": "6666666666666666666666666666666666666666666666666666666666666666", "finding_result_ids": [] },
+    { "id": "test-refactoring", "report_path": "test-quality-reports/refactoring.json", "report_digest": "7777777777777777777777777777777777777777777777777777777777777777", "finding_result_ids": [] },
+    { "id": "agent:test-runner", "report_path": "test-quality-reports/runner.json", "report_digest": "8888888888888888888888888888888888888888888888888888888888888888", "finding_result_ids": [] }
+  ],
+  "component_finding_results": [],
+  "baseline": {
+    "schema": "vulpora.test-quality-workspace-baseline/v1", "head": "abc123", "index_tree": "def456",
+    "staged_patch_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "unstaged_patch_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "user_entries": [], "prior_artifacts": []
+  },
+  "workflow_write_scope": [ { "finding_id": "FIND-1", "path": "src/main/kotlin/example/Example.kt", "kind": "test" } ]
+}

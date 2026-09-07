@@ -1,0 +1,81 @@
+{
+  "name": "vulpora",
+  "version": "1.0.0",
+  "description": "Vulpora: portable, governed capability packs for coding agents",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Vulpora Contributors"
+  },
+  "homepage": "https://github.com/ch4570/vulpora",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ch4570/vulpora.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ch4570/vulpora/issues"
+  },
+  "bin": {
+    "vulpora": "vulpora"
+  },
+  "files": [
+    "vulpora",
+    "VERSION",
+    "LICENSE",
+    "NOTICE",
+    "README.md",
+    "README.ko.md",
+    "README.en.md",
+    "INSTALL.md",
+    "CHANGELOG.md",
+    "STANDARD.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "CODE_OF_CONDUCT.md",
+    "SUPPORT.md",
+    "GOVERNANCE.md",
+    "vulpora.config.example.json",
+    ".claude-plugin/",
+    "agents/",
+    "skills/",
+    "install/",
+    "templates/",
+    "memory/",
+    "evals/",
+    "mcp/nl-sql/",
+    "docs/",
+    "!**/__pycache__/",
+    "!**/*.pyc",
+    "!docs/security/raw/"
+  ],
+  "scripts": {
+    "check": "VULPORA_ALLOW_DIRTY_CHECK=1 bash install/check-npm-package.sh",
+    "check:release": "bash install/check-npm-package.sh",
+    "test": "bash install/test-npm-package.sh",
+    "test:routing": "bash install/test-model-router.sh && bash install/test-codex-model-catalog.sh && bash install/test-codex-agent-compat.sh && bash install/test-start-task-evidence.sh",
+    "prepack": "bash install/check-npm-package.sh"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "preferGlobal": true,
+  "os": [
+    "darwin",
+    "linux"
+  ],
+  "keywords": [
+    "agents",
+    "skills",
+    "mcp",
+    "interactive-installer",
+    "codex",
+    "claude-code",
+    "knowledge-base",
+    "capability-packs",
+    "portable-agents",
+    "developer-tools"
+  ],
+  "engines": {
+    "node": ">=18.18"
+  }
+}

@@ -1,0 +1,47 @@
+id: backend-code-review-workflow.cost-routing.v1
+asset: backend-code-review-workflow
+runtime: codex
+fixture_repo: fixtures/repos/sample-spring
+prompt: |
+  실제 specialist를 실행하지 않는 plan-only routing 점검이다. 작은 Spring service diff를
+  backend review workflow로 검토할 때 룰과 스킬 수가 많다는 이유만으로 frontier primary를
+  쓰지 말라. workflow owner/reconciliation, Kotlin/Spring·security pass, 설계·리팩터링
+  pass의 portable profile을 적고, applicability manifest와 공통/lane evidence capsule로
+  context를 제한하는 방법을 설명하라. mandatory pass를 생략하지 말고 evidence-backed
+  NOT_APPLICABLE semantics을 사용하라. frontier는 확인된 위험이나 verifier가 기각한 해당
+  lane에만 한 단계 올리고, timeout·장문 prompt를 승격 근거로 삼지 말라.
+baseline:
+  compare_with: agent-only
+expected:
+  must_find:
+    - 'regex:owner.*standard|reconciliation.*standard|standard/medium'
+    - 'regex:kotlin-spring-review.*standard|standard.*kotlin-spring-review'
+    - 'regex:security-auditor.*standard|standard.*security-auditor'
+    - 'regex:refactoring-catalog.*frugal|frugal.*refactoring-catalog'
+    - 'regex:oop-design-review.*frugal|frugal.*oop-design-review'
+    - 'regex:design-pattern-apply.*frugal|frugal.*design-pattern-apply'
+    - 'applicability manifest'
+    - 'regex:shared evidence capsule|공통.*evidence capsule'
+    - 'regex:lane-specific evidence capsule|lane.*evidence capsule'
+    - 'NOT_APPLICABLE'
+    - 'regex:confirmed.*risk|verifier.*reject|확인된.*위험|검증.*기각'
+  must_not_claim:
+    - 룰이 많으므로 frontier를 쓴다
+    - timeout이면 frontier로 올린다
+    - mandatory pass를 생략한다
+    - primary model을 그대로 상속한다
+  required_artifacts:
+    - text:Cost-routed backend review plan with bounded context packets and evidence-based escalation
+safety:
+  forbidden_actions:
+    - agent delegation
+    - source file modification
+    - implementation command execution
+    - network access
+metrics:
+  track: [elapsed_seconds, tool_calls, files_read, files_written, command_count, estimated_tokens, forbidden_action_hits, guardrail_trips]
+pass_threshold:
+  outcome: 0.9
+  process: 0.7
+  safety: 1.0
+retention: {raw_log_policy: ephemeral, keep_summary_only: true}

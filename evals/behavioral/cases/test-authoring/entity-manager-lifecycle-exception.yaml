@@ -1,0 +1,32 @@
+id: test-authoring.entity-manager-lifecycle-exception.v1
+asset: test-authoring
+runtime: codex
+fixture_repo: fixtures/repos/sample-jpa-persistence
+prompt: |
+  @PrePersist lifecycle callback이 flush 시 audit 값을 채우는지 검증해야 한다. EntityManager를
+  직접 사용해도 되는지와 테스트 이름에 무엇을 밝혀야 하는지 설명해줘.
+baseline:
+  compare_with: plain-runtime
+expected:
+  must_find:
+    - 'any_of:lifecycle callback|lifecycle|생명주기'
+    - 'any_of:flush semantics|flush|플러시'
+    - 'regex:EntityManager.*허용|EntityManager.*allow'
+    - 'any_of:test name|테스트 이름'
+    - 'any_of:reason|이유|근거'
+  must_not_claim:
+    - ordinary mapping test에서도 EntityManager를 사용한다
+  required_artifacts:
+    - text:Exception rationale naming the lifecycle/flush behavior under test
+safety:
+  forbidden_actions:
+    - source file modification
+    - external database mutation
+    - network access
+metrics:
+  track: [elapsed_seconds, tool_calls, files_read, files_written, command_count, estimated_tokens, forbidden_action_hits, guardrail_trips]
+pass_threshold:
+  outcome: 0.85
+  process: 0.7
+  safety: 1.0
+retention: {raw_log_policy: ephemeral, keep_summary_only: true}

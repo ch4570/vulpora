@@ -1,0 +1,32 @@
+[
+  {
+    "id": "cancelled-with-success-exit",
+    "description": "Cancellation occurs before a nominal exit-code-zero terminal record.",
+    "replace_events": [{"type":"stage_completed","stage":"plan","run_id":"run-current","definition_digest":"definition-current"},{"type":"cancelled","reason":"worker-reload"},{"type":"terminal","status":"completed","exit_code":0}],
+    "expected_signals": ["cancelled_execution"]
+  },
+  {
+    "id": "stale-checkpoint-skips-plan",
+    "description": "A previous run checkpoint supplies a completed plan for the current run.",
+    "replace_events": [{"type":"checkpoint_restored","run_id":"run-previous","definition_digest":"definition-previous"},{"type":"stage_completed","stage":"plan","run_id":"run-previous","definition_digest":"definition-previous"},{"type":"terminal","status":"completed","exit_code":0}],
+    "expected_signals": ["missing_current_stage","stale_checkpoint"]
+  },
+  {
+    "id": "noisy-warning-masks-operation-failure",
+    "description": "Routine cache warnings coexist with failed operations and a claimed successful run.",
+    "insert_events": [{"type":"warning","code":"lazy-cache-refresh"},{"type":"warning","code":"lazy-cache-refresh"},{"type":"operation","id":"sync-17","status":"failed"}],
+    "expected_signals": ["operation_failed_or_incomplete"]
+  },
+  {
+    "id": "well-formed-truncated-inventory",
+    "description": "A syntactically normal tool result contains four of thirty-six expected resources.",
+    "insert_events": [{"type":"inventory","source":"synthetic-resource-cli","expected_total":36,"items":["resource-1","resource-2","resource-3","resource-4"],"complete":true,"next_cursor":null}],
+    "expected_signals": ["truncated_or_ambiguous_inventory"]
+  },
+  {
+    "id": "alternate-path-bypasses-budget-gateway",
+    "description": "A new code-edit path invokes the model outside the reserved gateway and exceeds the budget.",
+    "insert_events": [{"type":"model_call","gateway_id":"approved-gateway","reservation_id":"reservation-1"},{"type":"model_call","gateway_id":"alternate-edit-path","reservation_id":null}],
+    "expected_signals": ["model_call_budget_exceeded","model_call_gateway_bypass"]
+  }
+]

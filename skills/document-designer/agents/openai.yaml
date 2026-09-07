@@ -1,0 +1,4 @@
+interface:
+  display_name: "Document Designer"
+  short_description: "Design clear, consistent Markdown documents"
+  default_prompt: "Use $document-designer to structure this content as a polished, editable document."

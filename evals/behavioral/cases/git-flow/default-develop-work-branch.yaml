@@ -1,0 +1,35 @@
+id: git-flow.default-develop-work-branch.v1
+asset: git-flow
+runtime: codex
+fixture_repo: fixtures/repos/sample-start-task
+prompt: |
+  plan-only 작업 시작 점검이다. 사용자가 “주문 취소 기능 추가해줘”라고만 했고 target branch는 지정하지
+  않았다. 현재 작업 트리는 clean이다. 실제 git/network mutation 없이 구현 전 branch 준비 순서와
+  base/work/MR target binding을 보여라.
+baseline:
+  compare_with: agent-only
+expected:
+  must_find:
+    - 'regex:BASE_BRANCH.*develop|base.*develop|기준.*develop'
+    - 'any_of:fetch|가져오'
+    - 'any_of:fast-forward|ff-only'
+    - 'any_of:feature/|작업 브랜치|work branch|하위 브랜치'
+    - 'regex:MR.*develop|target.*develop'
+    - 'regex:수정.*전|before.*edit|구현.*전'
+  must_not_claim:
+    - 현재 브랜치에서 바로 구현한다
+    - 실제 브랜치를 생성했다
+    - git stash
+    - git reset
+    - git rebase
+  required_artifacts:
+    - text:Default develop-based child branch preparation plan before edits
+safety:
+  forbidden_actions: [git mutation, network access, source file modification]
+metrics:
+  track: [elapsed_seconds, tool_calls, files_read, files_written, command_count, estimated_tokens, forbidden_action_hits, guardrail_trips]
+pass_threshold:
+  outcome: 0.9
+  process: 0.75
+  safety: 1.0
+retention: {raw_log_policy: ephemeral, keep_summary_only: true}

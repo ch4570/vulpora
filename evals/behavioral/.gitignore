@@ -1,0 +1,6 @@
+# behavioral 실행 결과(요약)는 생성물 — 커밋하지 않는다. .gitkeep만 유지.
+results/*
+!results/.gitkeep
+
+# --run 어댑터가 fixture 안에 만든 산출물(docs/flows/*.md)은 생성물 — 커밋 금지(오염 방지).
+fixtures/repos/*/docs/

@@ -1,0 +1,1190 @@
+{
+  "schema": "vulpora.skill-token-inventory/v1",
+  "source_revision": "normalized-pre-release-snapshot",
+  "plan": "baseline",
+  "tokenizer": {
+    "package": "tiktoken",
+    "version": "0.14.0",
+    "encoding": "o200k_base"
+  },
+  "measurement": "Exact encoding-specific source counts; not provider billing or observed runtime loads.",
+  "discovery_serialization": "name: ID\ndescription: NORMALIZED_DESCRIPTION\n",
+  "scenario_contract_sha256": "ee93d02751671800703afeed32de1e1f306923466a2a0dac9d85dd67a7716c41",
+  "totals": {
+    "tokens": 76646,
+    "body_tokens": 71532,
+    "frontmatter_tokens": 5176,
+    "discovery_tokens": 4869,
+    "description_tokens": 4348
+  },
+  "skills": [
+    {
+      "id": "agent-eval",
+      "path": "skills/agent-eval/SKILL.md",
+      "bytes": 6806,
+      "tokens": 1629,
+      "sha256": "7cda284afa86f5f7d5e8ecfebcf39f76cc089eaaa77a8234da998f363e4c45d4",
+      "body_tokens": 1600,
+      "frontmatter_tokens": 30,
+      "discovery_tokens": 28,
+      "description_tokens": 20,
+      "description_chars": 113,
+      "lines": 97
+    },
+    {
+      "id": "architecture-review-workflow",
+      "path": "skills/architecture-review-workflow/SKILL.md",
+      "bytes": 6969,
+      "tokens": 1352,
+      "sha256": "64e2774958a2274f0d76cd2237d7a93d5b694ecbad8c22b32aac7da90500ba9b",
+      "body_tokens": 1278,
+      "frontmatter_tokens": 75,
+      "discovery_tokens": 66,
+      "description_tokens": 57,
+      "description_chars": 326,
+      "lines": 146
+    },
+    {
+      "id": "backend-code-review-workflow",
+      "path": "skills/backend-code-review-workflow/SKILL.md",
+      "bytes": 8290,
+      "tokens": 1684,
+      "sha256": "a4f8c8a698bc80df29351d99acdf8c6f4680f56f6bb73a81f3748adde0ad5a17",
+      "body_tokens": 1618,
+      "frontmatter_tokens": 67,
+      "discovery_tokens": 59,
+      "description_tokens": 49,
+      "description_chars": 263,
+      "lines": 153
+    },
+    {
+      "id": "code-authoring-router",
+      "path": "skills/code-authoring-router/SKILL.md",
+      "bytes": 3411,
+      "tokens": 691,
+      "sha256": "2905ce362907ac687d9cf3df2cdf79dea4881c13c5c3255c6411e0a05002471e",
+      "body_tokens": 618,
+      "frontmatter_tokens": 74,
+      "discovery_tokens": 72,
+      "description_tokens": 63,
+      "description_chars": 325,
+      "lines": 49
+    },
+    {
+      "id": "code-diagram-extract",
+      "path": "skills/code-diagram-extract/SKILL.md",
+      "bytes": 6334,
+      "tokens": 1821,
+      "sha256": "4f6b91106b6e90900648d03694f3f690e32e42d1255a5c606b1e384a06ffef15",
+      "body_tokens": 1669,
+      "frontmatter_tokens": 153,
+      "discovery_tokens": 138,
+      "description_tokens": 128,
+      "description_chars": 601,
+      "lines": 93
+    },
+    {
+      "id": "codex-agent-runtime",
+      "path": "skills/codex-agent-runtime/SKILL.md",
+      "bytes": 1192,
+      "tokens": 235,
+      "sha256": "b4a2ec8adf468df71c2f64419ff75bbf28dee72c23fba75565ccc8a614e3d38b",
+      "body_tokens": 187,
+      "frontmatter_tokens": 49,
+      "discovery_tokens": 43,
+      "description_tokens": 34,
+      "description_chars": 186,
+      "lines": 27
+    },
+    {
+      "id": "design-pattern-apply",
+      "path": "skills/design-pattern-apply/SKILL.md",
+      "bytes": 3658,
+      "tokens": 790,
+      "sha256": "da423a353c2484182c353e69244f38eea7b4e785483af2af1fd47de8188051f6",
+      "body_tokens": 664,
+      "frontmatter_tokens": 127,
+      "discovery_tokens": 113,
+      "description_tokens": 104,
+      "description_chars": 556,
+      "lines": 64
+    },
+    {
+      "id": "diagram-styler",
+      "path": "skills/diagram-styler/SKILL.md",
+      "bytes": 2677,
+      "tokens": 592,
+      "sha256": "0bbd531f3d5858849b1e348d53e6a034df8a2a875c7354b98bd0700a7ea56b41",
+      "body_tokens": 510,
+      "frontmatter_tokens": 83,
+      "discovery_tokens": 81,
+      "description_tokens": 72,
+      "description_chars": 383,
+      "lines": 46
+    },
+    {
+      "id": "document-designer",
+      "path": "skills/document-designer/SKILL.md",
+      "bytes": 3295,
+      "tokens": 674,
+      "sha256": "615e88abc819e8ad01495c4b49e7c4739c57c68c2b5f74f2e01e6021ea7dee5c",
+      "body_tokens": 592,
+      "frontmatter_tokens": 83,
+      "discovery_tokens": 81,
+      "description_tokens": 73,
+      "description_chars": 377,
+      "lines": 52
+    },
+    {
+      "id": "e2e-report-renderer",
+      "path": "skills/e2e-report-renderer/SKILL.md",
+      "bytes": 14901,
+      "tokens": 3836,
+      "sha256": "22905599678b4c16f26cf2ddec2d95181535373153fc46bdcc92871d4081f5fe",
+      "body_tokens": 3718,
+      "frontmatter_tokens": 119,
+      "discovery_tokens": 117,
+      "description_tokens": 106,
+      "description_chars": 435,
+      "lines": 189
+    },
+    {
+      "id": "e2e-runner",
+      "path": "skills/e2e-runner/SKILL.md",
+      "bytes": 6112,
+      "tokens": 1341,
+      "sha256": "261263e320aba171266510b71d323f5b8bc8ffb04e3d0193f560b4143296dda2",
+      "body_tokens": 1300,
+      "frontmatter_tokens": 42,
+      "discovery_tokens": 40,
+      "description_tokens": 30,
+      "description_chars": 135,
+      "lines": 59
+    },
+    {
+      "id": "e2e-scenario-author",
+      "path": "skills/e2e-scenario-author/SKILL.md",
+      "bytes": 19450,
+      "tokens": 4877,
+      "sha256": "854fc1e0e1f46105f93b62e49200084b23b11212f95f587d35a8c679eff26303",
+      "body_tokens": 4763,
+      "frontmatter_tokens": 115,
+      "discovery_tokens": 113,
+      "description_tokens": 102,
+      "description_chars": 501,
+      "lines": 278
+    },
+    {
+      "id": "e2e-test-workflow",
+      "path": "skills/e2e-test-workflow/SKILL.md",
+      "bytes": 8735,
+      "tokens": 1833,
+      "sha256": "7b64df5be419db0765c38e51880050401377b95d605696c02a9a8276475199ea",
+      "body_tokens": 1721,
+      "frontmatter_tokens": 113,
+      "discovery_tokens": 111,
+      "description_tokens": 100,
+      "description_chars": 493,
+      "lines": 159
+    },
+    {
+      "id": "entity",
+      "path": "skills/entity/SKILL.md",
+      "bytes": 3312,
+      "tokens": 823,
+      "sha256": "aa67108714c9ee4417410199441ded52c5891a45a64ed492ff51269191cd9817",
+      "body_tokens": 776,
+      "frontmatter_tokens": 48,
+      "discovery_tokens": 46,
+      "description_tokens": 41,
+      "description_chars": 202,
+      "lines": 59
+    },
+    {
+      "id": "enum",
+      "path": "skills/enum/SKILL.md",
+      "bytes": 2867,
+      "tokens": 758,
+      "sha256": "34b9b8acaa72bf01cdccf2244d545aff7804d708a447a48e65da624d8e01af4f",
+      "body_tokens": 722,
+      "frontmatter_tokens": 37,
+      "discovery_tokens": 35,
+      "description_tokens": 30,
+      "description_chars": 156,
+      "lines": 55
+    },
+    {
+      "id": "flyway",
+      "path": "skills/flyway/SKILL.md",
+      "bytes": 3375,
+      "tokens": 872,
+      "sha256": "83aad0a896b8aa4dccd171e10dc2e5a8d2053bc1aeeb513d8a1abd104682a37b",
+      "body_tokens": 822,
+      "frontmatter_tokens": 51,
+      "discovery_tokens": 49,
+      "description_tokens": 43,
+      "description_chars": 210,
+      "lines": 56
+    },
+    {
+      "id": "git-flow",
+      "path": "skills/git-flow/SKILL.md",
+      "bytes": 2256,
+      "tokens": 484,
+      "sha256": "2f04c78afece239bfd0a6d4888899d4236eafc3bdaebabb8ec4b9b3ba9250c3b",
+      "body_tokens": 445,
+      "frontmatter_tokens": 40,
+      "discovery_tokens": 38,
+      "description_tokens": 31,
+      "description_chars": 142,
+      "lines": 42
+    },
+    {
+      "id": "harness-propose",
+      "path": "skills/harness-propose/SKILL.md",
+      "bytes": 6184,
+      "tokens": 1538,
+      "sha256": "4c73fd2460f9eedfeb8b0af5b8eb5d37933ab156a417021e8164049e14de4349",
+      "body_tokens": 1444,
+      "frontmatter_tokens": 95,
+      "discovery_tokens": 93,
+      "description_tokens": 85,
+      "description_chars": 452,
+      "lines": 92
+    },
+    {
+      "id": "java-spring-review-workflow",
+      "path": "skills/java-spring-review-workflow/SKILL.md",
+      "bytes": 7183,
+      "tokens": 1469,
+      "sha256": "43c590cd145b6a63f56506a3288baaeeb725a3569e5872ca25642e73392ac78e",
+      "body_tokens": 1366,
+      "frontmatter_tokens": 104,
+      "discovery_tokens": 93,
+      "description_tokens": 82,
+      "description_chars": 430,
+      "lines": 140
+    },
+    {
+      "id": "knowledge-audit",
+      "path": "skills/knowledge-audit/SKILL.md",
+      "bytes": 4475,
+      "tokens": 1192,
+      "sha256": "c434be3632a2f13fb6e46b632d97bd7f3ffcc5ae649c6ef1d70892d9cecc4697",
+      "body_tokens": 1092,
+      "frontmatter_tokens": 101,
+      "discovery_tokens": 99,
+      "description_tokens": 91,
+      "description_chars": 457,
+      "lines": 78
+    },
+    {
+      "id": "korean-dev-writer",
+      "path": "skills/korean-dev-writer/SKILL.md",
+      "bytes": 4491,
+      "tokens": 1153,
+      "sha256": "b99472f0b3c0c77e980f0113a6fb69d2aa2539f706608f2538658479e5802aa3",
+      "body_tokens": 1009,
+      "frontmatter_tokens": 145,
+      "discovery_tokens": 143,
+      "description_tokens": 134,
+      "description_chars": 240,
+      "lines": 65
+    },
+    {
+      "id": "kotlin-code-authoring",
+      "path": "skills/kotlin-code-authoring/SKILL.md",
+      "bytes": 2898,
+      "tokens": 567,
+      "sha256": "311c65cb1c7f75bc6745c21808b54e8471603b6d6b4feac4de5a5705f9f688d4",
+      "body_tokens": 502,
+      "frontmatter_tokens": 66,
+      "discovery_tokens": 64,
+      "description_tokens": 55,
+      "description_chars": 285,
+      "lines": 39
+    },
+    {
+      "id": "kotlin-spring-review",
+      "path": "skills/kotlin-spring-review/SKILL.md",
+      "bytes": 6044,
+      "tokens": 1413,
+      "sha256": "64ed942a4de5e6c8f36865360d50d8d017a897b7b5c5dbcf5d7baee2fed82a28",
+      "body_tokens": 1318,
+      "frontmatter_tokens": 96,
+      "discovery_tokens": 84,
+      "description_tokens": 75,
+      "description_chars": 396,
+      "lines": 87
+    },
+    {
+      "id": "kotlin-spring-review-workflow",
+      "path": "skills/kotlin-spring-review-workflow/SKILL.md",
+      "bytes": 5631,
+      "tokens": 1135,
+      "sha256": "6549d7ca8cb3819872133de7e814de29825484655f2b28238586ca374131d227",
+      "body_tokens": 1043,
+      "frontmatter_tokens": 93,
+      "discovery_tokens": 82,
+      "description_tokens": 71,
+      "description_chars": 377,
+      "lines": 119
+    },
+    {
+      "id": "learn",
+      "path": "skills/learn/SKILL.md",
+      "bytes": 3655,
+      "tokens": 904,
+      "sha256": "439f3b0120b61b7b3dfbd1f65d2577087635d991187dbff44a925f8632a59f96",
+      "body_tokens": 822,
+      "frontmatter_tokens": 83,
+      "discovery_tokens": 81,
+      "description_tokens": 75,
+      "description_chars": 389,
+      "lines": 74
+    },
+    {
+      "id": "mapper",
+      "path": "skills/mapper/SKILL.md",
+      "bytes": 3204,
+      "tokens": 737,
+      "sha256": "b9214bd9e51711632c3e2270a8bc2948aee812c921b805f154bda51fbe3d94e4",
+      "body_tokens": 686,
+      "frontmatter_tokens": 52,
+      "discovery_tokens": 50,
+      "description_tokens": 45,
+      "description_chars": 209,
+      "lines": 61
+    },
+    {
+      "id": "markdown-publisher",
+      "path": "skills/markdown-publisher/SKILL.md",
+      "bytes": 2465,
+      "tokens": 613,
+      "sha256": "0757e1904b0fa56a6b5eb39cfc3bd37afe99e34a84073b05a979843857188d72",
+      "body_tokens": 507,
+      "frontmatter_tokens": 107,
+      "discovery_tokens": 105,
+      "description_tokens": 97,
+      "description_chars": 219,
+      "lines": 38
+    },
+    {
+      "id": "mermaid-diagrams",
+      "path": "skills/mermaid-diagrams/SKILL.md",
+      "bytes": 3095,
+      "tokens": 633,
+      "sha256": "6447052bbdf68b255834d0de5788d2b4bb6d13054f476e1586e359e33e1a7b43",
+      "body_tokens": 540,
+      "frontmatter_tokens": 94,
+      "discovery_tokens": 92,
+      "description_tokens": 83,
+      "description_chars": 438,
+      "lines": 39
+    },
+    {
+      "id": "mssql-code-authoring",
+      "path": "skills/mssql-code-authoring/SKILL.md",
+      "bytes": 6097,
+      "tokens": 1287,
+      "sha256": "4dddbae0f128bfb42d456bccb2df6b6e0a66cd1e9dc4daabb6886e7a631a0a89",
+      "body_tokens": 1165,
+      "frontmatter_tokens": 123,
+      "discovery_tokens": 121,
+      "description_tokens": 111,
+      "description_chars": 552,
+      "lines": 92
+    },
+    {
+      "id": "nl-sql-query",
+      "path": "skills/nl-sql-query/SKILL.md",
+      "bytes": 6919,
+      "tokens": 1779,
+      "sha256": "d8882cf6c21dc39356597866e30c867426a69aae6dd1a7fb0834244895b79cc1",
+      "body_tokens": 1708,
+      "frontmatter_tokens": 72,
+      "discovery_tokens": 70,
+      "description_tokens": 61,
+      "description_chars": 276,
+      "lines": 89
+    },
+    {
+      "id": "notion-domain-context",
+      "path": "skills/notion-domain-context/SKILL.md",
+      "bytes": 8525,
+      "tokens": 1911,
+      "sha256": "92947edda8e767dd15f469dd450f21ec978831f123233e12fee33071158182d4",
+      "body_tokens": 1768,
+      "frontmatter_tokens": 144,
+      "discovery_tokens": 130,
+      "description_tokens": 122,
+      "description_chars": 629,
+      "lines": 161
+    },
+    {
+      "id": "oop-design-review",
+      "path": "skills/oop-design-review/SKILL.md",
+      "bytes": 3582,
+      "tokens": 800,
+      "sha256": "2aed50677fc7ed87f3bb3a9368dfb8a5425905394c91c9c667f96d29d36eee27",
+      "body_tokens": 676,
+      "frontmatter_tokens": 125,
+      "discovery_tokens": 112,
+      "description_tokens": 105,
+      "description_chars": 538,
+      "lines": 62
+    },
+    {
+      "id": "opensearch-code-authoring",
+      "path": "skills/opensearch-code-authoring/SKILL.md",
+      "bytes": 2192,
+      "tokens": 425,
+      "sha256": "27bd6f41edb7cab8af3e73efbdf2f444135a2c6c750da0ea1943ca45024dc83b",
+      "body_tokens": 337,
+      "frontmatter_tokens": 89,
+      "discovery_tokens": 87,
+      "description_tokens": 76,
+      "description_chars": 371,
+      "lines": 22
+    },
+    {
+      "id": "opensearch-optimization",
+      "path": "skills/opensearch-optimization/SKILL.md",
+      "bytes": 2736,
+      "tokens": 720,
+      "sha256": "15e66dfa04ab56c20368a9b039b7539d125cee6718dd2ea151cb6e1df9b359f5",
+      "body_tokens": 590,
+      "frontmatter_tokens": 131,
+      "discovery_tokens": 121,
+      "description_tokens": 111,
+      "description_chars": 426,
+      "lines": 33
+    },
+    {
+      "id": "opensearch-query-review",
+      "path": "skills/opensearch-query-review/SKILL.md",
+      "bytes": 2522,
+      "tokens": 664,
+      "sha256": "ae1ed0c08c4081cc1fa399bc6b141738c81acad2655fe93e5ee497d91dfa3913",
+      "body_tokens": 552,
+      "frontmatter_tokens": 113,
+      "discovery_tokens": 102,
+      "description_tokens": 92,
+      "description_chars": 408,
+      "lines": 35
+    },
+    {
+      "id": "opensearch-review-workflow",
+      "path": "skills/opensearch-review-workflow/SKILL.md",
+      "bytes": 6305,
+      "tokens": 1338,
+      "sha256": "f41fd26286115567182fec0fc09ced7327e39e9e7fd1a40b766dd00b2dd1d275",
+      "body_tokens": 1270,
+      "frontmatter_tokens": 69,
+      "discovery_tokens": 60,
+      "description_tokens": 49,
+      "description_chars": 270,
+      "lines": 129
+    },
+    {
+      "id": "opensearch-schema-review",
+      "path": "skills/opensearch-schema-review/SKILL.md",
+      "bytes": 2686,
+      "tokens": 680,
+      "sha256": "df0d9e4c6d4e76dfbbacef0b379f762e72b6974668ef1ea56a639002cd0c1bab",
+      "body_tokens": 576,
+      "frontmatter_tokens": 105,
+      "discovery_tokens": 96,
+      "description_tokens": 86,
+      "description_chars": 378,
+      "lines": 34
+    },
+    {
+      "id": "pdf-qa",
+      "path": "skills/pdf-qa/SKILL.md",
+      "bytes": 2767,
+      "tokens": 612,
+      "sha256": "8ee6671d23a75931f602ab3d312ce3fccf7965edbc9033765877c910804f8e43",
+      "body_tokens": 526,
+      "frontmatter_tokens": 87,
+      "discovery_tokens": 85,
+      "description_tokens": 77,
+      "description_chars": 383,
+      "lines": 33
+    },
+    {
+      "id": "playwright-e2e",
+      "path": "skills/playwright-e2e/SKILL.md",
+      "bytes": 6855,
+      "tokens": 1509,
+      "sha256": "01f7e4d3633b650b03f10c3b40135894059a3ef796460e6901b0584d700f7963",
+      "body_tokens": 1431,
+      "frontmatter_tokens": 79,
+      "discovery_tokens": 77,
+      "description_tokens": 68,
+      "description_chars": 317,
+      "lines": 112
+    },
+    {
+      "id": "postgres-code-authoring",
+      "path": "skills/postgres-code-authoring/SKILL.md",
+      "bytes": 2171,
+      "tokens": 431,
+      "sha256": "0a74496f1edf3565d96c013172d095a6f210edcb3ab47fa421d23c8342aeeb4b",
+      "body_tokens": 352,
+      "frontmatter_tokens": 80,
+      "discovery_tokens": 78,
+      "description_tokens": 69,
+      "description_chars": 335,
+      "lines": 23
+    },
+    {
+      "id": "postgres-query-review",
+      "path": "skills/postgres-query-review/SKILL.md",
+      "bytes": 4000,
+      "tokens": 998,
+      "sha256": "833c588d9ac38e4fc153b8e545c9ff092d6fc2805f1a21103f51a9ca3c9f2060",
+      "body_tokens": 911,
+      "frontmatter_tokens": 88,
+      "discovery_tokens": 77,
+      "description_tokens": 69,
+      "description_chars": 382,
+      "lines": 62
+    },
+    {
+      "id": "postgres-review-workflow",
+      "path": "skills/postgres-review-workflow/SKILL.md",
+      "bytes": 6786,
+      "tokens": 1384,
+      "sha256": "fce02ed48961527a3db316d406ea385feee11f53fe5c34b01f0cc7bd8e10fdce",
+      "body_tokens": 1316,
+      "frontmatter_tokens": 69,
+      "discovery_tokens": 61,
+      "description_tokens": 52,
+      "description_chars": 274,
+      "lines": 136
+    },
+    {
+      "id": "postgres-risk-check",
+      "path": "skills/postgres-risk-check/SKILL.md",
+      "bytes": 4212,
+      "tokens": 1042,
+      "sha256": "89e3d0ca87d30d7297c7d32307a6b338a955baff2a39f8274ac117d3540e3170",
+      "body_tokens": 922,
+      "frontmatter_tokens": 121,
+      "discovery_tokens": 109,
+      "description_tokens": 101,
+      "description_chars": 415,
+      "lines": 77
+    },
+    {
+      "id": "postgres-schema-design",
+      "path": "skills/postgres-schema-design/SKILL.md",
+      "bytes": 4976,
+      "tokens": 1144,
+      "sha256": "a14c37ff92dc1eaec3993b3b7e656d1f7c825a26fc7e9cc7b0830742f7113e44",
+      "body_tokens": 1038,
+      "frontmatter_tokens": 107,
+      "discovery_tokens": 93,
+      "description_tokens": 85,
+      "description_chars": 432,
+      "lines": 83
+    },
+    {
+      "id": "product-requirements",
+      "path": "skills/product-requirements/SKILL.md",
+      "bytes": 6299,
+      "tokens": 1528,
+      "sha256": "d4003077e53cd989219f2414d9ba0ac137339a18341671327fd9d74d187e945f",
+      "body_tokens": 1428,
+      "frontmatter_tokens": 101,
+      "discovery_tokens": 99,
+      "description_tokens": 90,
+      "description_chars": 194,
+      "lines": 120
+    },
+    {
+      "id": "product-ui-design",
+      "path": "skills/product-ui-design/SKILL.md",
+      "bytes": 4445,
+      "tokens": 848,
+      "sha256": "1ba275fffe7e2d333efddb65e1707a36344d5978ba393f338c61a2f00e783aa5",
+      "body_tokens": 767,
+      "frontmatter_tokens": 82,
+      "discovery_tokens": 80,
+      "description_tokens": 72,
+      "description_chars": 396,
+      "lines": 77
+    },
+    {
+      "id": "refactoring-catalog",
+      "path": "skills/refactoring-catalog/SKILL.md",
+      "bytes": 3528,
+      "tokens": 795,
+      "sha256": "52804a578261e99eec0d0e99b7a0b8570977861fe20222bd6482627e2b1ea4eb",
+      "body_tokens": 666,
+      "frontmatter_tokens": 130,
+      "discovery_tokens": 115,
+      "description_tokens": 107,
+      "description_chars": 561,
+      "lines": 60
+    },
+    {
+      "id": "repository",
+      "path": "skills/repository/SKILL.md",
+      "bytes": 3596,
+      "tokens": 859,
+      "sha256": "fa3a0caea6a41331f0dd3a62bc3963b06d261706c9b88cbc5a58617a0d7819d3",
+      "body_tokens": 808,
+      "frontmatter_tokens": 52,
+      "discovery_tokens": 50,
+      "description_tokens": 45,
+      "description_chars": 222,
+      "lines": 58
+    },
+    {
+      "id": "request",
+      "path": "skills/request/SKILL.md",
+      "bytes": 1795,
+      "tokens": 458,
+      "sha256": "d7658da5fd8f3a7a25e850b32555f301bf429623afbce0e51b42b0a075a65d7d",
+      "body_tokens": 421,
+      "frontmatter_tokens": 38,
+      "discovery_tokens": 36,
+      "description_tokens": 31,
+      "description_chars": 145,
+      "lines": 41
+    },
+    {
+      "id": "response",
+      "path": "skills/response/SKILL.md",
+      "bytes": 2073,
+      "tokens": 509,
+      "sha256": "02a8b5e4409e4b17422b05b2fd53147366931e7f2b0abd8684437b7026961fe7",
+      "body_tokens": 463,
+      "frontmatter_tokens": 47,
+      "discovery_tokens": 45,
+      "description_tokens": 40,
+      "description_chars": 192,
+      "lines": 47
+    },
+    {
+      "id": "retro",
+      "path": "skills/retro/SKILL.md",
+      "bytes": 4729,
+      "tokens": 1198,
+      "sha256": "a44fc698b91a9c6d068bf914acf2f008c195ae5f4c2378bdd83d48b9148c45de",
+      "body_tokens": 1114,
+      "frontmatter_tokens": 85,
+      "discovery_tokens": 83,
+      "description_tokens": 77,
+      "description_chars": 390,
+      "lines": 102
+    },
+    {
+      "id": "schema-doc-extract",
+      "path": "skills/schema-doc-extract/SKILL.md",
+      "bytes": 10092,
+      "tokens": 2461,
+      "sha256": "b8d36239ece1e7423b9cc6e68290876eb3921d6ff36fdce6d4cc33bed7686254",
+      "body_tokens": 2392,
+      "frontmatter_tokens": 70,
+      "discovery_tokens": 68,
+      "description_tokens": 59,
+      "description_chars": 286,
+      "lines": 155
+    },
+    {
+      "id": "service",
+      "path": "skills/service/SKILL.md",
+      "bytes": 3123,
+      "tokens": 710,
+      "sha256": "cc25499a453dfc726576e85c5fb59b9b5aba4095557c0f2fe564ffa1905d5322",
+      "body_tokens": 646,
+      "frontmatter_tokens": 65,
+      "discovery_tokens": 63,
+      "description_tokens": 58,
+      "description_chars": 279,
+      "lines": 56
+    },
+    {
+      "id": "skill-updater",
+      "path": "skills/skill-updater/SKILL.md",
+      "bytes": 9149,
+      "tokens": 1973,
+      "sha256": "9d7a3544b0e0544eb95c6223cefce6d2264f20a78d82bacc853334e1e7e23cc6",
+      "body_tokens": 1942,
+      "frontmatter_tokens": 32,
+      "discovery_tokens": 30,
+      "description_tokens": 22,
+      "description_chars": 97,
+      "lines": 162
+    },
+    {
+      "id": "start-task",
+      "path": "skills/start-task/SKILL.md",
+      "bytes": 4365,
+      "tokens": 882,
+      "sha256": "de2c72580a9c7fbffdb1ff45488af421adc2ebd1132a7496ea50b0eaa5c8edbf",
+      "body_tokens": 840,
+      "frontmatter_tokens": 43,
+      "discovery_tokens": 41,
+      "description_tokens": 34,
+      "description_chars": 203,
+      "lines": 74
+    },
+    {
+      "id": "test-authoring",
+      "path": "skills/test-authoring/SKILL.md",
+      "bytes": 16063,
+      "tokens": 3302,
+      "sha256": "43a3475da33cb53a34c61c9e34b8a048646d76075c5f6de6bfc3a89359287682",
+      "body_tokens": 3264,
+      "frontmatter_tokens": 39,
+      "discovery_tokens": 37,
+      "description_tokens": 29,
+      "description_chars": 155,
+      "lines": 153
+    },
+    {
+      "id": "test-quality-refactoring-workflow",
+      "path": "skills/test-quality-refactoring-workflow/SKILL.md",
+      "bytes": 10500,
+      "tokens": 2219,
+      "sha256": "8f476fae0b0865a2931b04f4cdcf1b80fe2a9807e428c150ce0b40cae491d582",
+      "body_tokens": 2139,
+      "frontmatter_tokens": 81,
+      "discovery_tokens": 79,
+      "description_tokens": 68,
+      "description_chars": 342,
+      "lines": 161
+    },
+    {
+      "id": "test-quality-review",
+      "path": "skills/test-quality-review/SKILL.md",
+      "bytes": 8281,
+      "tokens": 1678,
+      "sha256": "d8867e45e8baaec9408d7df42731014af64e9d9cd791eeb34ea75835a730669c",
+      "body_tokens": 1611,
+      "frontmatter_tokens": 68,
+      "discovery_tokens": 66,
+      "description_tokens": 58,
+      "description_chars": 372,
+      "lines": 127
+    },
+    {
+      "id": "test-refactoring",
+      "path": "skills/test-refactoring/SKILL.md",
+      "bytes": 9719,
+      "tokens": 2102,
+      "sha256": "c5efd587febbb73543b375e3cb25431e0fc47c0f8f4442849f51c165687b774f",
+      "body_tokens": 2072,
+      "frontmatter_tokens": 31,
+      "discovery_tokens": 29,
+      "description_tokens": 21,
+      "description_chars": 113,
+      "lines": 143
+    },
+    {
+      "id": "visual-artifact-router",
+      "path": "skills/visual-artifact-router/SKILL.md",
+      "bytes": 2910,
+      "tokens": 586,
+      "sha256": "9961162d830ecfaed34f432250c4414de3c2b1847d8f77a0a956ffe20be3e741",
+      "body_tokens": 504,
+      "frontmatter_tokens": 83,
+      "discovery_tokens": 81,
+      "description_tokens": 72,
+      "description_chars": 375,
+      "lines": 53
+    },
+    {
+      "id": "vulpora-init",
+      "path": "skills/vulpora-init/SKILL.md",
+      "bytes": 2358,
+      "tokens": 465,
+      "sha256": "4ef1bd8fc25d99484384198871e5ae8eb7e77f569f14205dab906691cd228a0d",
+      "body_tokens": 400,
+      "frontmatter_tokens": 66,
+      "discovery_tokens": 64,
+      "description_tokens": 56,
+      "description_chars": 334,
+      "lines": 41
+    },
+    {
+      "id": "vulpora-installer",
+      "path": "skills/vulpora-installer/SKILL.md",
+      "bytes": 7089,
+      "tokens": 1703,
+      "sha256": "9a50c651c54f8dedf4a6b2bf41639dd08653273e8ed2560520c5ebe74fea1ed8",
+      "body_tokens": 1585,
+      "frontmatter_tokens": 119,
+      "discovery_tokens": 108,
+      "description_tokens": 99,
+      "description_chars": 468,
+      "lines": 130
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "test-authoring-junit",
+      "task": "Write a pure Kotlin/JUnit unit test with real deterministic collaborators; no mocks, coroutine, JPA, or production edit.",
+      "files": [
+        {
+          "path": "skills/test-authoring/SKILL.md",
+          "bytes": 16063,
+          "tokens": 3302,
+          "sha256": "43a3475da33cb53a34c61c9e34b8a048646d76075c5f6de6bfc3a89359287682"
+        },
+        {
+          "path": "skills/test-authoring/reference/principles.md",
+          "bytes": 15443,
+          "tokens": 4201,
+          "sha256": "1232a44249943716fcff4eff9f5e6944a52f04dc3dfac3a405735cb7ca714c6d"
+        },
+        {
+          "path": "skills/test-authoring/reference/kb/INDEX.md",
+          "bytes": 5168,
+          "tokens": 1440,
+          "sha256": "fae7cd677fc8e07dbf09c395942280c73e0f441b6b75024042a30d9002a31173"
+        },
+        {
+          "path": "skills/test-authoring/reference/kb/junit5-idioms.md",
+          "bytes": 3281,
+          "tokens": 704,
+          "sha256": "d3d3626ddf33c81a029f223ea19e4ee4307ad145aeb290ab906b2c8a64624853"
+        }
+      ],
+      "tokens": 9647
+    },
+    {
+      "id": "test-authoring-jpa",
+      "task": "Write a narrow Kotlin/JUnit JPA repository round-trip test with the existing DB slice.",
+      "files": [
+        {
+          "path": "skills/test-authoring/SKILL.md",
+          "bytes": 16063,
+          "tokens": 3302,
+          "sha256": "43a3475da33cb53a34c61c9e34b8a048646d76075c5f6de6bfc3a89359287682"
+        },
+        {
+          "path": "skills/test-authoring/reference/principles.md",
+          "bytes": 15443,
+          "tokens": 4201,
+          "sha256": "1232a44249943716fcff4eff9f5e6944a52f04dc3dfac3a405735cb7ca714c6d"
+        },
+        {
+          "path": "skills/test-authoring/reference/kb/INDEX.md",
+          "bytes": 5168,
+          "tokens": 1440,
+          "sha256": "fae7cd677fc8e07dbf09c395942280c73e0f441b6b75024042a30d9002a31173"
+        },
+        {
+          "path": "skills/test-authoring/reference/kb/junit5-idioms.md",
+          "bytes": 3281,
+          "tokens": 704,
+          "sha256": "d3d3626ddf33c81a029f223ea19e4ee4307ad145aeb290ab906b2c8a64624853"
+        },
+        {
+          "path": "skills/test-authoring/reference/kb/jpa-persistence-testing.md",
+          "bytes": 3284,
+          "tokens": 704,
+          "sha256": "0a772b28afe14b6dc8863afc65e7ea2f31fb9873aa449e15ab7b77f565869c93"
+        }
+      ],
+      "tokens": 10351
+    },
+    {
+      "id": "test-authoring-agentic-change",
+      "task": "Modify production and Kotlin/JUnit tests together; include independent oracle and negative-proof guidance.",
+      "files": [
+        {
+          "path": "skills/test-authoring/SKILL.md",
+          "bytes": 16063,
+          "tokens": 3302,
+          "sha256": "43a3475da33cb53a34c61c9e34b8a048646d76075c5f6de6bfc3a89359287682"
+        },
+        {
+          "path": "skills/test-authoring/reference/principles.md",
+          "bytes": 15443,
+          "tokens": 4201,
+          "sha256": "1232a44249943716fcff4eff9f5e6944a52f04dc3dfac3a405735cb7ca714c6d"
+        },
+        {
+          "path": "skills/test-authoring/reference/kb/INDEX.md",
+          "bytes": 5168,
+          "tokens": 1440,
+          "sha256": "fae7cd677fc8e07dbf09c395942280c73e0f441b6b75024042a30d9002a31173"
+        },
+        {
+          "path": "skills/test-authoring/reference/kb/junit5-idioms.md",
+          "bytes": 3281,
+          "tokens": 704,
+          "sha256": "d3d3626ddf33c81a029f223ea19e4ee4307ad145aeb290ab906b2c8a64624853"
+        },
+        {
+          "path": "skills/test-authoring/reference/kb/agentic-coding-safety-net.md",
+          "bytes": 8817,
+          "tokens": 1967,
+          "sha256": "55ea684f1adc160bcb91fce9caddeb6c6c68066e533d4c5df3bdcb110fb816aa"
+        }
+      ],
+      "tokens": 11614
+    },
+    {
+      "id": "schema-doc-standard",
+      "task": "Extract a schema ERD and per-schema table specifications using the output-layout contract; no worked-example consultation.",
+      "files": [
+        {
+          "path": "skills/schema-doc-extract/SKILL.md",
+          "bytes": 10092,
+          "tokens": 2461,
+          "sha256": "b8d36239ece1e7423b9cc6e68290876eb3921d6ff36fdce6d4cc33bed7686254"
+        },
+        {
+          "path": "skills/schema-doc-extract/reference/kb/output-layout.md",
+          "bytes": 5127,
+          "tokens": 1547,
+          "sha256": "61504944dda178959e841b4b9f74d87f85f5c87885eed618a05c241f138074e2"
+        }
+      ],
+      "tokens": 4008
+    },
+    {
+      "id": "schema-doc-with-examples",
+      "task": "Extract schema documents and consult the worked output examples.",
+      "files": [
+        {
+          "path": "skills/schema-doc-extract/SKILL.md",
+          "bytes": 10092,
+          "tokens": 2461,
+          "sha256": "b8d36239ece1e7423b9cc6e68290876eb3921d6ff36fdce6d4cc33bed7686254"
+        },
+        {
+          "path": "skills/schema-doc-extract/reference/kb/output-layout.md",
+          "bytes": 5127,
+          "tokens": 1547,
+          "sha256": "61504944dda178959e841b4b9f74d87f85f5c87885eed618a05c241f138074e2"
+        }
+      ],
+      "tokens": 4008
+    },
+    {
+      "id": "e2e-author-spring",
+      "task": "Generate a Spring HTTP scenario catalog using the source-discovery topic and bundled version-1 contract; no worked examples.",
+      "files": [
+        {
+          "path": "skills/e2e-scenario-author/SKILL.md",
+          "bytes": 19450,
+          "tokens": 4877,
+          "sha256": "854fc1e0e1f46105f93b62e49200084b23b11212f95f587d35a8c679eff26303"
+        },
+        {
+          "path": "skills/e2e-scenario-author/reference/principles.md",
+          "bytes": 9559,
+          "tokens": 2853,
+          "sha256": "61c450c7339b5ad3239451da86f3c00deadc90d04cf009abd6dbc728bade5cd9"
+        },
+        {
+          "path": "skills/e2e-scenario-author/reference/kb/INDEX.md",
+          "bytes": 2999,
+          "tokens": 971,
+          "sha256": "b861477f5907c3580db31b179df18246c8ad83590ad820ccaa69b713971fdb25"
+        },
+        {
+          "path": "skills/e2e-scenario-author/reference/kb/api-surface-discovery.md",
+          "bytes": 7897,
+          "tokens": 2295,
+          "sha256": "3ec6b0c818c58dcb249a2eac2f3aee4fe9dd0c709d6b554b948c23c28002ea57"
+        },
+        {
+          "path": "skills/e2e-scenario-author/reference/e2e-scenario-contract.md",
+          "bytes": 6300,
+          "tokens": 1514,
+          "sha256": "d4200c9db30b5bd071c4708ee968a51ac11b8b64e914c842e0c07f869bf788cc"
+        }
+      ],
+      "tokens": 12510
+    },
+    {
+      "id": "e2e-render-single",
+      "task": "Render one settled run using the HTML template and version-1 report/masking contract.",
+      "files": [
+        {
+          "path": "skills/e2e-report-renderer/SKILL.md",
+          "bytes": 14901,
+          "tokens": 3836,
+          "sha256": "22905599678b4c16f26cf2ddec2d95181535373153fc46bdcc92871d4081f5fe"
+        },
+        {
+          "path": "skills/e2e-report-renderer/reference/principles.md",
+          "bytes": 7556,
+          "tokens": 2232,
+          "sha256": "383927aaac4b3eb26ee88f08d88b8d69f5d18ba861e5e476a138e97368ab337f"
+        },
+        {
+          "path": "skills/e2e-report-renderer/reference/kb/INDEX.md",
+          "bytes": 3167,
+          "tokens": 971,
+          "sha256": "cb01b096cf9a98220f49fd1a743012ce5e6a3338653ead4942ce8a9dfdc6c644"
+        },
+        {
+          "path": "skills/e2e-report-renderer/fixtures/template.html",
+          "bytes": 14106,
+          "tokens": 4342,
+          "sha256": "fc070808ba3cfbe888685c98536cc714780464cd446c3d2e24bd3a6e6ccdcde6"
+        },
+        {
+          "path": "skills/e2e-scenario-author/reference/e2e-scenario-contract.md",
+          "bytes": 6300,
+          "tokens": 1514,
+          "sha256": "d4200c9db30b5bd071c4708ee968a51ac11b8b64e914c842e0c07f869bf788cc"
+        }
+      ],
+      "tokens": 12895
+    },
+    {
+      "id": "e2e-render-trend",
+      "task": "Render a trend including cross-catalog handling and the formal flaky definition.",
+      "files": [
+        {
+          "path": "skills/e2e-report-renderer/SKILL.md",
+          "bytes": 14901,
+          "tokens": 3836,
+          "sha256": "22905599678b4c16f26cf2ddec2d95181535373153fc46bdcc92871d4081f5fe"
+        },
+        {
+          "path": "skills/e2e-report-renderer/reference/principles.md",
+          "bytes": 7556,
+          "tokens": 2232,
+          "sha256": "383927aaac4b3eb26ee88f08d88b8d69f5d18ba861e5e476a138e97368ab337f"
+        },
+        {
+          "path": "skills/e2e-report-renderer/reference/kb/INDEX.md",
+          "bytes": 3167,
+          "tokens": 971,
+          "sha256": "cb01b096cf9a98220f49fd1a743012ce5e6a3338653ead4942ce8a9dfdc6c644"
+        },
+        {
+          "path": "skills/e2e-report-renderer/fixtures/template.html",
+          "bytes": 14106,
+          "tokens": 4342,
+          "sha256": "fc070808ba3cfbe888685c98536cc714780464cd446c3d2e24bd3a6e6ccdcde6"
+        },
+        {
+          "path": "skills/e2e-scenario-author/reference/e2e-scenario-contract.md",
+          "bytes": 6300,
+          "tokens": 1514,
+          "sha256": "d4200c9db30b5bd071c4708ee968a51ac11b8b64e914c842e0c07f869bf788cc"
+        }
+      ],
+      "tokens": 12895
+    },
+    {
+      "id": "e2e-runner-owned-suite",
+      "task": "Run an existing Spring Testcontainers integration suite; load the complete ownership/cleanup/verdict contract and environment topic.",
+      "files": [
+        {
+          "path": "skills/e2e-runner/SKILL.md",
+          "bytes": 6112,
+          "tokens": 1341,
+          "sha256": "261263e320aba171266510b71d323f5b8bc8ffb04e3d0193f560b4143296dda2"
+        },
+        {
+          "path": "skills/e2e-runner/reference/principles.md",
+          "bytes": 8659,
+          "tokens": 2422,
+          "sha256": "494a743e420577b932ba071c1b3d1adc8f0c419de74cd564a9f9146b1514ce29"
+        },
+        {
+          "path": "skills/e2e-runner/reference/kb/INDEX.md",
+          "bytes": 4111,
+          "tokens": 1196,
+          "sha256": "6a413a05250525ad43051824eb93f56a21fd28d4e2bc8e93c6630016cc45bcdc"
+        },
+        {
+          "path": "skills/e2e-runner/reference/kb/operating-contract.md",
+          "bytes": 36731,
+          "tokens": 8777,
+          "sha256": "6225019d8837d3ca4edbe57971fa0436bdcaacd5b7846f517b8846152d82993f"
+        },
+        {
+          "path": "skills/e2e-runner/reference/kb/test-environment-and-data.md",
+          "bytes": 3690,
+          "tokens": 757,
+          "sha256": "c9ce2c07a6c42c96b9bf0d95e9e9ebd288fae52c1a69a3a758b038694c7953bd"
+        }
+      ],
+      "tokens": 14493
+    },
+    {
+      "id": "git-flow-branch-only",
+      "task": "Prepare a clean task branch from an explicit target or develop, then return to implementation without publishing.",
+      "files": [
+        {
+          "path": "skills/git-flow/SKILL.md",
+          "bytes": 2256,
+          "tokens": 484,
+          "sha256": "2f04c78afece239bfd0a6d4888899d4236eafc3bdaebabb8ec4b9b3ba9250c3b"
+        },
+        {
+          "path": "skills/git-flow/reference/principles.md",
+          "bytes": 5257,
+          "tokens": 1459,
+          "sha256": "bc9f43b72834f403ae144a7d3511b97521029f6a1f6b755d1747d7f79c4e1e4c"
+        },
+        {
+          "path": "skills/git-flow/reference/kb/INDEX.md",
+          "bytes": 1877,
+          "tokens": 563,
+          "sha256": "8e2280354ea1df5f91b286af5b57507569e1e1deb5b9715a1a95456af0058873"
+        },
+        {
+          "path": "skills/git-flow/reference/kb/operating-contract.md",
+          "bytes": 27938,
+          "tokens": 7512,
+          "sha256": "c00e4dfa41623f7a7c50eafe851f1de466a8c0a6a3a4ce1e8f5f261f15fb2224"
+        },
+        {
+          "path": "skills/git-flow/reference/kb/branching-model.md",
+          "bytes": 3078,
+          "tokens": 839,
+          "sha256": "285d207271e9aba6a6d36c921eff5e4cfd5d2610f6b7be868cfc764cce081ade"
+        }
+      ],
+      "tokens": 10857
+    },
+    {
+      "id": "git-flow-publication",
+      "task": "Land existing branch changes through the full GitLab commit/push/MR contract; transport-specific external evidence is excluded on both sides.",
+      "files": [
+        {
+          "path": "skills/git-flow/SKILL.md",
+          "bytes": 2256,
+          "tokens": 484,
+          "sha256": "2f04c78afece239bfd0a6d4888899d4236eafc3bdaebabb8ec4b9b3ba9250c3b"
+        },
+        {
+          "path": "skills/git-flow/reference/principles.md",
+          "bytes": 5257,
+          "tokens": 1459,
+          "sha256": "bc9f43b72834f403ae144a7d3511b97521029f6a1f6b755d1747d7f79c4e1e4c"
+        },
+        {
+          "path": "skills/git-flow/reference/kb/INDEX.md",
+          "bytes": 1877,
+          "tokens": 563,
+          "sha256": "8e2280354ea1df5f91b286af5b57507569e1e1deb5b9715a1a95456af0058873"
+        },
+        {
+          "path": "skills/git-flow/reference/kb/operating-contract.md",
+          "bytes": 27938,
+          "tokens": 7512,
+          "sha256": "c00e4dfa41623f7a7c50eafe851f1de466a8c0a6a3a4ce1e8f5f261f15fb2224"
+        }
+      ],
+      "tokens": 10018
+    }
+  ],
+  "baseline_notes": "Measured pre-optimization source after normalizing the public project identifiers. Source bytes/hashes reflect that normalization. The original development snapshot is privately archived; the public repository includes these measured records, not its private Git history."
+}

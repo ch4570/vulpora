@@ -1,0 +1,4 @@
+interface:
+  display_name: "Architecture Review Workflow"
+  short_description: "Review service and module boundaries deeply"
+  default_prompt: "Use $architecture-review-workflow to assess these architecture and module boundaries."

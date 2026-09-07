@@ -1,0 +1,10 @@
+{
+  "schema": "vulpora.routing-attempt-outcome/v1",
+  "failure_class": "transient_effect_none",
+  "mutation_state": "effect_none",
+  "bounds": {},
+  "budget": {},
+  "failover": {},
+  "verifier": {},
+  "provider_model_id": "must-not-be-accepted"
+}

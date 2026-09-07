@@ -1,0 +1,4 @@
+interface:
+  display_name: "PDF QA"
+  short_description: "PDF 전체 페이지를 렌더링하고 시각 결함을 검증합니다"
+  default_prompt: "Use $pdf-qa to render every PDF page and gate delivery on recorded visual inspection."

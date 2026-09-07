@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "contractVersion": 1,
+  "runId": "run-42",
+  "startedAt": "2026-08-28T00:00:00Z",
+  "finishedAt": "2026-08-28T00:00:01Z",
+  "environment": {},
+  "catalog": {"sha": "abc123", "stale": false},
+  "scope": {},
+  "summary": {"total": 0, "pass": 0, "fail": 0, "skipped": 0, "failedDependency": 0, "probeError": 0},
+  "results": []
+}

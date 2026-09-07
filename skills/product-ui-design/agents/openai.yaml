@@ -1,0 +1,4 @@
+interface:
+  display_name: "Product UI Design"
+  short_description: "Design product-specific UI without template aesthetics"
+  default_prompt: "Use $product-ui-design to design or improve this interface from its product context, then render and inspect the result."

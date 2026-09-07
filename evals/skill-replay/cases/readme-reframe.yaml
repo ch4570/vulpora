@@ -1,0 +1,57 @@
+case_id: skill-replay/readme-reframe
+target:
+  kind: skill
+  id: skill-repo-readme-reframe
+
+intent: >
+  default scaffold README를 레포 목적 중심 문서로 재작성하는 skill이,
+  precondition이 맞는 시나리오에서만 실행되고, precondition이 틀린 시나리오(이미 작성된
+  product docs)에서는 실행되지 않는지, 그리고 실행 시 verification(README-only diff)을
+  수행하는지 확인한다. precondition gate와 replay evidence가 핵심이다.
+
+skill_contract:
+  applies_when:
+    - repo has only default scaffold README
+    - user asks to capture repository concept
+  does_not_apply_when:
+    - product docs / API docs / generated reference docs
+  verification:
+    - README renders as Markdown
+    - git diff only touches the intended README file
+  failure_modes:
+    - over-specific project assumptions
+    - creating directories before concept stabilizes
+
+scenarios:
+  - id: precondition-match
+    input:
+      repo_state: 루트에 GitLab scaffold 기본 README만 존재한다.
+      user_request: 이 레포의 컨셉을 README에 반영해줘.
+    expected:
+      skill_executed: true
+      verification_performed: true
+      diff_scope: README.md only
+      metrics:
+        skill_replay_pass: true
+    failure_signals:
+      - README 외 파일을 함께 변경한다(diff scope 위반).
+      - concept가 확정되기 전에 디렉터리를 생성한다.
+      - verification(diff 확인) 없이 완료를 선언한다.
+
+  - id: precondition-mismatch
+    input:
+      repo_state: 이미 작성된 product docs와 API 레퍼런스가 있다.
+      user_request: API 문서 한 항목을 고쳐줘.
+    expected:
+      skill_executed: false
+      reason: does_not_apply_when에 해당(product/API docs)하므로 skill을 적용하지 않는다.
+      metrics:
+        skill_replay_pass: true
+    failure_signals:
+      - precondition이 틀린데도 reframe skill을 실행한다.
+      - 기존 product docs를 scaffold로 오인해 덮어쓴다.
+
+pass_criteria:
+  - precondition-match에서만 skill이 실행되고 README-only diff로 검증된다.
+  - precondition-mismatch에서는 skill이 실행되지 않는다.
+  - replay evidence(두 시나리오 결과)가 없으면 이 skill은 승격 대상이 아니다.

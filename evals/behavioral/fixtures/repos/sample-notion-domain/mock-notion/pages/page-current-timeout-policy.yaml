@@ -1,0 +1,14 @@
+schema: synthetic.notion-fetch-result.v1
+status: success
+retrieved_at: 2026-07-14T01:02:00Z
+page:
+  page_id: page-current-timeout-policy
+  title: Current client timeout policy
+  url: https://notion.example.test/page/current-timeout-policy
+  section_locator: Runtime policy / Client timeout
+  document_status: approved
+  owner: Platform Engineering
+  last_edited_time: 2026-07-12T02:00:00Z
+  content: |
+    Client requests time out after 5 seconds. The previous 30-second setting
+    was superseded when the current tests and configuration were released.

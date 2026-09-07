@@ -1,0 +1,23 @@
+# Built-in capability packs — curated root selectors over manifest.txt.
+#
+# Format (pipe-delimited, one pack per line):
+#   id | label | description | root selectors
+#
+# Selectors must use an explicit kind (`skill:<id>` or `agent:<id>`). Their
+# transitive dependencies are resolved from manifest.txt; packs cannot include
+# other packs. Packs are convenience entry points, not separate copies of assets.
+
+core | Core routing | Minimal repository discovery and evidence-based implementation routing | skill:vulpora-init skill:code-authoring-router
+product | Product planning and design | Evidence-based product planning, UX design, and independent design review | agent:product-planner agent:ux-designer agent:design-reviewer
+orchestration | Task orchestration | Requirements dialogue, task splitting, and bounded multi-agent execution | skill:start-task
+jvm-spring | JVM and Spring | Kotlin and Java authoring, review, and test guidance for JVM/Spring repositories | skill:kotlin-code-authoring skill:kotlin-spring-review-workflow skill:java-spring-review-workflow skill:test-authoring
+jvm-spring-postgres-opinionated | Opinionated JVM/Postgres layers | Optional JPA, layered Spring, and PostgreSQL Flyway house patterns; review before adopting | skill:entity skill:enum skill:mapper skill:repository skill:request skill:response skill:service skill:flyway
+postgres | PostgreSQL | PostgreSQL query, schema, migration, risk, and DBA review capabilities | skill:postgres-code-authoring skill:postgres-review-workflow
+mssql | SQL Server | Version-aware T-SQL and SQL Server migration authoring | skill:mssql-code-authoring
+opensearch | OpenSearch | OpenSearch query, mapping, performance, migration, and review capabilities | skill:opensearch-code-authoring skill:opensearch-review-workflow
+jvm-quality | JVM code quality | Architecture, Kotlin/Spring backend review, security, and evidence-safe JVM test refactoring | skill:architecture-review-workflow skill:backend-code-review-workflow skill:test-quality-refactoring-workflow
+qa-e2e | QA and E2E | Scenario design, isolated E2E execution, browser testing, and reports | agent:qa-test-designer skill:e2e-test-workflow
+visual | Product and visual docs | Runtime-neutral UI design, diagrams, documents, rendering, and visual QA | skill:product-ui-design skill:visual-artifact-router
+product-discovery-ko | Korean product discovery | Korean requirements dialogue and structured product requirement artifacts | skill:product-requirements
+knowledge | Knowledge lifecycle | Evaluate, audit, learn from, and safely update reusable agent knowledge | skill:agent-eval skill:knowledge-audit skill:learn skill:skill-updater
+notion | Notion context | Read-only, provenance-aware Notion domain research; MCP setup remains explicit | skill:notion-domain-context

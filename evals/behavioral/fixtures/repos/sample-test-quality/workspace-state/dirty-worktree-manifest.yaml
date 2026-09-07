@@ -1,0 +1,46 @@
+schema: vulpora.test-quality-workspace-baseline/v1
+head: sample-head-immutable
+index_tree: sample-index-immutable
+staged_patch_hash: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+unstaged_patch_hash: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+user_entries:
+  - path: src/test/kotlin/samplequality/SessionRefresherReflectionSpec.kt
+    byte_hash: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    mode: "100644"
+    entry_type: regular
+    state: present
+  - path: src/test/kotlin/samplequality/DistinctSamplerSpec.kt
+    byte_hash: dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+    mode: "100644"
+    entry_type: regular
+    state: present
+  - path: src/test/resources/samplequality/user-scenarios.json
+    byte_hash: eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+    mode: "100644"
+    entry_type: regular
+    state: present
+  - path: src/test/kotlin/samplequality/RenamedBoundarySpec.kt
+    rename_from: src/test/kotlin/samplequality/OldBoundarySpec.kt
+    byte_hash: ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+    mode: "100644"
+    entry_type: regular
+    state: renamed
+  - path: src/test/resources/samplequality/payload.bin
+    byte_hash: "1111111111111111111111111111111111111111111111111111111111111111"
+    mode: "100644"
+    entry_type: binary
+    state: present
+  - path: scripts/local-test-helper
+    byte_hash: "2222222222222222222222222222222222222222222222222222222222222222"
+    mode: "100755"
+    entry_type: regular
+    state: mode_changed
+  - path: vendor/test-harness
+    byte_hash: "3333333333333333333333333333333333333333333333333333333333333333"
+    mode: "160000"
+    entry_type: submodule
+    state: present
+prior_artifacts:
+  - path: build/test-results/test/TEST-Previous.xml
+    byte_hash: "4444444444444444444444444444444444444444444444444444444444444444"
+    mtime: "2026-09-03T00:00:00.000Z"

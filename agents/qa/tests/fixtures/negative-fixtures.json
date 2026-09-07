@@ -1,0 +1,86 @@
+[
+  {
+    "name": "duplicate case ID",
+    "error": "QAP-DUPLICATE-ID",
+    "operation": "duplicateCase"
+  },
+  {
+    "name": "missing requirement traceability",
+    "error": "QAP-TRACE-REQUIREMENT",
+    "operation": "delete",
+    "path": ["testCases", 0, "requirementIds"]
+  },
+  {
+    "name": "missing risk traceability",
+    "error": "QAP-TRACE-RISK",
+    "operation": "delete",
+    "path": ["testCases", 0, "riskIds"]
+  },
+  {
+    "name": "ungrounded P0 case",
+    "error": "QAP-P0-UNGROUNDED",
+    "operation": "set",
+    "path": ["testCases", 0, "grounding"],
+    "value": []
+  },
+  {
+    "name": "uncovered P0 source",
+    "error": "QAP-P0-UNCOVERED",
+    "operation": "set",
+    "path": ["testCases", 0, "priority"],
+    "value": "P1"
+  },
+  {
+    "name": "PII-shaped fixture data",
+    "error": "QAP-PII",
+    "operation": "set",
+    "path": ["testCases", 0, "input", "values", "customerEmail"],
+    "value": "real.person@example.com"
+  },
+  {
+    "name": "non-synthetic data",
+    "error": "QAP-NON-SYNTHETIC",
+    "operation": "set",
+    "path": ["testCases", 0, "input", "classification"],
+    "value": "production-copy"
+  },
+  {
+    "name": "missing seed lifecycle",
+    "error": "QAP-LIFECYCLE-SEED",
+    "operation": "delete",
+    "path": ["handoffs", 0, "seed"]
+  },
+  {
+    "name": "missing cleanup lifecycle",
+    "error": "QAP-LIFECYCLE-CLEANUP",
+    "operation": "delete",
+    "path": ["handoffs", 0, "cleanup"]
+  },
+  {
+    "name": "missing absence probe lifecycle",
+    "error": "QAP-LIFECYCLE-ABSENCE-PROBE",
+    "operation": "delete",
+    "path": ["handoffs", 0, "absenceProbe"]
+  },
+  {
+    "name": "E2E case without execution handoff",
+    "error": "QAP-HANDOFF-MISSING",
+    "operation": "set",
+    "path": ["handoffs"],
+    "value": []
+  },
+  {
+    "name": "P0 handoff priority downgrade",
+    "error": "QAP-HANDOFF-PRIORITY",
+    "operation": "set",
+    "path": ["handoffs", 0, "priority"],
+    "value": "P1"
+  },
+  {
+    "name": "duplicate case in execution handoff",
+    "error": "QAP-DUPLICATE-ID",
+    "operation": "set",
+    "path": ["handoffs", 0, "testCaseIds"],
+    "value": ["TC-ORDER-001", "TC-ORDER-001"]
+  }
+]

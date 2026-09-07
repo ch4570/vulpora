@@ -1,0 +1,133 @@
+# Vulpora 설치 매니페스트 — 설치 가능한 자산의 단일 출처(SSOT)
+#
+# ⚠️ 에이전트나 스킬을 새로 추가하면 이 파일도 반드시 갱신해야 한다.
+#    install.sh 는 이 매니페스트만 읽는다. 여기에 등록되지 않은 자산은 설치할 수 없다.
+#    (갱신 절차는 ../README.md 의 "설치 패키징" 섹션 참고)
+#
+# 형식(파이프 `|` 구분, 줄당 한 자산):
+#   kind | id | def_path | bundle | dependencies | dest
+#     kind    : agent | skill | template | memory | eval
+#     id      : 설치 시 지정하는 자산 이름
+#     def_path: 레포 루트 기준 상대경로 (agent=정의 .md, skill=스킬 디렉터리,
+#               그 외=복사할 파일 또는 디렉터리)
+#     bundle  : agent의 지식 번들 디렉터리(레포 루트 기준). 없으면 `-`
+#     dependencies: 함께 설치할 agent/skill id(공백 구분). 없으면 `-`.
+#               기존 bare id는 skill로 해석하고, cross-kind 관계는 `agent:<id>` 또는
+#               `skill:<id>`로 명시한다. agent와 skill 의존성은 모두 재귀 해소한다.
+#               template/memory/eval 자산은 `template:<id>` 의존성을 재귀 해소한다.
+#     dest    : agent/skill은 `-` (런타임에서 자동 도출).
+#               template/memory/eval 은 대상 레포 루트 기준 설치 경로(필수).
+#               `{RT}` = 런타임 디렉터리(.claude/.opencode/.codex)로 치환된다.
+#               복사 규칙: def_path 를 dest 로 그대로 복사한다(dest 가 최종 이름).
+# 핵심: 에이전트는 (정의 .md) + (번들)을 한 묶음으로 설치해야 동작한다.
+#       정의 .md만 복사하면 상대경로 참조(<bundle>/reference/...)가 깨진다.
+
+# --- agents ---
+agent | postgres-dba | agents/postgres-dba.md | agents/dba | skill:postgres-code-authoring | -
+agent | kotlin-spring-reviewer | agents/kotlin-spring-reviewer.md | agents/code-review | - | -
+agent | code-refactor-agent | agents/code-refactor-agent.md | agents/refactor | - | -
+agent | opensearch-expert | agents/opensearch-expert.md | agents/opensearch | skill:opensearch-code-authoring | -
+agent | schema-cartographer | agents/schema-cartographer.md | agents/schema-doc | - | -
+agent | code-cartographer | agents/code-cartographer.md | agents/code-cartographer | - | -
+agent | agent-evaluator | agents/agent-evaluator.md | agents/agent-eval | - | -
+agent | java-reviewer | agents/java-reviewer.md | agents/java-review | - | -
+agent | architecture-reviewer | agents/architecture-reviewer.md | agents/architecture | - | -
+agent | qa-test-designer | agents/qa-test-designer.md | agents/qa | - | -
+agent | e2e-test-runner | agents/e2e-test-runner.md | agents/e2e-exec | - | -
+agent | test-runner | agents/test-runner.md | - | - | -
+agent | search-relevance-evaluator | agents/search-relevance-evaluator.md | agents/search-relevance-evaluator | - | -
+agent | nl-sql-guardian | agents/nl-sql-guardian.md | agents/nl-sql-guardian | - | -
+agent | index-migration-architect | agents/index-migration-architect.md | agents/index-migration-architect | - | -
+agent | notion-domain-researcher | agents/notion-domain-researcher.md | agents/notion-domain-researcher | - | -
+agent | application-architect | agents/application-architect.md | agents/application-architect | - | -
+agent | backend-test-author | agents/backend-test-author.md | agents/backend-test-author | skill:korean-dev-writer | -
+agent | data-modeling-reviewer | agents/data-modeling-reviewer.md | agents/data-modeling-reviewer | - | -
+agent | documentation-comment-author | agents/documentation-comment-author.md | agents/documentation-comment-author | skill:korean-dev-writer | -
+agent | domain-driven-design-reviewer | agents/domain-driven-design-reviewer.md | agents/domain-driven-design | - | -
+agent | requirement-dialogue | agents/requirement-dialogue.md | agents/requirement-dialogue | skill:korean-dev-writer | -
+agent | security-auditor | agents/security-auditor.md | agents/security-auditor | - | -
+agent | task-orchestrator | agents/task-orchestrator.md | agents/task-orchestrator | skill:code-authoring-router | -
+agent | task-splitter | agents/task-splitter.md | agents/task-splitter | - | -
+agent | product-planner | agents/product-planner.md | agents/product-planner | - | -
+agent | ux-designer | agents/ux-designer.md | agents/ux-designer | skill:product-ui-design | -
+agent | design-reviewer | agents/design-reviewer.md | agents/design-reviewer | - | -
+
+# --- skills ---
+skill | agent-eval | skills/agent-eval | - | - | -
+skill | vulpora-init | skills/vulpora-init | - | code-authoring-router | -
+skill | vulpora-installer | skills/vulpora-installer | - | - | -
+skill | architecture-review-workflow | skills/architecture-review-workflow | - | agent:architecture-reviewer agent:application-architect agent:domain-driven-design-reviewer agent:code-cartographer | -
+skill | backend-code-review-workflow | skills/backend-code-review-workflow | - | kotlin-spring-review refactoring-catalog design-pattern-apply oop-design-review agent:security-auditor | -
+skill | codex-agent-runtime | skills/codex-agent-runtime | - | - | -
+skill | code-authoring-router | skills/code-authoring-router | - | - | -
+skill | design-pattern-apply | skills/design-pattern-apply | - | - | -
+skill | diagram-styler | skills/diagram-styler | - | - | -
+skill | document-designer | skills/document-designer | - | - | -
+skill | e2e-report-renderer | skills/e2e-report-renderer | - | e2e-scenario-author | -
+skill | e2e-runner | skills/e2e-runner | - | e2e-scenario-author | -
+skill | e2e-scenario-author | skills/e2e-scenario-author | - | - | -
+skill | e2e-test-workflow | skills/e2e-test-workflow | - | e2e-scenario-author e2e-runner playwright-e2e e2e-report-renderer | -
+skill | entity | skills/entity | - | repository mapper kotlin-code-authoring | -
+skill | enum | skills/enum | - | kotlin-code-authoring | -
+skill | flyway | skills/flyway | - | entity postgres-risk-check | -
+skill | git-flow | skills/git-flow | - | - | -
+skill | harness-propose | skills/harness-propose | - | - | -
+skill | knowledge-audit | skills/knowledge-audit | - | - | -
+skill | java-spring-review-workflow | skills/java-spring-review-workflow | - | agent:java-reviewer oop-design-review design-pattern-apply | -
+skill | korean-dev-writer | skills/korean-dev-writer | - | - | -
+skill | kotlin-spring-review-workflow | skills/kotlin-spring-review-workflow | - | kotlin-spring-review oop-design-review design-pattern-apply refactoring-catalog | -
+skill | kotlin-spring-review | skills/kotlin-spring-review | - | - | -
+skill | kotlin-code-authoring | skills/kotlin-code-authoring | - | kotlin-spring-review | -
+skill | learn | skills/learn | - | retro harness-propose | -
+skill | mapper | skills/mapper | - | enum kotlin-code-authoring | -
+skill | markdown-publisher | skills/markdown-publisher | - | pdf-qa | -
+skill | mermaid-diagrams | skills/mermaid-diagrams | - | diagram-styler | -
+skill | mssql-code-authoring | skills/mssql-code-authoring | - | - | -
+skill | nl-sql-query | skills/nl-sql-query | - | - | -
+skill | notion-domain-context | skills/notion-domain-context | - | - | -
+skill | oop-design-review | skills/oop-design-review | - | - | -
+skill | opensearch-optimization | skills/opensearch-optimization | - | - | -
+skill | opensearch-code-authoring | skills/opensearch-code-authoring | - | opensearch-query-review opensearch-schema-review opensearch-optimization | -
+skill | opensearch-query-review | skills/opensearch-query-review | - | - | -
+skill | opensearch-review-workflow | skills/opensearch-review-workflow | - | opensearch-optimization opensearch-query-review opensearch-schema-review agent:opensearch-expert | -
+skill | opensearch-schema-review | skills/opensearch-schema-review | - | - | -
+skill | pdf-qa | skills/pdf-qa | - | - | -
+skill | playwright-e2e | skills/playwright-e2e | - | e2e-runner | -
+skill | postgres-query-review | skills/postgres-query-review | - | - | -
+skill | postgres-code-authoring | skills/postgres-code-authoring | - | postgres-query-review postgres-schema-design postgres-risk-check | -
+skill | postgres-review-workflow | skills/postgres-review-workflow | - | postgres-query-review postgres-risk-check postgres-schema-design agent:postgres-dba agent:data-modeling-reviewer | -
+skill | postgres-risk-check | skills/postgres-risk-check | - | - | -
+skill | postgres-schema-design | skills/postgres-schema-design | - | - | -
+skill | product-requirements | skills/product-requirements | - | korean-dev-writer | -
+skill | product-ui-design | skills/product-ui-design | - | - | -
+skill | refactoring-catalog | skills/refactoring-catalog | - | - | -
+skill | repository | skills/repository | - | service kotlin-code-authoring | -
+skill | request | skills/request | - | enum kotlin-code-authoring | -
+skill | response | skills/response | - | kotlin-code-authoring | -
+skill | retro | skills/retro | - | learn harness-propose | -
+skill | schema-doc-extract | skills/schema-doc-extract | - | - | -
+skill | code-diagram-extract | skills/code-diagram-extract | - | - | -
+skill | service | skills/service | - | mapper kotlin-code-authoring | -
+skill | skill-updater | skills/skill-updater | - | - | -
+skill | start-task | skills/start-task | - | agent:requirement-dialogue agent:task-splitter agent:task-orchestrator | -
+skill | test-authoring | skills/test-authoring | - | kotlin-code-authoring | -
+skill | test-quality-review | skills/test-quality-review | - | test-authoring | -
+skill | test-refactoring | skills/test-refactoring | - | test-authoring | -
+skill | test-quality-refactoring-workflow | skills/test-quality-refactoring-workflow | - | test-quality-review test-refactoring agent:test-runner | -
+skill | visual-artifact-router | skills/visual-artifact-router | - | document-designer markdown-publisher pdf-qa mermaid-diagrams diagram-styler | -
+
+# --- templates (실행 자산: 대상 레포에 바로 복사) ---
+# githooks 는 런타임과 무관하므로 고정 경로(.githooks)에 설치한다.
+template | githooks | templates/githooks | - | template:agent-memory-gate | .githooks
+template | commands | templates/commands | - | - | {RT}/commands
+template | agent-memory-gate | templates/scripts/agent-memory-gate.sh | - | - | scripts/agent-memory-gate.sh
+# nl-sql-mcp 는 빌드가 필요한 멀티-dialect MCP 서버(TS, postgres/mysql/mssql). 런타임 무관 고정 경로에
+# 소스를 복사하고, 대상 레포에서 `npm install && npm run build` 후 .mcp.json 으로 등록한다(mcp/nl-sql/README.md).
+template | nl-sql-mcp | mcp/nl-sql | - | - | mcp/nl-sql
+
+# --- memory (이식형 작성 계약: 정책·스키마) ---
+memory | memory-policies | memory/policies | - | - | {RT}/memory/policies
+memory | memory-schemas | memory/schemas | - | - | {RT}/memory/schemas
+
+# --- evals (동작 기준 케이스 + 러너) ---
+eval | evals | evals | - | - | evals

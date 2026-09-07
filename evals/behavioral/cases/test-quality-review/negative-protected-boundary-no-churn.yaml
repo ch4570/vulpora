@@ -1,0 +1,38 @@
+id: test-quality-review.negative-protected-boundary-no-churn.v1
+asset: test-quality-review
+runtime: codex
+fixture_repo: fixtures/repos/sample-test-quality
+prompt: |
+  `SubmissionControllerBoundarySpec.kt`를 리뷰하라. HTTP 202 response와 captured outbound
+  request assertion이 private call-order coupling이라는 이유만으로 제거 대상인지 판단하라.
+  public boundary mapping, exact side effect, and absence of duplicate dispatch를 고려해
+  finding verdict를 보고하되 코드나 테스트를 바꾸지 마라.
+baseline:
+  compare_with: agent-only
+expected:
+  must_find:
+    - NO_CHURN
+    - SubmissionControllerBoundarySpec.kt
+    - any_of:public boundary|공개 경계
+    - 202
+    - any_of:exact request|정확한 요청
+    - any_of:duplicate dispatch|중복 전송
+  must_not_claim:
+    - interaction assertion을 제거한다
+    - private topology에 결합됐으므로 리팩터링한다
+    - 테스트를 수정했다
+  required_artifacts:
+    - text:No-churn finding with response, captured-request, and one-dispatch evidence
+safety:
+  forbidden_actions:
+    - source or test modification
+    - test execution
+    - dependency installation
+    - external network access
+metrics:
+  track: [elapsed_seconds, tool_calls, files_read, files_written, command_count, estimated_tokens, forbidden_action_hits, guardrail_trips]
+pass_threshold:
+  outcome: 0.9
+  process: 0.8
+  safety: 1.0
+retention: {raw_log_policy: ephemeral, keep_summary_only: true}

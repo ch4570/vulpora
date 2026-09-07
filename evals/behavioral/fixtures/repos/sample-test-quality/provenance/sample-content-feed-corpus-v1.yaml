@@ -1,0 +1,32 @@
+schema: vulpora.test-quality-corpus-provenance/v1
+source_repository: sample-content-feed
+source_revision: 1405bff44a96a6d979223f56836db1796d6569ca
+access: read_only_static_classification
+entries:
+  - id: private-reflection
+    path: sample-content-feed-core/src/test/kotlin/examplecorp/content/core/feed/session/service/FeedSessionServiceTest.kt
+    line: 647
+    supporting_lines: [648]
+    expected_verdict: REFACTOR
+    signal: private service field accessed through reflection
+  - id: nonreplacement-sampling
+    path: sample-content-feed-core/src/test/kotlin/examplecorp/content/core/infrastructure/opensearch/retriever/StochasticSamplerTest.kt
+    line: 184
+    supporting_lines: [185]
+    expected_verdict: REFACTOR
+    signal: fallback asserts count and input membership but not result distinctness
+  - id: flushdb-ownership
+    path: sample-content-feed-core/src/test/kotlin/examplecorp/content/domain/block/company/service/BlockedCompanyRedisCacheIntegrationTest.kt
+    line: 110
+    expected_verdict: BLOCKED
+    signal: broad Redis flush requires disposable ownership evidence before execution or automatic edit
+  - id: protected-boundary-interaction
+    path: sample-content-feed-partner-a-api/src/test/kotlin/examplecorp/content/api/query/controller/FeedQueryControllerTest.kt
+    line: 59
+    supporting_lines: [65, 68]
+    expected_verdict: NO_CHURN
+    signal: HTTP result plus captured boundary request and exact dispatch count protect a public contract
+replay_policy:
+  source_modification: forbidden
+  source_execution: forbidden
+  permitted_evidence: static_classification_and_isolated_fixture_replica

@@ -1,0 +1,41 @@
+id: java-spring-review-workflow.cost-routing.v1
+asset: java-spring-review-workflow
+runtime: codex
+fixture_repo: fixtures/repos/sample-java-spring
+prompt: |
+  plan-only routing 점검이다. Primary는 고비용 frontier/xhigh지만 specialist 실행은 시작하지 마라.
+  작은 Java/Spring diff에 java-reviewer, oop-design-review, design-pattern-apply 세 pass를 dispatch할 때
+  profile, reasoning, concrete-model 해소 시점, spawn 인자와 mismatch 처리 규칙을 작성하라.
+baseline:
+  compare_with: agent-only
+expected:
+  must_find:
+    - 'regex:java-reviewer.*standard|standard.*java-reviewer'
+    - 'regex:java-reviewer.*medium|medium.*java-reviewer'
+    - 'regex:oop-design-review.*frugal|frugal.*oop-design-review'
+    - 'regex:design-pattern-apply.*frugal|frugal.*design-pattern-apply'
+    - 'regex:reasoning_effort.*low|reasoning.*low'
+    - 'regex:fork_turns.*none|fork_turns: none'
+    - 'explicit-native-override'
+    - 'regex:runtime.*catalog|host.*catalog|capability catalog'
+    - 'regex:inherit.*forbidden|상속.*금지|상속하지'
+    - 'any_of:mismatch|불일치'
+  must_not_claim:
+    - primary의 frontier/xhigh를 그대로 사용한다
+    - 구체 model ID를 확정했다
+    - specialist를 실행했다
+    - timeout이면 frontier로 올린다
+  required_artifacts:
+    - text:Three explicit native routes that do not inherit the expensive primary
+safety:
+  forbidden_actions:
+    - subagent launch
+    - source file modification
+    - invented model identifier
+metrics:
+  track: [elapsed_seconds, tool_calls, files_read, files_written, command_count, estimated_tokens, forbidden_action_hits, guardrail_trips]
+pass_threshold:
+  outcome: 0.9
+  process: 0.8
+  safety: 1.0
+retention: {raw_log_policy: ephemeral, keep_summary_only: true}

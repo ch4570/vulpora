@@ -1,0 +1,312 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vulpora.local/schemas/orchestration-report-v3.schema.json",
+  "title": "Vulpora orchestration report v3",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "workflow_contract", "run_id", "runtime_instance_id", "runtime_configuration_id", "runtime", "runtime_entrypoint", "korean_summary", "clarified_spec", "task_dag", "clarity_gate_evidence", "execution_ledger", "ownership", "phases", "children", "task_results", "routing_attempts", "verification", "integration", "cleanup", "changed_files", "conflicts", "retries", "risks", "gaps", "continuation", "terminal_status"],
+  "properties": {
+    "schema_version": {"const": "vulpora.orchestration-report/v3"},
+    "workflow_contract": {"const": "vulpora.start-task/v1"},
+    "run_id": {"type": "string", "minLength": 8, "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]+$"},
+    "runtime_instance_id": {"type": "string", "minLength": 8, "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]+$"},
+    "runtime_configuration_id": {"type": "string", "minLength": 64, "maxLength": 64, "pattern": "^[a-f0-9]{64}$"},
+    "runtime": {"enum": ["codex", "claude-code"]},
+    "runtime_entrypoint": {"enum": ["$start-task", "/skills selection", "/start-task"]},
+    "korean_summary": {"type": "string", "minLength": 10},
+    "clarified_spec": {"$ref": "#/$defs/typedArtifact"},
+    "task_dag": {"$ref": "#/$defs/typedArtifact"},
+    "clarity_gate_evidence": {"$ref": "#/$defs/clarityGateEvidence"},
+    "execution_ledger": {"$ref": "#/$defs/executionLedger"},
+    "ownership": {
+      "type": "object", "additionalProperties": false,
+      "required": ["mode", "primary_owner_count", "task_orchestrator_child_spawned"],
+      "properties": {"mode": {"const": "primary-inline"}, "primary_owner_count": {"const": 1}, "task_orchestrator_child_spawned": {"const": false}}
+    },
+    "phases": {
+      "type": "array", "minItems": 7, "maxItems": 7,
+      "prefixItems": [
+        {"$ref": "#/$defs/phaseClarify"}, {"$ref": "#/$defs/phaseApprove"}, {"$ref": "#/$defs/phaseSplit"},
+        {"$ref": "#/$defs/phaseExecute"}, {"$ref": "#/$defs/phaseIntegrate"}, {"$ref": "#/$defs/phaseVerify"},
+        {"$ref": "#/$defs/phaseTerminal"}
+      ], "items": false
+    },
+    "children": {
+      "type": "array", "minItems": 1,
+      "contains": {"allOf": [{"$ref": "#/$defs/legacyChild"}, {"properties": {"agent_id": {"const": "task-splitter"}}}]},
+      "items": {"oneOf": [{"$ref": "#/$defs/legacyChild"}, {"$ref": "#/$defs/executionChild"}]}
+    },
+    "task_results": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/taskResultV2"}},
+    "routing_attempts": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/routingAttempt"}},
+    "verification": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/commandResult"}},
+    "integration": {
+      "type": "object", "additionalProperties": false,
+      "required": ["performed_by", "candidate_diff_inspected", "result"],
+      "properties": {"performed_by": {"const": "primary-owner"}, "candidate_diff_inspected": {"type": "boolean"}, "result": {"enum": ["pass", "failed", "cancelled", "not_run"]}}
+    },
+    "cleanup": {
+      "type": "object", "additionalProperties": false,
+      "required": ["attempted", "completed", "owned_paths_removed", "owned_children_stopped", "orphan_processes", "timeout_seconds"],
+      "properties": {
+        "attempted": {"const": true}, "completed": {"type": "boolean"}, "owned_paths_removed": {"type": "boolean"},
+        "owned_children_stopped": {"type": "boolean"}, "orphan_processes": {"type": "integer", "minimum": 0},
+        "timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 30}
+      }
+    },
+    "changed_files": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "conflicts": {"type": "array", "items": {"type": "string"}},
+    "retries": {"type": "array", "items": {"type": "string"}},
+    "risks": {"type": "array", "items": {"type": "string"}},
+    "gaps": {"type": "array", "items": {"type": "string"}},
+    "continuation": {"$ref": "#/$defs/continuation"},
+    "terminal_status": {"enum": ["complete", "partial", "failed", "cancelled", "escalated"]}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "minLength": 64, "maxLength": 64, "pattern": "^[a-f0-9]{64}$"},
+    "clarityGateEvidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["projection_path", "projection_sha256"],
+      "properties": {
+        "projection_path": {"type": "string", "pattern": "^\\.vulpora/tasks/[A-Za-z0-9][A-Za-z0-9._-]+/clarity-projection\\.json$"},
+        "projection_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "executionLedger": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "record_count", "head_sha256", "integrity_level", "validator_outcome", "external_anchor"],
+      "properties": {
+        "path": {"type": "string", "pattern": "^\\.vulpora/tasks/[A-Za-z0-9][A-Za-z0-9._-]+/execution-ledger\\.jsonl$"},
+        "record_count": {"type": "integer", "minimum": 1},
+        "head_sha256": {"$ref": "#/$defs/sha256"},
+        "integrity_level": {"const": "local_tamper_evident"},
+        "validator_outcome": {"const": "pass"},
+        "external_anchor": {"type": "null"}
+      }
+    },
+    "typedArtifact": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "id", "status", "path", "sha256", "immutable"],
+      "properties": {
+        "schema": {"type": "string", "minLength": 1},
+        "id": {"type": "string", "minLength": 1},
+        "status": {"enum": ["ready", "approved", "failed", "cancelled", "not_run"]},
+        "path": {"type": "string", "minLength": 1, "pattern": "^\\.vulpora/tasks/[A-Za-z0-9][A-Za-z0-9._-]+/(clarified-spec|task-dag)\\.yaml$"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "immutable": {"const": true}
+      }
+    },
+    "phase": {"type": "object", "additionalProperties": false, "required": ["name", "outcome"], "properties": {"name": {"type": "string"}, "outcome": {"enum": ["pass", "failed", "cancelled", "not_run"]}}},
+    "phaseClarify": {"allOf": [{"$ref": "#/$defs/phase"}, {"properties": {"name": {"const": "clarify"}}}]},
+    "phaseApprove": {"allOf": [{"$ref": "#/$defs/phase"}, {"properties": {"name": {"const": "approve"}}}]},
+    "phaseSplit": {"allOf": [{"$ref": "#/$defs/phase"}, {"properties": {"name": {"const": "split"}}}]},
+    "phaseExecute": {"allOf": [{"$ref": "#/$defs/phase"}, {"properties": {"name": {"const": "execute"}}}]},
+    "phaseIntegrate": {"allOf": [{"$ref": "#/$defs/phase"}, {"properties": {"name": {"const": "integrate"}}}]},
+    "phaseVerify": {"allOf": [{"$ref": "#/$defs/phase"}, {"properties": {"name": {"const": "verify"}}}]},
+    "phaseTerminal": {"allOf": [{"$ref": "#/$defs/phase"}, {"properties": {"name": {"const": "terminal"}}}]},
+    "legacyHandoff": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "task_id", "objective", "read_scope", "write_scope", "forbidden_actions", "model_profile", "model_selection", "requested_model", "requested_reasoning_effort", "route_resolution_source", "timeout_seconds", "result_schema"],
+      "properties": {
+        "schema": {"const": "vulpora.subagent-handoff/v1"},
+        "task_id": {"type": "string", "minLength": 1},
+        "objective": {"type": "string", "minLength": 1},
+        "read_scope": {"type": "array", "items": {"type": "string"}},
+        "write_scope": {"type": "array", "items": {"type": "string"}},
+        "forbidden_actions": {"type": "array", "contains": {"const": "recursive delegation"}},
+        "model_profile": {"const": "fixed"},
+        "model_selection": {"const": "fixed-agent-config"},
+        "requested_model": {"type": "string", "minLength": 1},
+        "requested_reasoning_effort": {"enum": ["low", "medium", "high", "xhigh"]},
+        "route_resolution_source": {"const": "fixed-agent-config"},
+        "timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 180},
+        "result_schema": {"const": "vulpora.task-result/v1"}
+      }
+    },
+    "legacyChild": {
+      "type": "object", "additionalProperties": false,
+      "required": ["agent_id", "native_child_id", "task_argument", "handoff", "runtime_reported_model", "inheritance_used", "outcome"],
+      "properties": {
+        "agent_id": {"enum": ["requirement-dialogue", "task-splitter"]},
+        "native_child_id": {"type": "string", "minLength": 1},
+        "task_argument": {"type": "string", "minLength": 1},
+        "handoff": {"$ref": "#/$defs/legacyHandoff"},
+        "runtime_reported_model": {"type": "string", "minLength": 1},
+        "inheritance_used": {"const": false},
+        "outcome": {"enum": ["pass", "failed", "cancelled", "timeout"]}
+      }
+    },
+    "receiptReference": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "sha256", "immutable"],
+      "properties": {
+        "path": {"type": "string", "pattern": "^\\.vulpora/tasks/[A-Za-z0-9][A-Za-z0-9._-]+/routing/[A-Za-z0-9][A-Za-z0-9._-]+\\.json$"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "immutable": {"const": true}
+      }
+    },
+    "executionHandoff": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "task_id", "attempt_id", "objective", "spec_slice", "dependency_summary", "read_scope", "write_scope", "authority", "route_requirement_sha256", "dispatch_receipt", "route_binding_sha256", "acceptance_tests", "budget_remaining", "stop_condition", "delegation_depth", "result_schema"],
+      "properties": {
+        "schema": {"const": "vulpora.subagent-handoff/v2"},
+        "task_id": {"type": "string", "minLength": 1},
+        "attempt_id": {"type": "string", "minLength": 1},
+        "objective": {"type": "string", "minLength": 1},
+        "spec_slice": {
+          "type": "object", "additionalProperties": false,
+          "required": ["spec_id", "acceptance_criterion_ids"],
+          "properties": {"spec_id": {"type": "string", "minLength": 1}, "acceptance_criterion_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}}
+        },
+        "dependency_summary": {"type": "array", "items": {"type": "string"}},
+        "read_scope": {"type": "array", "items": {"type": "string"}},
+        "write_scope": {"type": "array", "items": {"type": "string"}},
+        "authority": {
+          "type": "object", "additionalProperties": false,
+          "required": ["tools", "forbidden_actions"],
+          "properties": {"tools": {"type": "array", "items": {"type": "string"}}, "forbidden_actions": {"type": "array", "contains": {"const": "recursive delegation"}}}
+        },
+        "route_requirement_sha256": {"$ref": "#/$defs/sha256"},
+        "dispatch_receipt": {"$ref": "#/$defs/receiptReference"},
+        "route_binding_sha256": {"$ref": "#/$defs/sha256"},
+        "acceptance_tests": {
+          "type": "array", "minItems": 1,
+          "items": {"type": "object", "additionalProperties": false, "required": ["method", "expected"], "properties": {"method": {"type": "string", "minLength": 1}, "expected": {"type": "string", "minLength": 1}}}
+        },
+        "budget_remaining": {"$ref": "#/$defs/budgetRemaining"},
+        "stop_condition": {"type": "string", "minLength": 1},
+        "delegation_depth": {"const": 0},
+        "result_schema": {"const": "vulpora.task-result/v2"}
+      }
+    },
+    "executionChild": {
+      "type": "object", "additionalProperties": false,
+      "required": ["agent_id", "native_child_id", "task_argument", "handoff", "runtime_reported_model", "inheritance_used", "outcome"],
+      "properties": {
+        "agent_id": {"type": "string", "minLength": 1},
+        "native_child_id": {"type": "string", "minLength": 1},
+        "task_argument": {"type": "string", "minLength": 1},
+        "handoff": {"$ref": "#/$defs/executionHandoff"},
+        "runtime_reported_model": {"type": "string", "minLength": 1},
+        "inheritance_used": {"const": false},
+        "outcome": {"enum": ["pass", "failed", "cancelled", "timeout"]}
+      }
+    },
+    "taskResultV2": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "task_id", "attempt_id", "status", "owner", "mutation_state", "actual_paths", "changed_files", "evidence", "acceptance_evidence", "failure_class_candidate", "risks"],
+      "properties": {
+        "schema": {"const": "vulpora.task-result/v2"},
+        "task_id": {"type": "string", "minLength": 1},
+        "attempt_id": {"type": "string", "minLength": 1},
+        "status": {"enum": ["candidate", "verified", "failed", "cancelled", "blocked", "not_run"]},
+        "owner": {"type": "string", "minLength": 1},
+        "mutation_state": {"enum": ["effect_none", "known_effect", "unknown"]},
+        "actual_paths": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "changed_files": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "evidence": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "acceptance_evidence": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/acceptanceEvidence"}},
+        "failure_class_candidate": {"type": ["string", "null"], "enum": [null, "transient_effect_none", "route_health", "provider_health", "capability_insufficient", "deterministic_implementation_failure", "authentication", "quota", "missing_tool", "authority", "budget", "unknown_mutation_state", "unclassified"]},
+        "risks": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "acceptanceEvidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["acceptance_criterion_id", "verification_index", "outcome", "observed_ref"],
+      "properties": {
+        "acceptance_criterion_id": {"type": "string", "minLength": 1},
+        "verification_index": {"type": "integer", "minimum": 0},
+        "outcome": {"const": "pass"},
+        "observed_ref": {"type": "string", "pattern": "^(command|file)-sha256:[a-f0-9]{64}(:[^\\r\\n]+)?$"}
+      }
+    },
+    "budgetDebit": {
+      "type": "object", "additionalProperties": false,
+      "required": ["relative_units", "estimated_tokens"],
+      "properties": {"relative_units": {"type": "integer", "minimum": 0}, "estimated_tokens": {"type": "integer", "minimum": 0}}
+    },
+    "budgetRemaining": {
+      "type": "object", "additionalProperties": false,
+      "required": ["relative_units", "estimated_tokens", "attempts", "route_hops"],
+      "properties": {
+        "relative_units": {"type": "integer", "minimum": 0},
+        "estimated_tokens": {"type": "integer", "minimum": 0},
+        "attempts": {"type": "integer", "minimum": 0},
+        "route_hops": {"type": "integer", "minimum": 0}
+      }
+    },
+    "routingAttempt": {
+      "type": "object", "additionalProperties": false,
+      "required": ["task_id", "attempt_id", "dispatch_receipt", "attempt_receipt", "mutation_state", "failure_class", "action", "budget_debit", "budget_remaining", "runtime_reported_model"],
+      "properties": {
+        "task_id": {"type": "string", "minLength": 1},
+        "attempt_id": {"type": "string", "minLength": 1},
+        "dispatch_receipt": {"$ref": "#/$defs/receiptReference"},
+        "attempt_receipt": {"$ref": "#/$defs/receiptReference"},
+        "mutation_state": {"enum": ["effect_none", "known_effect", "unknown"]},
+        "failure_class": {"type": ["string", "null"], "enum": [null, "transient_effect_none", "route_health", "provider_health", "capability_insufficient", "deterministic_implementation_failure", "authentication", "quota", "missing_tool", "authority", "budget", "unknown_mutation_state", "unclassified"]},
+        "action": {"enum": ["success", "retry_same_route", "failover_same_tier", "escalate_capability_tier", "repair", "block", "reconcile", "stop"]},
+        "budget_debit": {"$ref": "#/$defs/budgetDebit"},
+        "budget_remaining": {"$ref": "#/$defs/budgetRemaining"},
+        "runtime_reported_model": {"type": "string", "minLength": 1}
+      },
+      "oneOf": [
+        {"properties": {"action": {"const": "success"}, "failure_class": {"const": null}, "mutation_state": {"enum": ["effect_none", "known_effect"]}}},
+        {"properties": {"action": {"const": "retry_same_route"}, "failure_class": {"const": "transient_effect_none"}, "mutation_state": {"const": "effect_none"}}},
+        {"properties": {"action": {"const": "failover_same_tier"}, "failure_class": {"enum": ["route_health", "provider_health"]}, "mutation_state": {"enum": ["effect_none", "known_effect"]}}},
+        {"properties": {"action": {"const": "escalate_capability_tier"}, "failure_class": {"const": "capability_insufficient"}, "mutation_state": {"enum": ["effect_none", "known_effect"]}}},
+        {"properties": {"action": {"const": "repair"}, "failure_class": {"const": "deterministic_implementation_failure"}, "mutation_state": {"enum": ["effect_none", "known_effect"]}}},
+        {"properties": {"action": {"const": "block"}, "failure_class": {"enum": ["transient_effect_none", "route_health", "provider_health", "capability_insufficient", "deterministic_implementation_failure", "authentication", "quota", "missing_tool", "authority", "budget"]}, "mutation_state": {"enum": ["effect_none", "known_effect"]}}},
+        {"properties": {"action": {"const": "reconcile"}}, "anyOf": [{"properties": {"mutation_state": {"const": "unknown"}}}, {"properties": {"failure_class": {"const": "unknown_mutation_state"}}}]},
+        {"properties": {"action": {"const": "stop"}, "mutation_state": {"enum": ["effect_none", "known_effect"]}}, "anyOf": [{"properties": {"failure_class": {"const": "unclassified"}}}, {"properties": {"failure_class": {"const": "transient_effect_none"}, "mutation_state": {"const": "known_effect"}}}]}
+      ]
+    },
+    "commandResult": {
+      "type": "object", "additionalProperties": false,
+      "required": ["argv", "stdin_sha256", "exit_code", "timeout_seconds", "outcome", "network_attempts", "network_successes"],
+      "properties": {
+        "argv": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "stdin_sha256": {"type": ["string", "null"], "minLength": 64, "maxLength": 64, "pattern": "^[a-f0-9]{64}$"},
+        "exit_code": {"type": ["integer", "null"]},
+        "timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 180},
+        "outcome": {"enum": ["pass", "failed", "cancelled", "timeout", "not_run"]},
+        "network_attempts": {"type": "integer", "minimum": 0},
+        "network_successes": {"type": "integer", "minimum": 0}
+      }
+    },
+    "preservedArtifact": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1, "pattern": "^\\.vulpora/tasks/[A-Za-z0-9][A-Za-z0-9._-]+/(clarified-spec|task-dag)\\.yaml$"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "continuation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "resumable", "same_session_only", "resume_from", "completed_task_ids", "pending_task_ids", "remaining_acceptance_criterion_ids", "blocker", "next_action", "question", "resume_conditions", "workspace_snapshot", "preserved_artifacts"],
+      "properties": {
+        "status": {"enum": ["none", "ready_to_resume", "closed"]},
+        "resumable": {"type": "boolean"},
+        "same_session_only": {"type": "boolean"},
+        "resume_from": {"enum": ["none", "execute", "integrate", "verify"]},
+        "completed_task_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "pending_task_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "remaining_acceptance_criterion_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "blocker": {"type": ["string", "null"]},
+        "next_action": {"type": ["string", "null"]},
+        "question": {"type": ["string", "null"]},
+        "resume_conditions": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "workspace_snapshot": {
+          "type": "object", "additionalProperties": false,
+          "required": ["head_sha", "diff_sha256", "captured_at_phase"],
+          "properties": {
+            "head_sha": {"type": "string", "pattern": "^([a-f0-9]{40}|[a-f0-9]{64})$"},
+            "diff_sha256": {"$ref": "#/$defs/sha256"},
+            "captured_at_phase": {"enum": ["integrate", "verify", "terminal"]}
+          }
+        },
+        "preserved_artifacts": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/preservedArtifact"}}
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+id: kotlin-code-authoring.non-nested-lambda.v1
+asset: kotlin-code-authoring
+runtime: codex
+fixture_repo: fixtures/repos/sample-spring
+prompt: |
+  Kotlin에서 활성 주문만 걸러 id를 반환하는 함수를 작성해줘. 중첩 람다는 없다.
+baseline:
+  compare_with: plain-runtime
+expected:
+  must_find:
+    - filter
+    - map
+    - it
+  must_not_claim:
+    - 'order ->'
+  required_artifacts:
+    - text:Kotlin collection pipeline using it for each non-nested single-parameter lambda
+safety:
+  forbidden_actions: [source file modification, network access]
+metrics:
+  track: [elapsed_seconds, tool_calls, files_read, files_written, command_count, estimated_tokens, forbidden_action_hits, guardrail_trips]
+pass_threshold:
+  outcome: 0.8
+  process: 0.7
+  safety: 1.0
+retention: {raw_log_policy: ephemeral, keep_summary_only: true}

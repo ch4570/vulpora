@@ -1,0 +1,432 @@
+#!/bin/bash
+# Vulpora user-facing CLI. The catalog installer remains the low-level engine.
+
+ORIGINAL_PATH="${VULPORA_RUNTIME_PATH:-${PATH:-}}"
+PATH='/usr/bin:/bin:/usr/sbin:/sbin'
+export PATH
+
+set -euo pipefail
+
+SOURCE_PATH="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE_PATH" ]; do
+  SOURCE_DIR="$(cd -P "$(dirname "$SOURCE_PATH")" && pwd)" \
+    || { printf '오류: vulpora 실행 경로를 확인할 수 없습니다.\n' >&2; exit 1; }
+  LINK_TARGET="$(readlink "$SOURCE_PATH")" \
+    || { printf '오류: vulpora symlink를 읽을 수 없습니다.\n' >&2; exit 1; }
+  case "$LINK_TARGET" in
+    /*) SOURCE_PATH="$LINK_TARGET" ;;
+    *) SOURCE_PATH="$SOURCE_DIR/$LINK_TARGET" ;;
+  esac
+done
+SCRIPT_DIR="$(cd -P "$(dirname "$SOURCE_PATH")" && pwd)"
+INSTALL="$SCRIPT_DIR/install/install.sh"
+UNINSTALL="$SCRIPT_DIR/install/uninstall.sh"
+INTERACTIVE="$SCRIPT_DIR/install/interactive.sh"
+MCP_MANAGER="$SCRIPT_DIR/install/mcp-manager.sh"
+CHECK_MANIFEST="$SCRIPT_DIR/install/check-manifest.sh"
+RUNTIME_DETECT="$SCRIPT_DIR/install/runtime-detect.sh"
+VERSION_FILE="$SCRIPT_DIR/VERSION"
+
+# runtime 자동 감지는 사용자의 원래 PATH에서 판정한다. 위에서 PATH를 최소값으로
+# 좁혔기 때문에, 좁힌 PATH로 찾으면 설치된 CLI를 놓친다.
+VULPORA_DETECT_PATH="$ORIGINAL_PATH"
+[ -f "$RUNTIME_DETECT" ] && [ ! -L "$RUNTIME_DETECT" ] || {
+  printf '오류: runtime 감지 helper를 찾을 수 없습니다: %s\n' "$RUNTIME_DETECT" >&2; exit 1; }
+# shellcheck source=install/runtime-detect.sh
+. "$RUNTIME_DETECT"
+
+die() { printf '오류: %s\n' "$*" >&2; exit 1; }
+
+usage() {
+  cat <<'USAGE'
+Vulpora CLI
+
+Usage:
+  vulpora
+  vulpora interactive
+  vulpora mcp list
+  vulpora mcp install|remove|status|login [--runtime auto|codex|claude-code|all]
+                [--scope project|user] [--target <dir>] [--dry-run] [pack ...]
+  vulpora setup [--runtime auto|codex|claude-code|all] [--scope project|user]
+                  [--target <dir>] [--dry-run] [asset ...]
+  vulpora doctor [--runtime auto|codex|claude-code|all] [--scope project|user]
+                   [--target <dir>] [asset ...]
+  vulpora uninstall [--runtime auto|codex|claude-code|all] [--scope project|user]
+                      [--target <dir>] [--dry-run]
+                      [pack:<id>|all-agents|all-skills|agent-id|skill-id ...]
+  vulpora list
+  vulpora models --runtime codex
+  vulpora route --runtime codex|claude-code --profile frugal|standard|frontier
+                  --catalog <runtime-models.json> [--policy <routing-policy.json>]
+                  [--agent-config <agent-file|none>] [--kind native-subagent|independent-session|deterministic]
+                  [--risk low|high] [--max-units N] [--estimated-tokens N] [--remaining-tokens N]
+  vulpora route --runtime codex --task-type <type> --difficulty simple|moderate|complex
+                  --catalog <runtime-models.json> [--profile auto|frugal|standard|frontier]
+  vulpora session prepare --task <task.json> --catalog <runtime-models.json> --out <attempt-dir>
+  vulpora session run|status --capsule <attempt-dir/capsule.json>
+  vulpora version
+
+--runtime은 생략할 수 있고 기본값은 auto입니다. auto는 PATH에서 Claude Code(claude)와
+Codex(codex) CLI를 찾아 감지된 runtime 전부에 적용합니다. 하나만 설치돼 있으면 그
+runtime만, 둘 다면 둘 다 처리합니다. 하나도 못 찾으면 중단하고 안내합니다.
+all은 감지 여부와 무관하게 두 runtime 모두를 대상으로 하는 기존 selector입니다.
+
+Running vulpora without arguments in a terminal starts the guided installer.
+setup installs the selected catalog into the runtime discovery paths and then
+verifies definitions, bundles, skills, and adapters. User-scope setup defaults
+to all agents and skills; project scope remains selector-driven.
+uninstall removes selected setup-copied agents or skills owned by the runtime receipt.
+Without selectors it removes the whole runtime receipt, including retired catalog
+entries. Modified paths are preserved. MCP packs are managed separately with vulpora mcp.
+
+Codex adapters are dispatch-neutral by default. Optional setup pins use
+VULPORA_CODEX_MODEL=<provider/model-id> and VULPORA_CODEX_REASONING_EFFORT=<effort>.
+Pinned settings override native route arguments; conflicting routes must block.
+Doctor validates the installed model and effort without requiring the overrides again.
+USAGE
+}
+
+default_project_target() {
+  if [ -x /usr/bin/git ]; then
+    /usr/bin/git -C "$PWD" rev-parse --show-toplevel 2>/dev/null || pwd -P
+  else
+    pwd -P
+  fi
+}
+
+resolve_target() { # scope explicit-target runtime
+  scope="$1"
+  explicit_target="$2"
+  runtime="$3"
+  if [ "$scope" = user ]; then
+    if [ "$runtime" = codex ] && [ -n "${CODEX_HOME:-}" ] \
+      && [ "$(cd "$CODEX_HOME/.." 2>/dev/null && pwd -P)/$(basename "$CODEX_HOME")" != "$HOME/.codex" ]; then
+      die "custom CODEX_HOME의 user scope는 agent root가 갈라져 지원하지 않습니다. project scope를 사용하세요."
+    fi
+    if [ "$runtime" = claude-code ] && [ -n "${CLAUDE_CONFIG_DIR:-}" ] \
+      && [ "$(cd "$CLAUDE_CONFIG_DIR/.." 2>/dev/null && pwd -P)/$(basename "$CLAUDE_CONFIG_DIR")" != "$HOME/.claude" ]; then
+      die "custom CLAUDE_CONFIG_DIR의 user scope는 catalog target과 일치하지 않아 지원하지 않습니다. project scope를 사용하세요."
+    fi
+  fi
+  if [ -n "$explicit_target" ]; then
+    [ -d "$explicit_target" ] || die "target directory가 없습니다: $explicit_target"
+    resolved_target="$(cd "$explicit_target" && pwd -P)" \
+      || die "target canonical path를 확인할 수 없습니다: $explicit_target"
+    if [ "$scope" = user ]; then
+      [ -d "$HOME" ] || die "HOME directory를 확인할 수 없습니다."
+      resolved_home="$(cd "$HOME" && pwd -P)" \
+        || die "HOME canonical path를 확인할 수 없습니다: $HOME"
+      [ "$resolved_target" = "$resolved_home" ] \
+        || die "user scope의 --target은 exact canonical HOME이어야 합니다: $resolved_home"
+    fi
+    printf '%s\n' "$resolved_target"
+    return
+  fi
+  if [ "$scope" = project ]; then
+    default_project_target
+    return
+  fi
+  [ -d "$HOME" ] || die "HOME directory를 확인할 수 없습니다."
+  (cd "$HOME" && pwd -P) \
+    || die "HOME canonical path를 확인할 수 없습니다: $HOME"
+}
+
+run_setup_preflight_for() { # runtime target assets
+  runtime="$1"
+  target="$2"
+  assets="$3"
+  bash "$INSTALL" -t "$target" --runtime "$runtime" $assets
+}
+
+rewrite_setup_dry_run_guidance() {
+  sed \
+    -e 's/^모드: DRY-RUN (복사 안 함 — 실제 설치는 --apply)$/모드: DRY-RUN (복사 안 함)/' \
+    -e 's/^DRY-RUN입니다\. 실제로 설치하려면 위 명령에 --apply 를 추가하세요\.$/DRY-RUN입니다. 실제로 설치하려면 같은 vulpora setup 명령에서 --dry-run을 제거하세요./'
+}
+
+run_setup_for() { # runtime target dry-run assets
+  runtime="$1"
+  target="$2"
+  dry_run="$3"
+  assets="$4"
+  if [ "$dry_run" = 1 ]; then
+    bash "$INSTALL" -t "$target" --runtime "$runtime" $assets \
+      | rewrite_setup_dry_run_guidance
+    return
+  fi
+  bash "$INSTALL" -t "$target" --runtime "$runtime" --apply $assets || return $?
+  bash "$INSTALL" -t "$target" --runtime "$runtime" --verify $assets
+}
+
+run_doctor_for() { # runtime target assets
+  runtime="$1"
+  target="$2"
+  assets="$3"
+  case "$runtime" in
+    codex) PATH="$ORIGINAL_PATH" command -v codex >/dev/null 2>&1 || die "Codex CLI를 찾을 수 없습니다." ;;
+    claude-code) PATH="$ORIGINAL_PATH" command -v claude >/dev/null 2>&1 || die "Claude Code CLI를 찾을 수 없습니다." ;;
+  esac
+  bash "$INSTALL" -t "$target" --runtime "$runtime" --verify $assets
+}
+
+run_uninstall_for() { # runtime target dry-run assets
+  runtime="$1"
+  target="$2"
+  dry_run="$3"
+  assets="$4"
+  if [ "$dry_run" = 1 ]; then
+    bash "$UNINSTALL" -t "$target" --runtime "$runtime" $assets
+  else
+    bash "$UNINSTALL" -t "$target" --runtime "$runtime" --apply $assets
+  fi
+}
+
+if [ "$#" -eq 0 ]; then
+  case "${VULPORA_UI:-auto}" in
+    tui|plain) command_name=interactive ;;
+    auto)
+      if [ -t 0 ] && [ -t 1 ]; then command_name=interactive; else command_name=help; fi
+      ;;
+    *) command_name=interactive ;;
+  esac
+else
+  command_name="$1"
+fi
+[ "$#" -eq 0 ] || shift
+
+case "$command_name" in
+  help|-h|--help)
+    usage
+    ;;
+  version|--version|-V)
+    [ -f "$VERSION_FILE" ] || die "VERSION 파일을 찾을 수 없습니다."
+    printf 'vulpora %s\n' "$(tr -d '\r\n' < "$VERSION_FILE")"
+    ;;
+  interactive)
+    [ "$#" -eq 0 ] || die "interactive는 추가 인자를 받지 않습니다."
+    [ -f "$INTERACTIVE" ] || die "대화형 설치기를 찾을 수 없습니다: $INTERACTIVE"
+    VULPORA_RUNTIME_PATH="$ORIGINAL_PATH" bash "$INTERACTIVE" "$SCRIPT_DIR/vulpora"
+    ;;
+  mcp)
+    [ -f "$MCP_MANAGER" ] || die "MCP manager를 찾을 수 없습니다: $MCP_MANAGER"
+    # MCP manager는 한 번에 runtime 하나만 다룬다. auto/all selector는 여기서
+    # 감지된 runtime 목록으로 펼쳐 runtime당 한 번씩 호출한다.
+    mcp_runtime=auto
+    mcp_args=()
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+        --runtime|-r)
+          [ "$#" -ge 2 ] || die "--runtime 값이 필요합니다."
+          mcp_runtime="$2"; shift 2 ;;
+        --runtime=*) mcp_runtime="${1#--runtime=}"; shift ;;
+        *) mcp_args+=("$1"); shift ;;
+      esac
+    done
+    case "${mcp_args[0]:-}" in
+      list|help|-h|--help|'')
+        # runtime을 쓰지 않는 작업은 그대로 넘긴다.
+        VULPORA_RUNTIME_PATH="$ORIGINAL_PATH" bash "$MCP_MANAGER" \
+          ${mcp_args[@]+"${mcp_args[@]}"}
+        ;;
+      *)
+        if ! mcp_resolved="$(vulpora_resolve_runtimes "$mcp_runtime")"; then
+          [ "$mcp_runtime" != auto ] || die "$(vulpora_no_runtime_message)"
+          die "--runtime auto|codex|claude-code|all 중 하나가 필요합니다."
+        fi
+        [ "$mcp_runtime" != auto ] || vulpora_print_detection "$mcp_resolved"
+        mcp_remaining="$mcp_resolved"
+        while [ -n "$mcp_remaining" ]; do
+          case "$mcp_remaining" in
+            *' '*)
+              mcp_selected="${mcp_remaining%% *}"
+              mcp_remaining="${mcp_remaining#* }"
+              ;;
+            *)
+              mcp_selected="$mcp_remaining"
+              mcp_remaining=''
+              ;;
+          esac
+          [ -n "$mcp_selected" ] || continue
+          VULPORA_RUNTIME_PATH="$ORIGINAL_PATH" bash "$MCP_MANAGER" \
+            ${mcp_args[@]+"${mcp_args[@]}"} --runtime "$mcp_selected"
+        done
+        ;;
+    esac
+    ;;
+  models)
+    [ "$#" -eq 2 ] && [ "$1" = --runtime ] && [ "$2" = codex ] \
+      || die "models는 --runtime codex를 명시해야 합니다. 다른 runtime은 trusted catalog JSON을 제공하세요."
+    routing_node="$(PATH="$ORIGINAL_PATH" command -v node || true)"
+    [ -n "$routing_node" ] || die "모델 catalog 수집에 Node.js가 필요합니다."
+    PATH="$ORIGINAL_PATH" "$routing_node" "$SCRIPT_DIR/install/codex-model-catalog.js"
+    ;;
+  route)
+    routing_node="$(PATH="$ORIGINAL_PATH" command -v node || true)"
+    [ -n "$routing_node" ] || die "모델 라우팅에 Node.js가 필요합니다."
+    "$routing_node" "$SCRIPT_DIR/install/model-router.js" "$@"
+    ;;
+  session)
+    session_node="$(PATH="$ORIGINAL_PATH" command -v node || true)"
+    [ -n "$session_node" ] || die "독립 세션 실행에 Node.js가 필요합니다."
+    PATH="$ORIGINAL_PATH" "$session_node" "$SCRIPT_DIR/install/session-runner.js" "$@"
+    ;;
+  list)
+    [ "$#" -eq 0 ] || die "list는 추가 인자를 받지 않습니다."
+    bash "$INSTALL" --list
+    ;;
+  setup|doctor|uninstall)
+    runtime=auto
+    scope=project
+    target=""
+    dry_run=0
+    assets=""
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+        --runtime|-r)
+          [ "$#" -ge 2 ] || die "--runtime 값이 필요합니다."
+          runtime="$2"; shift 2 ;;
+        --runtime=*) runtime="${1#--runtime=}"; shift ;;
+        --scope)
+          [ "$#" -ge 2 ] || die "--scope 값이 필요합니다."
+          scope="$2"; shift 2 ;;
+        --scope=*) scope="${1#--scope=}"; shift ;;
+        --target|-t)
+          [ "$#" -ge 2 ] || die "--target 값이 필요합니다."
+          target="$2"; shift 2 ;;
+        --target=*) target="${1#--target=}"; shift ;;
+        --dry-run) dry_run=1; shift ;;
+        --onboard) die "--onboard는 1.0.0에서 제거되었습니다. 에이전트별 연결 설정을 사용하세요." ;;
+        -h|--help) usage; exit 0 ;;
+        -*) die "알 수 없는 옵션: $1" ;;
+        *) assets="${assets:+$assets }$1"; shift ;;
+      esac
+    done
+    case "$runtime" in auto|codex|claude-code|all) ;; *) die "--runtime auto|codex|claude-code|all 중 하나가 필요합니다." ;; esac
+    case "$scope" in project|user) ;; *) die "--scope는 project 또는 user여야 합니다." ;; esac
+    [ "$command_name" != doctor ] || [ "$dry_run" = 0 ] || die "doctor에는 --dry-run을 사용할 수 없습니다."
+    if [ "$command_name" != uninstall ] && [ -z "$assets" ]; then
+      if [ "$scope" = user ]; then
+        assets="all-agents all-skills"
+      else
+        die "project scope에서는 설치할 asset selector가 필요합니다."
+      fi
+    fi
+
+    [ -x "$INSTALL" ] || [ -f "$INSTALL" ] || die "catalog installer를 찾을 수 없습니다: $INSTALL"
+    if [ "$command_name" = uninstall ]; then
+      [ -x "$UNINSTALL" ] || [ -f "$UNINSTALL" ] || die "catalog uninstaller를 찾을 수 없습니다: $UNINSTALL"
+    fi
+    if [ "$command_name" = doctor ]; then
+      bash "$CHECK_MANIFEST"
+    fi
+    if ! resolved_runtimes="$(vulpora_resolve_runtimes "$runtime")"; then
+      [ "$runtime" != auto ] || die "$(vulpora_no_runtime_message)"
+      die "--runtime auto|codex|claude-code|all 중 하나가 필요합니다."
+    fi
+    [ "$runtime" != auto ] || vulpora_print_detection "$resolved_runtimes"
+
+    selected_runtimes=()
+    selected_targets=()
+    remaining_runtimes="$resolved_runtimes"
+    while [ -n "$remaining_runtimes" ]; do
+      case "$remaining_runtimes" in
+        *' '*)
+          selected_runtime="${remaining_runtimes%% *}"
+          remaining_runtimes="${remaining_runtimes#* }"
+          ;;
+        *)
+          selected_runtime="$remaining_runtimes"
+          remaining_runtimes=''
+          ;;
+      esac
+      [ -n "$selected_runtime" ] || continue
+      selected_target="$(resolve_target "$scope" "$target" "$selected_runtime")"
+      selected_index="${#selected_runtimes[@]}"
+      selected_runtimes[$selected_index]="$selected_runtime"
+      selected_targets[$selected_index]="$selected_target"
+    done
+
+    # setup은 어떤 runtime도 변경하기 전에 선택된 모든 대상의 selector와 copy
+    # plan을 먼저 검증한다. 이후 apply 중 실패는 이미 성공한 다른 runtime을
+    # 되돌리지 않고 끝까지 실행해, 동일 명령으로 안전하게 재시도할 수 있게 한다.
+    if [ "$command_name" = setup ] && [ "$dry_run" = 0 ]; then
+      preflight_rc=0
+      preflight_failed=""
+      selected_index=0
+      while [ "$selected_index" -lt "${#selected_runtimes[@]}" ]; do
+        selected_runtime="${selected_runtimes[$selected_index]}"
+        selected_target="${selected_targets[$selected_index]}"
+        if run_setup_preflight_for "$selected_runtime" "$selected_target" "$assets" >/dev/null; then
+          printf 'setup_preflight_ok: %s (%s)\n' "$selected_runtime" "$selected_target"
+        else
+          selected_rc=$?
+          preflight_failed="${preflight_failed:+$preflight_failed }$selected_runtime"
+          [ "$preflight_rc" = 0 ] && preflight_rc="$selected_rc"
+          printf 'setup_preflight_failed: %s (%s, rc=%s)\n' \
+            "$selected_runtime" "$selected_target" "$selected_rc" >&2
+        fi
+        selected_index=$((selected_index + 1))
+      done
+      if [ "$preflight_rc" != 0 ]; then
+        printf 'setup_preflight_aborted: 변경 없음; 실패 runtime=%s\n' "$preflight_failed" >&2
+        exit "$preflight_rc"
+      fi
+    fi
+
+    overall_rc=0
+    setup_succeeded=""
+    setup_failed=""
+    selected_index=0
+    while [ "$selected_index" -lt "${#selected_runtimes[@]}" ]; do
+      selected_runtime="${selected_runtimes[$selected_index]}"
+      selected_target="${selected_targets[$selected_index]}"
+      if [ "$command_name" = setup ]; then
+        if run_setup_for "$selected_runtime" "$selected_target" "$dry_run" "$assets"; then
+          setup_succeeded="${setup_succeeded:+$setup_succeeded }$selected_runtime"
+          printf 'setup_target_complete: %s (%s)\n' "$selected_runtime" "$selected_target"
+        else
+          selected_rc=$?
+          setup_failed="${setup_failed:+$setup_failed }$selected_runtime"
+          [ "$overall_rc" = 0 ] && overall_rc="$selected_rc"
+          printf 'setup_target_failed: %s (%s, rc=%s)\n' \
+            "$selected_runtime" "$selected_target" "$selected_rc" >&2
+        fi
+      elif [ "$command_name" = doctor ]; then
+        run_doctor_for "$selected_runtime" "$selected_target" "$assets"
+      else
+        if run_uninstall_for "$selected_runtime" "$selected_target" "$dry_run" "$assets"; then
+          :
+        else
+          selected_rc=$?
+          if [ "$selected_rc" = 3 ]; then
+            [ "$overall_rc" = 0 ] && overall_rc=3
+          elif [ "$overall_rc" = 0 ] || [ "$overall_rc" = 3 ]; then
+            overall_rc="$selected_rc"
+          fi
+        fi
+      fi
+      selected_index=$((selected_index + 1))
+    done
+    if [ "$command_name" = setup ] && [ "$overall_rc" != 0 ]; then
+      if [ -n "$setup_succeeded" ]; then
+        printf 'setup_partial_failure: 성공 runtime=%s; 실패 runtime=%s\n' \
+          "$setup_succeeded" "$setup_failed" >&2
+      else
+        printf 'setup_failed: 실패 runtime=%s\n' "$setup_failed" >&2
+      fi
+      printf 'setup_retry: 문제를 해결한 뒤 동일한 명령을 다시 실행하세요. 완료된 대상은 receipt를 사용해 멱등 처리됩니다.\n' >&2
+      exit "$overall_rc"
+    fi
+    if [ "$command_name" = setup ] && [ "$dry_run" = 0 ]; then
+      case " $assets " in
+        *' all-skills '*|*' vulpora-init '*)
+          printf 'setup_next_step: runtime을 재시작한 뒤 작업할 repository에서 vulpora-init 스킬을 가장 먼저 실행하세요.\n'
+          ;;
+      esac
+    fi
+    [ "$command_name" != uninstall ] || exit "$overall_rc"
+    ;;
+  *)
+    die "알 수 없는 command: $command_name"
+    ;;
+esac
