@@ -56,7 +56,7 @@ function bounded(value, maximum, name) {
 // Injectable process operations keep lifecycle/error tests deterministic. The
 // production adapter uses only the actual ChildProcess and host observations.
 export function superviseBrowser(executable, args, {
-  processApi = hostProcessApi, timeoutMs = 10000, closeTimeoutMs = 1500, maxOutputBytes = 1024 * 1024,
+  processApi = hostProcessApi, timeoutMs = 30000, closeTimeoutMs = 1500, maxOutputBytes = 1024 * 1024,
 } = {}) {
   bounded(timeoutMs, 60000, 'browser deadline');
   bounded(closeTimeoutMs, 5000, 'browser close deadline');
