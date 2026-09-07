@@ -20,6 +20,7 @@
     "constraints": {"type": "array", "maxItems": 32, "items": {"type": "string", "minLength": 1, "maxLength": 2048}},
     "mode": {"type": "string", "enum": ["read-only", "workspace-write"], "default": "read-only"},
     "contextMode": {"type": "string", "enum": ["read", "inline"], "default": "read", "description": "Opt-in complete starting source for at most four scoped files within 4096 serialized bytes and the existing prompt budget; larger/binary scopes fall back to native reads. Repository instructions and parent verification still apply."},
+    "workerMode": {"type": "string", "enum": ["agent", "edit-proposal"], "default": "agent", "description": "Explicit edit-proposal runs a read-only worker without shell tools, requires complete bounded source, and lets the coordinator apply validated replacements. Parent verification remains required; maxResultBytes defaults to 16384 only in this mode."},
     "delegation": {"type": "string", "enum": ["auto", "independent-session"], "default": "auto", "description": "Auto keeps tiny bounded work primary-owned; explicit delegation requests a fresh session."},
     "estimatedTokens": {"type": "integer", "minimum": 0, "maximum": 1000000000, "default": 4000},
     "remainingTokens": {"type": "integer", "minimum": 0, "maximum": 1000000000, "default": 4000},
@@ -34,5 +35,12 @@
         "toolOutputTokens": {"type": "integer", "minimum": 256, "maximum": 12000, "default": 2000, "description": "Codex history budget per tool output; not a provider token cap."}
       }
     }
-  }
+  },
+  "allOf": [{"if": {"required": ["workerMode"], "properties": {"workerMode": {"const": "edit-proposal"}}},
+    "then": {"required": ["mode"], "properties": {
+      "mode": {"const": "workspace-write"}, "risk": {"const": "low"},
+      "taskType": {"enum": ["implementation", "testing", "documentation"]},
+      "files": {"minItems": 1, "maxItems": 4}, "contextMode": {"const": "inline"},
+      "limits": {"properties": {"maxResultBytes": {"maximum": 16384}, "maxPromptBytes": {"maximum": 8192}}}
+    }}}]
 }

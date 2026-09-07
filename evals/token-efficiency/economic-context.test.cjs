@@ -120,6 +120,7 @@ test('public fixture patches reproduce the final verified files independently an
   fs.writeFileSync(path.join(cwd,'a.js'),'broken');
   shared.command('git',['init','--quiet'],cwd);shared.command('git',['add','--all'],cwd);
   shared.command('git',['-c','user.name=Fixture','-c','user.email=fixture@example.test','commit','--quiet','-m','fixture'],cwd);
+  result.item.initialHead=shared.command('git',['rev-parse','HEAD'],cwd).trim();
   fs.writeFileSync(path.join(cwd,'a.js'),'fixed');
   const artifact=runner.saveArtifact(result.item,result.run,artifacts);
   assert.equal(artifact.saved,true);assert.equal(artifact.accepted,true);
@@ -133,6 +134,10 @@ test('public fixture patches reproduce the final verified files independently an
   assert.equal(shared.qualityCheck(result.item.fixture,cwd,result.item.before).passed,true);
   fs.writeFileSync(path.join(cwd,'a.js'),'changed after grade');
   assert.throws(()=>runner.saveArtifact(result.item,result.run,artifacts),/ARTIFACT_SOURCE_CHANGED/);
+  fs.writeFileSync(path.join(cwd,'a.js'),'fixed');
+  shared.command('git',['add','--all'],cwd);
+  shared.command('git',['-c','user.name=Fixture','-c','user.email=fixture@example.test','commit','--quiet','-m','unauthorized candidate'],cwd);
+  assert.deepEqual(runner.saveArtifact(result.item,result.run,artifacts),{saved:false,reason:'GIT_HISTORY_CHANGED_OR_UNBOUND'});
 });
 
 test('predeclared acceptance requires matched quality and lower complete observed tokens',()=>{

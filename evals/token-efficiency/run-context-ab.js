@@ -61,15 +61,21 @@ async function executeFixture(item,run,environment) {
     if(number===1&&arm==='inline'&&!prepared.evidence.included)fail('INITIAL_CONTEXT_INELIGIBLE');
     const runtime=await execute(cwd,prepared.prompt,Object.keys(fixture.files),route);
     const quality=shared.qualityCheck(fixture,cwd,before);
+    let observedHead=null;
+    if(item.initialHead)try{observedHead=shared.command('git',['rev-parse','HEAD'],cwd).trim();}catch{}
+    const historyUnchanged=!item.initialHead||observedHead===item.initialHead;
+    if(item.initialHead){quality.checks.gitHeadUnchanged=historyUnchanged;
+      quality.checksTotal++;quality.checksPassed+=Number(historyUnchanged);quality.passed&&=historyUnchanged;}
     let afterFiles;try{afterFiles=fileEvidence(cwd);}catch{afterFiles={completed:false,sha256:null,files:null};}
-    const treatmentCompliant=routing.dispatchMatches(route,runtime)&&!runtime.unexpectedChild
+    const treatmentCompliant=historyUnchanged&&routing.dispatchMatches(route,runtime)&&!runtime.unexpectedChild
       &&runtime.promptBytes===Buffer.byteLength(prepared.prompt);
     const accepted=runtime.exitCode===0&&!runtime.reason&&!runtime.unexpectedChild&&quality.passed;
     const result={number,route,selection:{...selection,route:undefined},context:prepared.evidence,
       promptSha256:hash(prepared.prompt),promptBytes:Buffer.byteLength(prepared.prompt),
       initialFiles,afterFiles,runtime,quality,treatmentCompliant,accepted};
+    if(item.initialHead)result.gitHistory={initialHead:item.initialHead,observedHead,unchanged:historyUnchanged};
     run.attempts.push(result);run.accepted=accepted;
-    run.finished=accepted||!routing.repairable(result)||number===LIMITS.maxAttempts;
+    run.finished=accepted||!historyUnchanged||!routing.repairable(result)||number===LIMITS.maxAttempts;
     await onAttempt(result);if(run.finished)break;
   }
   return run;
@@ -89,19 +95,21 @@ function saveArtifact(item,run,directory) {
   const last=run.attempts.at(-1);
   if(!last?.quality.checks.onlyAllowedFilesChanged||!last.quality.checks.noSymlinksOrSpecialFiles
     ||!last.afterFiles.completed)return {saved:false,reason:'UNSAFE_OR_MISSING_FILE_EVIDENCE'};
+  if(!item.initialHead||shared.command('git',['rev-parse','HEAD'],item.cwd).trim()!==item.initialHead)
+    return {saved:false,reason:'GIT_HISTORY_CHANGED_OR_UNBOUND'};
   const finalFiles=fileEvidence(item.cwd);
   if(finalFiles.sha256!==last.afterFiles.sha256)fail('ARTIFACT_SOURCE_CHANGED');
   shared.command('git',['add','--all','--',...item.fixture.allowedFiles],item.cwd);
-  const patch=shared.command('git',['diff','--cached','--binary','HEAD','--',...item.fixture.allowedFiles],item.cwd);
+  const patch=shared.command('git',['diff','--cached','--binary',item.initialHead,'--',...item.fixture.allowedFiles],item.cwd);
   const filename=`${String(run.order).padStart(2,'0')}-${run.caseId}-${run.arm}-${run.repeat}.patch`;
   const target=path.join(directory,filename);fs.writeFileSync(target,patch,{flag:'wx',mode:0o600});
   return {saved:true,path:filename,sha256:hash(patch),bytes:Buffer.byteLength(patch),
     accepted:run.accepted,initialFiles:item.before,finalFiles:finalFiles.files,quality:last.quality};
 }
-function assessment(report) {
-  const read=report.summary.read,inline=report.summary.inline;
+function assessment(report,candidateArm='inline') {
+  const read=report.summary.read,inline=report.summary[candidateArm];
   const pairs=report.runs.filter(run=>run.arm==='read').map(control=>({control,
-    candidate:report.runs.find(run=>run.arm==='inline'&&run.caseId===control.caseId&&run.repeat===control.repeat)}));
+    candidate:report.runs.find(run=>run.arm===candidateArm&&run.caseId===control.caseId&&run.repeat===control.repeat)}));
   const qualityPreserved=!!report.comparable&&read.accepted>0&&inline.accepted===inline.planned
     &&inline.accepted>=read.accepted
     &&pairs.every(({control,candidate})=>candidate&&(!control.accepted||candidate.accepted));
@@ -129,6 +137,7 @@ async function main(args=process.argv.slice(2)) {
     }
     shared.command('git',['init','--quiet'],cwd);shared.command('git',['add','--all'],cwd);
     shared.command('git',['-c','user.name=Fixture','-c','user.email=fixture@example.test','commit','--quiet','-m','fixture'],cwd);
+    const initialHead=shared.command('git',['rev-parse','HEAD'],cwd).trim();
     if(shared.command('git',['status','--porcelain'],cwd).trim())fail('DIRTY_INITIAL_FIXTURE');
     const before=shared.snapshot(cwd),expected=Object.fromEntries(Object.entries(fixture.files).map(([name,content])=>[name,hash(content)]));
     if(canonical(before)!==canonical(expected))fail('INITIAL_TASK_FILES_DIFFER');
@@ -137,7 +146,7 @@ async function main(args=process.argv.slice(2)) {
     if(arm==='inline'&&!prompt.evidence.included)fail('INITIAL_CONTEXT_INELIGIBLE');
     const discovery=shared.preflight(cwd,prompt.prompt,knownSkills,route);
     if(discovery.projectSkillIds.length||discovery.startTaskEntryInjected)fail('PROJECT_HARNESS_CONTAMINATION');
-    prepared.push({...item,index,cwd,before,discovery,initialRoute:route,initialContext:prompt.evidence});
+    prepared.push({...item,index,cwd,before,initialHead,discovery,initialRoute:route,initialContext:prompt.evidence});
   }
   if(sourceEvidence().sha256!==source.sha256)fail('SOURCE_CHANGED_DURING_PREFLIGHT');
   const report={schema:'vulpora.context-ab/v1',createdAt:new Date().toISOString(),
@@ -172,6 +181,7 @@ async function main(args=process.argv.slice(2)) {
     for(const item of prepared) {
       report.stopped=stop();if(report.stopped)break;
       const run={order:item.index+1,caseId:item.fixture.id,arm:item.arm,repeat:item.repeat,
+        initialHead:item.initialHead,
         initialFiles:item.before,initialFilesSha256:hash(canonical(item.before)),discovery:item.discovery,
         initialContext:item.initialContext,attempts:[],accepted:false,finished:false};report.runs.push(run);
       await executeFixture(item,run,{catalog,policy,accounting,stop,onAttempt:async result=>{

@@ -12,6 +12,7 @@ const {canonical, hash, regularFile, parseJson} = require('./model-routing-io.js
 const {promptFor, summarizeResult} = require('./session-io.js');
 const {sourceContextFor, validateSourceContext} = require('./session-context.js');
 const {createTelemetry} = require('./session-telemetry.js');
+const {buildEditPrompt, validateEditProposal, applyEditProposal, MAX_BYTES: MAX_PROPOSAL_BYTES} = require('./session-edit-proposal.js');
 const {selectTaskExecution, resolveTaskRoute} = require('./task-router.js');
 const {initBudget, readBudget, reserveBudget, settleBudget} = require('./session-budget.js');
 
@@ -20,8 +21,17 @@ const DEFAULT_LIMITS = {timeoutMs: 300000, maxOutputBytes: 4 * 1024 * 1024, maxR
 const MAX_LIMITS = {timeoutMs: 3600000, maxOutputBytes: 16 * 1024 * 1024, maxResultBytes: 65536, maxPromptBytes: 65536, toolOutputTokens: 12000};
 const ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 const CANDIDATE_SCHEMA_PATH = path.join(__dirname, 'session-candidate.schema.json');
+const EDIT_SCHEMA_PATH = path.join(__dirname, 'session-edit-proposal.schema.json');
 const fail = code => { throw Object.assign(new Error(code), {code}); };
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+const proposalMode = task => task.workerMode === 'edit-proposal';
+const outputSchemaPathFor = task => proposalMode(task) ? EDIT_SCHEMA_PATH : CANDIDATE_SCHEMA_PATH;
+function workerPromptFor(capsule) {
+  if (!proposalMode(capsule.task)) return promptFor(capsule);
+  return buildEditPrompt(capsule.task.id, capsule.task.goal, capsule.sourceContext, {
+    cwd: capsule.task.cwd, attempt_id: capsule.attemptId,
+    acceptance: capsule.task.acceptance, constraints: capsule.task.constraints});
+}
 
 function keys(value, required, optional = []) {
   if (!object(value) || required.some(key => !Object.hasOwn(value, key))
@@ -77,7 +87,7 @@ function writeNew(filename, value) {
 }
 function validateTask(input) {
   keys(input, ['schema', 'id', 'goal', 'cwd', 'files', 'acceptance'],
-    ['runtime', 'taskType', 'difficulty', 'risk', 'profile', 'constraints', 'mode', 'delegation', 'contextMode', 'estimatedTokens', 'remainingTokens', 'maxRelativeUnits', 'limits']);
+    ['runtime', 'taskType', 'difficulty', 'risk', 'profile', 'constraints', 'mode', 'delegation', 'contextMode', 'workerMode', 'estimatedTokens', 'remainingTokens', 'maxRelativeUnits', 'limits']);
   if (input.schema !== 'vulpora.session-task/v1' || !ID.test(input.id || '')) fail('INVALID_TASK_ID_OR_SCHEMA');
   text(input.goal, 8192); text(input.cwd, 4096);
   if (!path.isAbsolute(input.cwd)) fail('CWD_MUST_BE_ABSOLUTE');
@@ -95,13 +105,31 @@ function validateTask(input) {
     || !['low', 'high'].includes(task.risk) || !['read-only', 'workspace-write'].includes(task.mode)) fail('INVALID_TASK_SELECTION');
   if (task.profile !== undefined && !['auto', 'frugal', 'standard', 'frontier'].includes(task.profile)) fail('INVALID_TASK_PROFILE');
   if (task.contextMode !== undefined && !['read', 'inline'].includes(task.contextMode)) fail('INVALID_CONTEXT_MODE');
+  if (task.workerMode !== undefined && !['agent', 'edit-proposal'].includes(task.workerMode)) fail('INVALID_WORKER_MODE');
+  if (proposalMode(task) && (task.mode !== 'workspace-write' || task.risk !== 'low'
+    || !['implementation', 'testing', 'documentation'].includes(task.taskType)
+    || !task.files.length || task.files.length > 4 || task.contextMode === 'read')) fail('EDIT_PROPOSAL_INELIGIBLE');
   strings(task.constraints, 32, 2048);
   if (!['auto', 'independent-session'].includes(task.delegation)) fail('INVALID_TASK_DELEGATION');
   integer(task.estimatedTokens, 1e9); integer(task.remainingTokens, 1e9); integer(task.maxRelativeUnits, 1e9);
   if (input.limits !== undefined) keys(input.limits, [], Object.keys(DEFAULT_LIMITS));
-  task.limits = {...DEFAULT_LIMITS, ...(input.limits || {})};
+  task.limits = {...DEFAULT_LIMITS, ...(proposalMode(task) ? {maxResultBytes: MAX_PROPOSAL_BYTES} : {}), ...(input.limits || {})};
   for (const key of Object.keys(DEFAULT_LIMITS)) integer(task.limits[key], MAX_LIMITS[key], key === 'timeoutMs' ? 50 : 256);
+  if (proposalMode(task) && (task.limits.maxResultBytes > MAX_PROPOSAL_BYTES || task.limits.maxPromptBytes > 8192))
+    fail('EDIT_PROPOSAL_LIMIT_EXCEEDED');
   return task;
+}
+function validateEditRepositoryContext(task) {
+  // Codex supplies cwd/ancestor instructions. With tools disabled the worker
+  // cannot discover instructions under cwd, so these scopes need normal agents.
+  for (const file of task.files) {
+    let parent = task.cwd;
+    for (const segment of file.split('/').slice(0, -1)) {
+      parent = path.join(parent, segment);
+      try { fs.lstatSync(path.join(parent, 'AGENTS.md')); fail('EDIT_REPOSITORY_CONTEXT_REQUIRED'); }
+      catch (error) { if (error.code !== 'ENOENT') throw error; }
+    }
+  }
 }
 function executable() {
   for (const directory of (process.env.PATH || '').split(path.delimiter)) {
@@ -147,7 +175,8 @@ function snapshot(task, attemptDir) {
 function prepare(options) {
   if (process.env.VULPORA_SESSION_DEPTH) fail('RECURSIVE_SESSION_FORBIDDEN');
   const task = validateTask(readJson(options.task));
-  const executionSelection = selectTaskExecution({...task, fileCount: task.files.length});
+  const executionSelection = selectTaskExecution({...task, fileCount: task.files.length,
+    ...(proposalMode(task) ? {delegation: 'independent-session'} : {})});
   if (executionSelection.kind !== 'independent-session') return {
     schema: 'vulpora.session-plan/v1', taskId: task.id,
     status: executionSelection.kind === 'deterministic' ? 'NO_MODEL' : 'PRIMARY_OWNED', execution: 'NOT_RUN',
@@ -180,24 +209,28 @@ function prepare(options) {
     budget: {file: budgetFile, id: budget.id},
     runtime: executable(), workspace: snapshot(task, attemptDir), preparedAt: new Date().toISOString(),
     expiresAt: new Date(Date.parse(catalog.observedAt) + policy.maxCatalogAgeSeconds * 1000).toISOString(),
-    outputSchemaSha256: hash(regularFile(CANDIDATE_SCHEMA_PATH, 65536))};
+    outputSchemaSha256: hash(regularFile(outputSchemaPathFor(task), 65536))};
   // Explicit until matched measurements justify changing the default. Existing
   // capsules keep their exact prompt and workspace binding semantics.
-  if (task.contextMode === 'inline') {
+  if (proposalMode(task)) {
+    validateEditRepositoryContext(task);
+    capsule.sourceContext = sourceContextFor(task.cwd, task.files, capsule.workspace.files);
+    if (!capsule.sourceContext) fail('EDIT_SOURCE_CONTEXT_REQUIRED');
+  } else if (task.contextMode === 'inline') {
     const sourceContext = sourceContextFor(task.cwd, task.files, capsule.workspace.files);
     if (sourceContext && Buffer.byteLength(promptFor({...capsule, sourceContext})) <= task.limits.maxPromptBytes)
       capsule.sourceContext = sourceContext;
   }
-  if (Buffer.byteLength(promptFor(capsule)) > task.limits.maxPromptBytes) fail('PROMPT_BUDGET_EXCEEDED');
+  if (Buffer.byteLength(workerPromptFor(capsule)) > task.limits.maxPromptBytes) fail('PROMPT_BUDGET_EXCEEDED');
   fs.mkdirSync(attemptDir, {mode: 0o700});
   writeNew(path.join(attemptDir, 'capsule.json'), capsule);
-  writeNew(path.join(attemptDir, 'output.schema.json'), readJson(CANDIDATE_SCHEMA_PATH, 65536));
+  writeNew(path.join(attemptDir, 'output.schema.json'), readJson(outputSchemaPathFor(task), 65536));
   writeNew(path.join(attemptDir, 'prepared.json'), {schema: 'vulpora.session-prepared/v1',
     attemptId: capsule.attemptId, capsuleSha256: hash(canonical(capsule))});
   return {schema: 'vulpora.session-plan/v1', status: 'PREPARED', execution: 'NOT_RUN',
     capsulePath: path.join(attemptDir, 'capsule.json'), capsuleSha256: hash(canonical(capsule)),
     attemptId: capsule.attemptId, model: route.model, reasoning_effort: route.reasoning_effort,
-    taskSelection: route.taskSelection, executionSelection, mode: task.mode, promptBytes: Buffer.byteLength(promptFor(capsule)),
+    taskSelection: route.taskSelection, executionSelection, mode: task.mode, promptBytes: Buffer.byteLength(workerPromptFor(capsule)),
     budget: {...budget, reservation: 'AT_DISPATCH'}};
 }
 function loadCapsule(filename) {
@@ -215,6 +248,7 @@ function loadCapsule(filename) {
   const task = validateTask(capsule.task);
   if (canonical(task) !== canonical(capsule.task)) fail('NON_CANONICAL_TASK');
   if (Object.hasOwn(capsule, 'sourceContext')) validateSourceContext(capsule.sourceContext, task.files, capsule.workspace.files);
+  if (proposalMode(task) && !capsule.sourceContext) fail('EDIT_SOURCE_CONTEXT_REQUIRED');
   if (capsule.route?.status !== 'RESOLVED' || capsule.route.runtime !== 'codex'
     || !/^[A-Za-z0-9][A-Za-z0-9._:/+-]{0,199}$/.test(capsule.route.model || '')
     || !['minimal', 'low', 'medium', 'high', 'xhigh', 'max', 'ultra'].includes(capsule.route.reasoning_effort)) fail('INVALID_CAPSULE_ROUTE');
@@ -291,9 +325,10 @@ async function execute(capsule, attemptDir) {
   const finalPath = path.join(attemptDir, 'candidate.json');
   const args = ['exec', '--ephemeral', '--strict-config', '--json', '--output-schema', path.join(attemptDir, 'output.schema.json'),
     '--output-last-message', finalPath, '--cd', capsule.task.cwd, '--color', 'never', '--model', capsule.route.model,
-    '--sandbox', capsule.task.mode, '-c', `model_reasoning_effort="${capsule.route.reasoning_effort}"`,
+    '--sandbox', proposalMode(capsule.task) ? 'read-only' : capsule.task.mode, '-c', `model_reasoning_effort="${capsule.route.reasoning_effort}"`,
     '-c', `tool_output_token_limit=${capsule.task.limits.toolOutputTokens}`,
-    '-c', 'approval_policy="never"', '--disable', 'multi_agent', '--disable', 'multi_agent_v2', '-'];
+    '-c', 'approval_policy="never"', '--disable', 'multi_agent', '--disable', 'multi_agent_v2',
+    ...(proposalMode(capsule.task) ? ['--disable', 'shell_tool', '--disable', 'unified_exec', '-c', 'web_search="disabled"'] : []), '-'];
   const limits = capsule.task.limits;
   const started = performance.now();
   const telemetry = createTelemetry();
@@ -318,8 +353,11 @@ async function execute(capsule, attemptDir) {
   function event(line) {
     let value;
     try { value = JSON.parse(line); } catch { stop('INVALID_RUNTIME_EVENT'); return; }
+    if (!object(value)) { stop('INVALID_RUNTIME_EVENT'); return; }
     eventCount++;
     telemetry.observe(value);
+    if (proposalMode(capsule.task) && value.type === 'item.completed'
+      && (!object(value.item) || !['agent_message', 'reasoning'].includes(value.item.type))) stop('EDIT_PROPOSAL_TOOL_USE');
     if (value.type === 'thread.started' && typeof value.thread_id === 'string' && ID.test(value.thread_id)) threadId = value.thread_id;
     // Only top-level CLI protocol events provide usage; model/tool text and the
     // candidate response are never scanned for measurements.
@@ -385,13 +423,18 @@ async function execute(capsule, attemptDir) {
         if (!stat.isFile() || stat.isSymbolicLink() || stat.size > limits.maxResultBytes) stop('RESULT_BUDGET_OR_FILE_VIOLATION');
       } catch (error) { if (error.code !== 'ENOENT') stop('RESULT_FILE_UNREADABLE'); }
     }, 50);
-    child.stdin.end(promptFor(capsule));
+    child.stdin.end(workerPromptFor(capsule));
     const completion = await completed;
     if (completion.exitCode !== 0 || completion.signal) reason ||= 'RUNTIME_EXIT_FAILED';
     return {reason, ...completion, runtimeThreadId: threadId, usage: usage || {source: 'unavailable'}, eventCount,
       elapsedMs: Math.round(performance.now() - started), outputBytes, stdoutSha256: stdoutHash.digest('hex'),
       stderrSha256: stderrHash.digest('hex'), invocationSha256: hash(canonical({executable: capsule.runtime.executable, args})),
-      telemetry: telemetry.summary(), promptBytes: Buffer.byteLength(promptFor(capsule)),
+      requestedModel: capsule.route.model, requestedEffort: capsule.route.reasoning_effort,
+      dispatchEvidence: {source: 'spawn-arguments', binary: 'codex', model: capsule.route.model,
+        reasoning_effort: capsule.route.reasoning_effort, commandSha256: hash(canonical([capsule.runtime.executable, ...args])),
+        primarySessions: 1, nestedOrchestrator: false, backendIdentity: 'NOT_ATTESTED',
+        sandbox: proposalMode(capsule.task) ? 'read-only' : capsule.task.mode},
+      telemetry: telemetry.summary(), promptBytes: Buffer.byteLength(workerPromptFor(capsule)),
       sourceContextBytes: capsule.sourceContext ? Buffer.byteLength(canonical(capsule.sourceContext)) : 0,
       rawTranscriptRetained: false, backendIdentity: 'NOT_ATTESTED', descendantCleanup: 'NOT_ATTESTED'};
   } finally {
@@ -408,10 +451,12 @@ async function run(options) {
   if (Date.now() > Date.parse(capsule.expiresAt)) fail('STALE_SESSION_ROUTE');
   if (hash(regularFile(capsule.runtime.executable, 256 * 1024 * 1024)) !== capsule.runtime.sha256) fail('RUNTIME_CHANGED');
   const schema = readJson(path.join(attemptDir, 'output.schema.json'), 65536);
-  if (hash(canonical(schema)) !== hash(canonical(readJson(CANDIDATE_SCHEMA_PATH, 65536)))
-    || hash(regularFile(CANDIDATE_SCHEMA_PATH, 65536)) !== capsule.outputSchemaSha256) fail('OUTPUT_SCHEMA_CHANGED');
+  const outputSchemaPath = outputSchemaPathFor(capsule.task);
+  if (hash(canonical(schema)) !== hash(canonical(readJson(outputSchemaPath, 65536)))
+    || hash(regularFile(outputSchemaPath, 65536)) !== capsule.outputSchemaSha256) fail('OUTPUT_SCHEMA_CHANGED');
+  if (proposalMode(capsule.task)) validateEditRepositoryContext(capsule.task);
   if (canonical(snapshot(capsule.task, attemptDir)) !== canonical(capsule.workspace)) fail('STALE_WORKSPACE');
-  if (Buffer.byteLength(promptFor(capsule)) > capsule.task.limits.maxPromptBytes) fail('PROMPT_BUDGET_EXCEEDED');
+  if (Buffer.byteLength(workerPromptFor(capsule)) > capsule.task.limits.maxPromptBytes) fail('PROMPT_BUDGET_EXCEEDED');
   // Recheck the live ledger atomically: two prepared capsules may have seen the
   // same balance, but cannot both spend the same reserved tokens at dispatch.
   const reservation = reserveBudget(capsule.budget.file, {budgetId: capsule.budget.id,
@@ -429,7 +474,22 @@ async function run(options) {
     if (hash(regularFile(loaded.absolute, 1024 * 1024)) !== capsuleSha256) fail('CAPSULE_CHANGED_DURING_EXECUTION');
     if (hash(regularFile(capsule.runtime.executable, 256 * 1024 * 1024)) !== capsule.runtime.sha256) fail('RUNTIME_CHANGED_DURING_EXECUTION');
     after = snapshot(capsule.task, attemptDir);
-    if (!reason) candidate = validateCandidate(readJson(path.join(attemptDir, 'candidate.json'), capsule.task.limits.maxResultBytes), capsule);
+    if (!reason && proposalMode(capsule.task)) {
+      if (runtime.usage?.source !== 'codex-jsonl:turn.completed') fail('EDIT_USAGE_UNAVAILABLE');
+      if (canonical(after) !== canonical(capsule.workspace)) fail('EDIT_WORKSPACE_CHANGED');
+      validateEditRepositoryContext(capsule.task);
+      const proposalBytes = regularFile(path.join(attemptDir, 'candidate.json'), capsule.task.limits.maxResultBytes);
+      const proposalOptions = {taskId: capsule.task.id, files: capsule.task.files,
+        sourceHashes: capsule.workspace.files, maxBytes: capsule.task.limits.maxResultBytes};
+      const proposal = validateEditProposal(parseJson(proposalBytes.toString('utf8')), proposalOptions);
+      runtime.proposalBytes = proposalBytes.length; runtime.proposalEditCount = proposal.edits.length;
+      if (canonical(snapshot(capsule.task, attemptDir)) !== canonical(capsule.workspace)) fail('EDIT_WORKSPACE_CHANGED');
+      const applied = applyEditProposal(capsule.task.cwd, proposal, proposalOptions);
+      after = snapshot(capsule.task, attemptDir);
+      candidate = validateCandidate({schema: 'vulpora.session-candidate/v1', task_id: capsule.task.id,
+        attempt_id: capsule.attemptId, status: 'candidate', summary: proposal.summary,
+        changed_files: applied.changedFiles, evidence: ['Proposal applied; parent checks pending.'], risks: [], blocker: null}, capsule);
+    } else if (!reason) candidate = validateCandidate(readJson(path.join(attemptDir, 'candidate.json'), capsule.task.limits.maxResultBytes), capsule);
     if (capsule.task.mode === 'read-only' && canonical(after) !== canonical(capsule.workspace)) fail('READ_ONLY_WORKSPACE_CHANGED');
   } catch (error) { reason ||= error.code === 'ENOENT' ? 'CANDIDATE_MISSING' : (/^[A-Z_]+$/.test(error.message) ? error.message : 'CANDIDATE_INVALID'); }
   const changed = after ? capsule.task.files.filter(file => after.files[file] !== capsule.workspace.files[file]) : [];
@@ -481,7 +541,8 @@ function errorResult(error) {
     : /^[A-Z_]+$/.test(error.message || '') ? error.message : 'INVALID_OR_CHANGED_SESSION_INPUT';
   return {schema: 'vulpora.session-error/v1', status: 'BLOCKED', reason, execution: error.execution || 'NOT_RUN'};
 }
-module.exports = {main, prepare, run, status, reconcile, validateTask, validateCandidate, promptFor, errorResult};
+module.exports = {main, prepare, run, status, reconcile, validateTask, validateCandidate, promptFor,
+  workerPromptFor, outputSchemaPathFor, applyEditProposal, errorResult};
 if (require.main === module) main().then(result => {
   process.stdout.write(`${JSON.stringify(result)}\n`);
   if (['failed', 'blocked'].includes(result.status)) process.exitCode = 3;

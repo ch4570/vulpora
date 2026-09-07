@@ -44,6 +44,11 @@ Final patches and corresponding source hashes/grades are saved beside the report
 directory. They contain public-fixture candidates and support independent patch application and regrading;
 raw runtime streams and final messages are not retained. Existing report/artifact paths cannot be overwritten.
 
+Subsequent runs also bind the initial fixture commit, reject changed HEAD after each attempt, and export
+against that exact commit. The first saved pilot predates this gate; its separate audit reconstructs every
+patch, repeats grading, and checks that each retained committed tree still matches the original fixture.
+The frozen pilot source is preserved in commit `5768542`; this later correction does not rewrite its report.
+
 ## Run
 
 ```sh
