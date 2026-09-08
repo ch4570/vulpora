@@ -8,7 +8,7 @@ description: >-
 
 # PostgreSQL Review Workflow
 
-Run the complete PostgreSQL skill family and both mandatory database agents against one source
+Run the three declared PostgreSQL skills and both mandatory database agents against one source
 snapshot. Reconcile logical model quality with real PostgreSQL operational behavior.
 
 ## Declared inventory and dependencies
@@ -50,15 +50,23 @@ the target revision. Never execute mutating SQL against a live database as part 
 
 ### 1. Inventory and preflight
 
-Discover canonical frontmatter skill IDs matching `postgres-*`, remove exactly
-`postgres-review-workflow`, and compare the sorted set with the three declared runnable skills.
-Stop before review on an extra or missing ID, and report `INVENTORY_MISMATCH` or
-`MISSING_DEPENDENCY`. Verify both mandatory agents by exact ID.
+Resolve the three declared skills by canonical frontmatter `name` and both mandatory agents by
+exact ID in the host runtime's effective catalogs after normal precedence rules. Use only discovery
+roots active for this target; do not scan unrelated home or repository paths or infer identity from
+directory names.
 
-The canonical catalog is the host runtime's **effective discovered skill set after its normal
-precedence rules**, limited to discovery roots active for this target. Do not scan unrelated home or
-repository paths. If the host cannot identify that effective set, or the same ID resolves to
-ambiguous definitions, stop with `CATALOG_UNAVAILABLE` or `AMBIGUOUS_DEPENDENCY`.
+- If an effective catalog is unavailable, stop with `CATALOG_UNAVAILABLE`.
+- A missing mandatory dependency stops preflight with `MISSING_DEPENDENCY`; a mandatory dependency
+  with ambiguous definitions after precedence stops with `AMBIGUOUS_DEPENDENCY`.
+- Additional installed skills, including `postgres-code-authoring`, are informational only.
+  They neither block preflight nor become review components. Exclude the orchestrator itself from
+  execution. A shared `postgres-` prefix does not make a skill a review dependency.
+- The planned mandatory list must contain each of the three declared skills and two agents exactly
+  once, with no additional IDs. Missing, duplicate, or extra planned passes stop with
+  `INVENTORY_MISMATCH`.
+
+Record declared IDs, resolved dependencies, additional discovered PostgreSQL IDs, and the planned
+mandatory list separately.
 
 Classify the scope as query, logical/physical schema, migration/backfill, or a combination. Every
 mandatory dependency still runs; irrelevant areas return evidence-backed `NOT_APPLICABLE`.
@@ -95,6 +103,10 @@ claim performance improvement without before/after plan or measurement evidence.
 
 ### 4. Verdict
 
+Reconcile the mandatory run ledger against all five declared dependencies: require exactly one
+terminal result per dependency. A missing, duplicate, or undeclared result makes coverage
+`INCOMPLETE`; retain valid findings and identify the discrepancy.
+
 - `INCOMPLETE`: any mandatory dependency failed, timed out, or returned unusable output
 - `BLOCK`: supported CRITICAL safety, corruption, integrity, or irreversible rollout risk
 - `CHANGES_REQUIRED`: no CRITICAL finding and at least one supported HIGH finding
@@ -114,7 +126,7 @@ known blocker behind the coverage failure.
 Return:
 
 1. scope, PostgreSQL version, revision, assumptions, and evidence availability
-2. declared/discovered skill inventory and five-entry run ledger
+2. declared IDs, resolved dependencies, informational extras, planned IDs, and five-entry run ledger
 3. aggregate verdict
 4. unified findings with exact objects/locations, contributors, evidence, and dissent
 5. reconciliation matrix: modeling target | operational risk | safe staged action | rollback |
@@ -125,8 +137,8 @@ Return:
 
 ## Failure and partial-result semantics
 
-- Inventory mismatch stops all component execution; complete-family coverage is part of the
-  contract.
+- Unavailable or ambiguous mandatory dependencies and a mismatched mandatory execution plan stop
+  component execution. Additional installed skills do not invalidate the review inventory.
 - Preserve successful outputs after a runtime failure, but return `INCOMPLETE`; never approve four
   out of five reviews.
 - Treat unavailable database access as an explicit static-only limitation. Do not run destructive

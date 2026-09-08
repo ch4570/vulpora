@@ -8,8 +8,8 @@ description: >-
 
 # OpenSearch Review Workflow
 
-Apply every catalog skill whose ID starts with `opensearch-`, excluding this orchestration skill,
-and fail closed when the inventory changes.
+Run the three declared OpenSearch review skills against one source snapshot. Validate their
+availability and complete execution independently of other installed OpenSearch skills.
 
 ## Declared inventory and dependencies
 
@@ -45,23 +45,24 @@ fabricate cluster state or performance conclusions.
 
 ## Workflow
 
-### 1. Fail-closed inventory check
+### 1. Required dependency and execution inventory check
 
-Before reviewing, discover skill IDs from the canonical catalog (the frontmatter `name` of each
-installed/cataloged `SKILL.md`). Build the sorted set matching `opensearch-*`, remove exactly the
-orchestrator ID `opensearch-review-workflow`, and compare it with the sorted declared runnable set
-above.
+Resolve each declared runnable skill by its canonical frontmatter `name` in the host runtime's
+effective catalog after normal precedence rules, limited to discovery roots active for this target.
+Do not scan unrelated home or repository paths or infer identity from directory names.
 
-Use the host runtime's **effective discovered skill set after normal precedence rules**, limited to
-discovery roots active for this target. Do not scan unrelated home or repository paths. If the host
-cannot identify that set, or one ID resolves to ambiguous definitions, stop with
-`CATALOG_UNAVAILABLE` or `AMBIGUOUS_DEPENDENCY`.
+- If the effective catalog is unavailable, stop with `CATALOG_UNAVAILABLE`.
+- A missing declared skill stops preflight with `MISSING_DEPENDENCY`; a declared skill with
+  ambiguous definitions after precedence stops with `AMBIGUOUS_DEPENDENCY`.
+- Additional installed skills, including `opensearch-code-authoring`, are informational only.
+  They neither block preflight nor become review components. Exclude the orchestrator itself from
+  execution. A shared `opensearch-` prefix does not make a skill a review dependency.
+- The planned mandatory skill list must contain each declared runnable ID exactly once, with no
+  additional IDs. Missing, duplicate, or extra planned passes stop with `INVENTORY_MISMATCH`.
 
-- Extra discovered ID: stop with `INVENTORY_MISMATCH` and list it; update this workflow before use.
-- Declared ID missing from the catalog: stop with `MISSING_DEPENDENCY`.
-- Do not approximate the check from directory names or invoke only the apparently relevant subset.
-
-Record the discovered and declared sets in the report.
+Record the declared IDs, resolved dependencies, additional discovered OpenSearch IDs, and planned
+mandatory list separately. Resolve the optional synthesis agent only if used; its absence or
+ambiguity is a synthesis gap, not a failed mandatory review dependency.
 
 ### 2. Freeze and route evidence
 
@@ -91,6 +92,10 @@ mapping changes.
 
 ### 4. Verdict
 
+Reconcile the mandatory run ledger against the declared IDs: require exactly one terminal result
+per declared skill. A missing, duplicate, or undeclared result makes coverage `INCOMPLETE`; retain
+valid findings and identify the discrepancy. Keep optional synthesis outside this mandatory list.
+
 - `INCOMPLETE`: a mandatory skill failed, timed out, or returned unusable output
 - `BLOCK`: supported CRITICAL risk, data-loss risk, or unsafe no-rollback rollout
 - `CHANGES_REQUIRED`: supported HIGH finding without a CRITICAL finding
@@ -109,7 +114,7 @@ supported CRITICAL, add `blocking_finding_present: true` and preserve that findi
 Return:
 
 1. scope, OpenSearch version/assumptions, and immutable revision
-2. inventory check with exact declared/discovered IDs
+2. inventory check with declared IDs, resolved dependencies, informational extras, and planned IDs
 3. run ledger for all mandatory skills and optional agent
 4. aggregate verdict
 5. unified findings with contributors and unresolved trade-offs
@@ -120,8 +125,8 @@ Return:
 
 ## Failure and partial-result semantics
 
-- Stop before component execution on inventory mismatch; partial coverage would falsely claim the
-  complete suite ran.
+- Stop before component execution on unavailable or ambiguous required dependencies or a mismatched
+  mandatory execution plan. Additional installed skills do not invalidate the review inventory.
 - After execution begins, retain successful artifacts but return `INCOMPLETE` if any mandatory run
   fails. Never approve a partial suite.
 - Mark live-cluster claims `UNVERIFIED` when access or metrics are unavailable. Static repository

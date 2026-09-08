@@ -4,6 +4,8 @@ Vulpora의 사용자 관점 변경 사항을 기록합니다.
 
 ## [1.0.1] - 2026-09-08
 
+- OpenSearch·PostgreSQL 리뷰의 필수 의존성과 설치 목록을 구분해 추가 작성 스킬로 인한
+  `INVENTORY_MISMATCH` 오중단을 수정하고 필수 리뷰의 완전성 검사는 유지합니다.
 - `vulpora-init`이 Gradle Kotlin DSL과 빌드 보조 코드를 애플리케이션 Kotlin 근거에서 제외하고,
   실제 소스·모듈 빌드 설정에 따라 Java/Kotlin 작성·테스트·리뷰 경로를 선택합니다.
 - Codex user 설치의 개인 홈 경로를 이식 가능한 참조로 바꾸고 project scope와 권한 설정을 보존합니다.

@@ -3,12 +3,13 @@ asset: opensearch-review-workflow
 runtime: codex
 fixture_repo: fixtures/repos/sample-opensearch
 prompt: |
-  실제 skill을 실행하지 않는 plan-only preflight다. canonical frontmatter에서 발견한
-  opensearch-* ID는 opensearch-optimization, opensearch-query-review,
-  opensearch-review-workflow, opensearch-schema-review다. orchestrator 자신만 정확히 제외해
-  declared runnable set과 비교하고, 세 mandatory skill의 concurrency와 optional synthesis
-  agent를 포함한 ledger 계획을 보여라. 일부 영역이 무관해 보여도 skip하지 않고
-  evidence-backed NOT_APPLICABLE로 남겨야 한다. 리뷰 완료를 주장하지 마라.
+  실제 skill을 실행하지 않는 plan-only preflight다. runtime의 precedence 적용 후 유효한
+  catalog에는 opensearch-optimization, opensearch-query-review, opensearch-review-workflow,
+  opensearch-schema-review, opensearch-code-authoring이 각각 하나의 canonical frontmatter
+  정의로 존재한다. optional agent opensearch-expert도 사용 가능하다. 대상은 query 변경이다.
+  워크플로 지침에 따라 preflight_status, 발견 목록, 필수 실행 목록, 제외 항목, concurrency와
+  optional synthesis를 포함한 ledger 계획을 보여라. 무관한 영역의 처리도 설명하라.
+  리뷰 완료를 주장하지 마라.
 baseline:
   compare_with: agent-only
 expected:
@@ -17,13 +18,18 @@ expected:
     - opensearch-query-review
     - opensearch-schema-review
     - opensearch-review-workflow
+    - opensearch-code-authoring
     - opensearch-expert
     - 'any_of:exclude|제외'
     - 'any_of:optional|선택'
+    - 'any_of:informational|정보|실행하지'
+    - 'any_of:READY|PREFLIGHT_OK|PASS|통과'
     - NOT_APPLICABLE
     - 'regex:최대.*3|at most three|maximum.*3'
   must_not_claim:
+    - INVENTORY_MISMATCH
     - opensearch-review-workflow를 component로 실행한다
+    - opensearch-code-authoring을 mandatory pass로 실행한다
     - query만 관련되므로 schema review를 건너뛴다
     - OpenSearch 리뷰를 완료했다
   required_artifacts:
