@@ -68,6 +68,14 @@ directory with a compact capsule, a preparation digest, and the output schema. I
 catalog and policy, fingerprints the executable and workspace, and reports the exact selected model and effort.
 Inspect that result before execution. Calling `run` starts the model work.
 
+Preparation validates the repository-owned output schema before creating an attempt directory. Execution
+validates the frozen and installed schemas again before reserving budget or starting Codex. Missing property
+types, incomplete object contracts, malformed array definitions, and invalid supported constraints fail locally
+as `OUTPUT_SCHEMA_INVALID`; schema features outside the supported local subset fail as `OUTPUT_SCHEMA_UNSUPPORTED`.
+These failures launch no model and create no reservation. Valid schemas retain their original raw-file digest
+binding and canonical frozen representation. Local preflight cannot guarantee provider acceptance of every
+otherwise valid request.
+
 `taskType` accepts `deterministic`, `lookup`, `documentation`, `implementation`, `review`, `testing`,
 `architecture`, and `research`. Difficulty is `simple`, `moderate`, or `complex`; risk is `low` or `high`.
 Defaults are `implementation`, `moderate`, `low`, `delegation: "auto"`, and `read-only`. Simple low-risk lookup,
@@ -139,6 +147,12 @@ The coordinator requires observed provider usage, unchanged workspace fingerprin
 declared paths, no tool events, and a valid bounded proposal before applying it. Existing modes are preserved;
 creation cannot overwrite an unexpected file. Multi-file application has best-effort rollback and requires an
 exclusive, stable workspace. Independent verification remains the parent's responsibility.
+
+Forbidden tool items stop the proposal worker at `item.started`, `item.updated`, or `item.completed`, whichever
+is observed first. The runner terminates its owned process and refuses to apply the proposal. A started event
+does not prove that a tool caused no earlier side effects; inspect actual workspace state after failures.
+Missing usage still retains the reservation and blocks more launches. A locally prevented launch and a launched
+attempt with unknown usage are different accounting outcomes; the latter is never cleared as a zero-token run.
 
 Set `limits.maxResultBytes` to the needed bound, up to the proposal mode's 16,384-byte maximum, to accommodate
 replacement contents. The raw proposal stays in the bounded attempt artifact; the result envelope contains a

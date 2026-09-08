@@ -13,6 +13,7 @@ const {promptFor, summarizeResult} = require('./session-io.js');
 const {sourceContextFor, validateSourceContext} = require('./session-context.js');
 const {createTelemetry} = require('./session-telemetry.js');
 const {buildEditPrompt, validateEditProposal, applyEditProposal, MAX_BYTES: MAX_PROPOSAL_BYTES} = require('./session-edit-proposal.js');
+const {readOutputSchema} = require('./session-output-schema.js');
 const {selectTaskExecution, resolveTaskRoute} = require('./task-router.js');
 const {initBudget, readBudget, reserveBudget, settleBudget} = require('./session-budget.js');
 
@@ -232,11 +233,13 @@ function prepare(options) {
   const parent = fs.realpathSync(path.dirname(path.resolve(options.out)));
   const attemptDir = path.join(parent, path.basename(path.resolve(options.out)));
   if (fs.existsSync(attemptDir)) fail('ATTEMPT_ALREADY_EXISTS');
+  const outputSchemaPath = outputSchemaPathFor(task);
+  const outputSchema = readOutputSchema(outputSchemaPath);
   const capsule = {schema: 'vulpora.session-capsule/v1', attemptId: crypto.randomUUID(), task, route,
     budget: {file: budgetFile, id: budget.id},
     runtime: executable(), workspace: snapshot(task, attemptDir), preparedAt: new Date().toISOString(),
     expiresAt: new Date(Date.parse(catalog.observedAt) + policy.maxCatalogAgeSeconds * 1000).toISOString(),
-    outputSchemaSha256: hash(regularFile(outputSchemaPathFor(task), 65536))};
+    outputSchemaSha256: outputSchema.sha256};
   // Explicit until matched measurements justify changing the default. Existing
   // capsules keep their exact prompt and workspace binding semantics.
   if (proposalMode(task)) {
@@ -251,7 +254,7 @@ function prepare(options) {
   if (Buffer.byteLength(workerPromptFor(capsule)) > task.limits.maxPromptBytes) fail('PROMPT_BUDGET_EXCEEDED');
   fs.mkdirSync(attemptDir, {mode: 0o700});
   writeNew(path.join(attemptDir, 'capsule.json'), capsule);
-  writeNew(path.join(attemptDir, 'output.schema.json'), readJson(outputSchemaPathFor(task), 65536));
+  writeNew(path.join(attemptDir, 'output.schema.json'), outputSchema.schema);
   writeNew(path.join(attemptDir, 'prepared.json'), {schema: 'vulpora.session-prepared/v1',
     attemptId: capsule.attemptId, capsuleSha256: hash(canonical(capsule))});
   return {schema: 'vulpora.session-plan/v1', status: 'PREPARED', execution: 'NOT_RUN',
@@ -385,7 +388,7 @@ async function execute(capsule, attemptDir) {
     if (!object(value)) { stop('INVALID_RUNTIME_EVENT'); return; }
     eventCount++;
     telemetry.observe(value);
-    if (proposalMode(capsule.task) && value.type === 'item.completed'
+    if (proposalMode(capsule.task) && ['item.started', 'item.updated', 'item.completed'].includes(value.type)
       && (!object(value.item) || !['agent_message', 'reasoning'].includes(value.item.type))) stop('EDIT_PROPOSAL_TOOL_USE');
     if (value.type === 'thread.started' && typeof value.thread_id === 'string' && ID.test(value.thread_id)) threadId = value.thread_id;
     // Only top-level CLI protocol events provide usage; model/tool text and the
@@ -484,10 +487,12 @@ async function run(options) {
   if (fs.existsSync(path.join(attemptDir, 'launch.json')) || fs.existsSync(path.join(attemptDir, 'result.json'))) fail('ATTEMPT_ALREADY_STARTED');
   if (Date.now() > Date.parse(capsule.expiresAt)) fail('STALE_SESSION_ROUTE');
   if (hash(regularFile(capsule.runtime.executable, 256 * 1024 * 1024)) !== capsule.runtime.sha256) fail('RUNTIME_CHANGED');
-  const schema = readJson(path.join(attemptDir, 'output.schema.json'), 65536);
+  const schema = readOutputSchema(path.join(attemptDir, 'output.schema.json'));
   const outputSchemaPath = outputSchemaPathFor(capsule.task);
-  if (hash(canonical(schema)) !== hash(canonical(readJson(outputSchemaPath, 65536)))
-    || hash(regularFile(outputSchemaPath, 65536)) !== capsule.outputSchemaSha256) fail('OUTPUT_SCHEMA_CHANGED');
+  const currentSchema = readOutputSchema(outputSchemaPath);
+  if (hash(canonical(schema.schema)) !== hash(canonical(currentSchema.schema))
+    || currentSchema.sha256 !== capsule.outputSchemaSha256)
+    fail('OUTPUT_SCHEMA_CHANGED');
   if (proposalMode(capsule.task)) validateEditRepositoryContext(capsule.task);
   if (canonical(snapshot(capsule.task, attemptDir)) !== canonical(capsule.workspace)) fail('STALE_WORKSPACE');
   if (Buffer.byteLength(workerPromptFor(capsule)) > capsule.task.limits.maxPromptBytes) fail('PROMPT_BUDGET_EXCEEDED');
