@@ -139,7 +139,7 @@ run_setup_preflight_for() { # runtime target assets
   runtime="$1"
   target="$2"
   assets="$3"
-  bash "$INSTALL" -t "$target" --runtime "$runtime" $assets
+  bash "$INSTALL" -t "$target" --runtime "$runtime" --scope "$scope" $assets
 }
 
 rewrite_setup_dry_run_guidance() {
@@ -154,12 +154,12 @@ run_setup_for() { # runtime target dry-run assets
   dry_run="$3"
   assets="$4"
   if [ "$dry_run" = 1 ]; then
-    bash "$INSTALL" -t "$target" --runtime "$runtime" $assets \
+    bash "$INSTALL" -t "$target" --runtime "$runtime" --scope "$scope" $assets \
       | rewrite_setup_dry_run_guidance
     return
   fi
-  bash "$INSTALL" -t "$target" --runtime "$runtime" --apply $assets || return $?
-  bash "$INSTALL" -t "$target" --runtime "$runtime" --verify $assets
+  bash "$INSTALL" -t "$target" --runtime "$runtime" --scope "$scope" --apply $assets || return $?
+  bash "$INSTALL" -t "$target" --runtime "$runtime" --scope "$scope" --verify $assets
 }
 
 run_doctor_for() { # runtime target assets
@@ -170,7 +170,7 @@ run_doctor_for() { # runtime target assets
     codex) PATH="$ORIGINAL_PATH" command -v codex >/dev/null 2>&1 || die "Codex CLI를 찾을 수 없습니다." ;;
     claude-code) PATH="$ORIGINAL_PATH" command -v claude >/dev/null 2>&1 || die "Claude Code CLI를 찾을 수 없습니다." ;;
   esac
-  bash "$INSTALL" -t "$target" --runtime "$runtime" --verify $assets
+  bash "$INSTALL" -t "$target" --runtime "$runtime" --scope "$scope" --verify $assets
 }
 
 run_uninstall_for() { # runtime target dry-run assets

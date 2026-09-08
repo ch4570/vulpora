@@ -219,6 +219,12 @@ plugin 이름을 관리할 필요가 없습니다.
 | Claude Code | `project` | `<project>/.claude/agents` | `<project>/.claude/skills` | `<project>/.mcp.json` |
 | OpenCode (experimental) | `project` | `<project>/.opencode/agents` | `<project>/.opencode/skills` | 별도 관리 |
 
+Codex `user` 설치는 생성된 TOML의 `developer_instructions`에서 `~/.codex/...`와
+`~/.agents/skills/...`를 사용합니다. 파일을 읽기 전에 `~/`를 현재 사용자의 홈 디렉터리로
+해석하도록 지시하므로 설치한 사람의 절대 홈 경로가 지침에 남지 않습니다. `project` 설치의
+참조는 해당 프로젝트의 절대 경로를 유지합니다. 기존 user 설치는 같은 selector로 `setup`을
+다시 실행하면 갱신되며, 사용자가 직접 수정한 설치 파일에는 기존 덮어쓰기 보호가 적용됩니다.
+
 OpenCode는 상위 `vulpora` CLI의 runtime selector에 아직 포함되지 않습니다. 검증할 project에서만
 저수준 installer를 명시적으로 실행하고, 설치 직후 같은 selector로 rendered catalog를 확인합니다.
 
@@ -340,6 +346,10 @@ vulpora mcp remove --runtime claude-code --scope project notion
 `--scope project` 시 현재 Git root가 기본 target이며 `--target /path/to/project`로 명시할 수
 있습니다. [Claude Code MCP scope](https://code.claude.com/docs/en/mcp)와 Codex의 project/user config
 방식을 각 CLI에 그대로 위임합니다.
+
+저수준 `install/install.sh`도 선택적으로 `--scope project|user`를 받습니다. `project`를 명시하면
+target이 `$HOME`과 같아도 프로젝트 절대 경로를 유지하고, `user`를 명시하면 target이 canonical
+`$HOME`과 정확히 일치해야 합니다. 생략하면 기존 target 기반 자동 판별을 유지합니다.
 
 ## 전역 npm 설치와 기존 Claude plugin
 

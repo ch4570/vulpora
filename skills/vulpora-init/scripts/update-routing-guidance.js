@@ -14,6 +14,10 @@ const IGNORED_DIRS = new Set([
   '.vulpora', '.agents', '.claude', '.codex', '.git', '.gradle', '.idea', '.next', '.omx', '.opencode',
   'build', 'coverage', 'dist', 'node_modules', 'out', 'target', 'vendor',
 ]);
+// Build logic and embedded sample repositories are not application evidence.
+// Ordinary source/test directories remain eligible.
+const NON_APPLICATION_DIRS = new Set(['buildSrc', 'build-logic', 'gradle', 'evals', 'evaluations', 'fixtures']);
+const JVM_BUILD = /^(?:build\.gradle(?:\.kts)?|pom\.xml)$/;
 
 function fail(message) {
   process.stderr.write(`vulpora-init: ${message}\n`);
@@ -54,11 +58,14 @@ function walk(root) {
     const directory = pending.pop();
     const entries = fs.readdirSync(directory, { withFileTypes: true })
       .sort((left, right) => left.name.localeCompare(right.name));
+    const relativeDirectory = path.relative(root, directory).split(path.sep).join('/');
+    if (/(?:^|\/)(?:skills|agents)\/[^/]+$/.test(relativeDirectory)
+        && entries.some(entry => entry.isFile() && ['SKILL.md', 'SOUL.md'].includes(entry.name))) continue;
     for (const entry of entries) {
       if (entry.isSymbolicLink()) continue;
       const absolute = path.join(directory, entry.name);
       if (entry.isDirectory()) {
-        if (!IGNORED_DIRS.has(entry.name)) pending.push(absolute);
+        if (!entry.name.startsWith('.') && !IGNORED_DIRS.has(entry.name) && !NON_APPLICATION_DIRS.has(entry.name)) pending.push(absolute);
       } else if (entry.isFile()) {
         const relative = path.relative(root, absolute).split(path.sep).join('/');
         if (relative !== 'AGENTS.md') files.push({ absolute, relative });
@@ -75,6 +82,12 @@ function readCandidate(file) {
   return fs.readFileSync(file.absolute, 'utf8');
 }
 
+function withoutComments(text) {
+  // Preserve quoted dependency coordinates/URLs while excluding code/XML comments.
+  return text.replace(/("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|\/\*[\s\S]*?\*\/|\/\/[^\n]*|<!--[\s\S]*?-->/g,
+    (match, quoted) => quoted || '');
+}
+
 function loadProjectConfig(root) {
   const defaults = {
     schemaVersion: 1,
@@ -82,9 +95,8 @@ function loadProjectConfig(root) {
     vcs: { provider: 'auto', baseBranch: 'auto', prepareBranch: false },
   };
   const configPath = path.join(root, CONFIG_FILE);
-  if (!fs.existsSync(configPath)) return defaults;
-
-  const stat = fs.lstatSync(configPath);
+  const stat = fs.lstatSync(configPath, { throwIfNoEntry: false });
+  if (!stat) return defaults;
   if (stat.isSymbolicLink()) fail(`refusing symlinked ${CONFIG_FILE}`);
   if (!stat.isFile()) fail(`${CONFIG_FILE} must be a regular file`);
   if (stat.size > MAX_CONFIG_BYTES) fail(`${CONFIG_FILE} exceeds ${MAX_CONFIG_BYTES} bytes`);
@@ -149,28 +161,51 @@ function addEvidence(collection, relative) {
 }
 
 function inspect(root) {
-  const evidence = { kotlin: [], spring: [], postgres: [], mssql: [], opensearch: [] };
+  const evidence = { modules: [], postgres: [], mssql: [], opensearch: [] };
   const files = walk(root);
+  const builds = new Map();
+  for (const file of files.filter(file => JVM_BUILD.test(path.posix.basename(file.relative)))) {
+    const directory = path.posix.dirname(file.relative);
+    if (!builds.has(directory)) builds.set(directory, []);
+    builds.get(directory).push({ ...file, text: withoutComments(readCandidate(file)) });
+  }
+  const modules = new Map();
+  function sourceModule(relative) {
+    // A source root identifies its module even when its build is inherited.
+    const sourceRoot = relative.match(/^(?:(.*?)\/)?src\//);
+    let directory = sourceRoot ? sourceRoot[1] || '.' : path.posix.dirname(relative);
+    if (!sourceRoot) {
+      while (directory !== '.' && !builds.has(directory)) directory = path.posix.dirname(directory);
+    }
+    if (!modules.has(directory)) {
+      const moduleBuilds = builds.get(directory) || [];
+      modules.set(directory, { root: directory, java: [], kotlin: [], spring: [], builds: moduleBuilds });
+    }
+    return modules.get(directory);
+  }
   for (const file of files) {
     const rel = file.relative;
     const base = path.posix.basename(rel);
-    const isKotlin = rel.endsWith('.kt') || rel.endsWith('.kts');
+    const isKotlin = rel.endsWith('.kt');
+    const isJava = rel.endsWith('.java');
     const isBuild = /^(build\.gradle(?:\.kts)?|settings\.gradle(?:\.kts)?|gradle\.properties|pom\.xml|libs\.versions\.toml|package\.json|packages\.lock\.json|.+\.csproj)$/.test(base);
     const isRuntimeConfig = /^(application(?:-[^.]+)?\.(?:ya?ml|properties)|appsettings(?:\.[^.]+)?\.json|docker-compose[^/]*\.ya?ml|compose[^/]*\.ya?ml)$/.test(base);
     const isSql = rel.endsWith('.sql');
     const isSearchArtifact = /(?:opensearch|index[-_.]?template|mapping|search[-_.]?query)/i.test(base)
       && /\.(?:json|ya?ml)$/.test(base);
 
-    if (isKotlin) addEvidence(evidence.kotlin, rel);
-    if (!(isBuild || isRuntimeConfig || isKotlin || rel.endsWith('.java') || isSql || isSearchArtifact)) continue;
+    if (!(isBuild || isRuntimeConfig || isKotlin || isJava || isSql || isSearchArtifact)) continue;
 
-    const text = readCandidate(file);
+    const raw = readCandidate(file);
+    const text = isBuild || isKotlin || isJava ? withoutComments(raw) : raw;
     if (!text) continue;
-    if (isBuild && /org\.jetbrains\.kotlin|kotlin\s*\(|kotlin[-_.](?:jvm|spring|gradle)/i.test(text)) {
-      addEvidence(evidence.kotlin, rel);
-    }
-    if (/org\.springframework|org\.springframework\.boot|@(?:SpringBootApplication|Configuration|Service|Repository|Component|RestController)\b/i.test(text)) {
-      addEvidence(evidence.spring, rel);
+    if (isKotlin || isJava) {
+      const module = sourceModule(rel);
+      // Convention plugins can live outside the usual Gradle directories.
+      if (/\bimport\s+org\.gradle\./.test(text)
+          || module.builds.some(build => /(?:\bid\s*\(?\s*["'](?:org\.gradle\.)?(?:kotlin\.kotlin-dsl|kotlin-dsl|java-gradle-plugin)["']|`kotlin-dsl`)/.test(build.text))) continue;
+      addEvidence(module[isKotlin ? 'kotlin' : 'java'], rel);
+      if (/\borg\.springframework\b/.test(text)) addEvidence(module.spring, rel);
     }
     if ((isBuild || isRuntimeConfig) && /org\.postgresql|jdbc:postgresql|postgres(?:ql)?[:/\s"']|r2dbc:postgresql/i.test(text)) {
       addEvidence(evidence.postgres, rel);
@@ -188,6 +223,19 @@ function inspect(root) {
       addEvidence(evidence.opensearch, rel);
     }
   }
+  for (const module of modules.values()) {
+    if (module.java.length === 0 && module.kotlin.length === 0) continue;
+    for (const build of module.builds) {
+      // A plugin declaration with apply false does not apply Spring to this module.
+      const applied = build.text.replace(/id\s*(?:\(\s*["']org\.springframework[^"']*["']\s*\)|["']org\.springframework[^"']*["'])[^\n{};]*\bapply\s+false\b/g, '');
+      const usesSpring = path.posix.basename(build.relative) === 'pom.xml'
+        ? /<dependency\b[^>]*>[\s\S]*?<groupId>\s*org\.springframework(?:\.[^<]*)?\s*<\/groupId>[\s\S]*?<\/dependency>/.test(
+          applied.replace(/<(dependencyManagement|build|reporting)\b[^>]*>[\s\S]*?<\/\1>/g, ''))
+        : /\borg\.springframework\b/.test(applied);
+      if (usesSpring) addEvidence(module.spring, build.relative);
+    }
+    evidence.modules.push(module);
+  }
   return evidence;
 }
 
@@ -197,12 +245,28 @@ function renderEvidence(paths) {
 
 function renderBlock(evidence, config) {
   const sections = [];
-  if (evidence.kotlin.length > 0) {
-    const title = evidence.spring.length > 0 ? 'Kotlin / Spring' : 'Kotlin';
-    const paths = [...evidence.kotlin, ...evidence.spring].filter((value, index, all) => all.indexOf(value) === index).slice(0, 5);
-    sections.push(`### ${title}\n\n- Evidence: ${renderEvidence(paths)}\n- Implementation: if installed, load \`kotlin-code-authoring\` when the affected lane uses this stack; otherwise recommend \`pack:jvm-spring\` and follow repository-local guidance.\n- Tests: when installed, use \`test-authoring\` for missing behavior or new tests. Existing-test quality work may use \`test-quality-review\`, then \`test-refactoring\` for selected findings, or \`test-quality-refactoring-workflow\` for a fixed-scope end-to-end pass—but only when those skills are installed. Persistence mapping tests must follow the installed \`test-authoring\` repository round-trip profile.\n- Review: if installed, use \`kotlin-spring-review-workflow\`; otherwise recommend \`pack:jvm-spring\`.`);
-  } else if (evidence.spring.length > 0) {
-    sections.push(`### Java / Spring\n\n- Evidence: ${renderEvidence(evidence.spring)}\n- Implementation: follow repository-local Java/Spring authoring conventions; do not substitute the Kotlin authoring skill.\n- Tests: if installed, use \`test-authoring\` for missing behavior or new tests.\n- Review: if installed, use \`java-spring-review-workflow\`; otherwise recommend \`pack:jvm-spring\`.`);
+  for (const language of ['java', 'kotlin']) {
+    for (const spring of [true, false]) {
+      const modules = evidence.modules.filter(module => module[language].length > 0 && (module.spring.length > 0) === spring);
+      if (modules.length === 0) continue;
+      const label = language === 'java' ? 'Java' : 'Kotlin';
+      const title = `${label}${spring ? ' / Spring' : ''}`;
+      const moduleEvidence = modules.map(module => {
+        const paths = [...new Set([...module[language], ...module.spring, ...module.builds.map(build => build.relative)])];
+        return `- Module: ${renderEvidence([module.root])}. Evidence: ${renderEvidence(paths)}${module.builds.length === 0 ? '. No local build file found; verify inherited or custom build configuration before implementation.' : ''}`;
+      }).join('\n');
+      const scope = `- Scope: only changed ${label} source and ${label} tests in these modules. In mixed modules, select the route for each changed file; never apply one language route to the whole repository.`;
+      const implementation = language === 'java'
+        ? '- Implementation: follow repository-local Java authoring conventions and the affected module build settings.'
+        : '- Implementation: if installed, load `kotlin-code-authoring` for affected Kotlin code; otherwise recommend `pack:jvm-spring` and follow repository-local guidance.';
+      const tests = language === 'java'
+        ? '- Tests: follow the affected module’s existing Java test framework, dependencies, and nearby tests; do not apply Kotlin-only test skills to Java work.'
+        : '- Tests: only for affected Kotlin tests, when installed, use `test-authoring` for new behavior or tests. Existing Kotlin test quality work may use `test-quality-review`, `test-refactoring`, or `test-quality-refactoring-workflow` when installed and supported by the module’s test framework. Kotlin persistence tests follow the installed `test-authoring` repository round-trip profile.';
+      const review = spring
+        ? `- Review: if installed, use \`${language}-spring-review-workflow\` for this module and language; otherwise recommend \`pack:jvm-spring\`.`
+        : '- Review: follow repository-local review guidance; Spring usage is not established for these modules.';
+      sections.push(`### ${title}\n\n${scope}\n${moduleEvidence}\n${implementation}\n${tests}\n${review}`);
+    }
   }
   if (evidence.postgres.length > 0) {
     sections.push(`### PostgreSQL\n\n- Evidence: ${renderEvidence(evidence.postgres)}\n- Implementation: if installed, load \`postgres-code-authoring\` for affected SQL, repository-query, schema, or migration lanes; otherwise recommend \`pack:postgres\`.\n- Review: if installed, use \`postgres-review-workflow\`; otherwise recommend \`pack:postgres\`.`);
@@ -214,7 +278,7 @@ function renderBlock(evidence, config) {
     sections.push(`### OpenSearch\n\n- Evidence: ${renderEvidence(evidence.opensearch)}\n- Implementation: if installed, load \`opensearch-code-authoring\` for affected mapping, Query DSL, pipeline, index-setting, or reindex lanes; otherwise recommend \`pack:opensearch\`.\n- Review: if installed, use \`opensearch-review-workflow\`; otherwise recommend \`pack:opensearch\`.`);
   }
   if (sections.length === 0) {
-    sections.push('### Detected stack profiles\n\nNo supported Kotlin/Spring, PostgreSQL, Microsoft SQL Server, or OpenSearch profile was detected. Follow repository-local conventions and do not invent a stack route.');
+    sections.push('### Detected stack profiles\n\nNo supported Java/Kotlin, Spring, PostgreSQL, Microsoft SQL Server, or OpenSearch profile was detected. Follow repository-local conventions and do not invent a stack route.');
   }
 
   const providerLabel = {
@@ -262,7 +326,7 @@ function main() {
   if (!fs.statSync(root).isDirectory()) fail(`target is not a directory: ${target}`);
 
   const agentsPath = path.join(root, 'AGENTS.md');
-  if (fs.existsSync(agentsPath) && fs.lstatSync(agentsPath).isSymbolicLink()) fail('refusing symlinked AGENTS.md');
+  if (fs.lstatSync(agentsPath, { throwIfNoEntry: false })?.isSymbolicLink()) fail('refusing symlinked AGENTS.md');
   const existing = fs.existsSync(agentsPath) ? fs.readFileSync(agentsPath, 'utf8') : '';
   const config = loadProjectConfig(root);
   const evidence = inspect(root);
@@ -294,7 +358,8 @@ function main() {
   } finally {
     if (fs.existsSync(temporary)) fs.unlinkSync(temporary);
   }
-  const detected = Object.entries(evidence).filter(([, paths]) => paths.length > 0).map(([name]) => name);
+  const detected = ['java', 'kotlin', 'spring'].filter(name => evidence.modules.some(module => module[name].length > 0));
+  detected.push(...['postgres', 'mssql', 'opensearch'].filter(name => evidence[name].length > 0));
   process.stdout.write(`routing_guidance_updated: AGENTS.md\ndetected_profiles: ${detected.join(',') || 'none'}\nproject_config: ${fs.existsSync(path.join(root, CONFIG_FILE)) ? CONFIG_FILE : 'defaults'}\n`);
 }
 
