@@ -11,7 +11,7 @@ const MAX_FILES = 50000;
 const MAX_READ_BYTES = 512 * 1024;
 const MAX_CONFIG_BYTES = 64 * 1024;
 const IGNORED_DIRS = new Set([
-  '.vulpora', '.agent-lab', '.agents', '.claude', '.codex', '.git', '.gradle', '.idea', '.next', '.omx', '.opencode',
+  '.vulpora', '.agents', '.claude', '.codex', '.git', '.gradle', '.idea', '.next', '.omx', '.opencode',
   'build', 'coverage', 'dist', 'node_modules', 'out', 'target', 'vendor',
 ]);
 // Build logic and embedded sample repositories are not application evidence.
@@ -65,7 +65,7 @@ function walk(root) {
       if (entry.isSymbolicLink()) continue;
       const absolute = path.join(directory, entry.name);
       if (entry.isDirectory()) {
-        if (!IGNORED_DIRS.has(entry.name) && !NON_APPLICATION_DIRS.has(entry.name)) pending.push(absolute);
+        if (!entry.name.startsWith('.') && !IGNORED_DIRS.has(entry.name) && !NON_APPLICATION_DIRS.has(entry.name)) pending.push(absolute);
       } else if (entry.isFile()) {
         const relative = path.relative(root, absolute).split(path.sep).join('/');
         if (relative !== 'AGENTS.md') files.push({ absolute, relative });

@@ -224,6 +224,7 @@ test('excludes custom convention plugins and installed bundles but retains ordin
     'agents/installed/src/main/kotlin/Fake.kt': 'import org.springframework.stereotype.Service\nclass Fake\n',
     '.agents/skills/installed/src/main/kotlin/Fake.kt': 'class Fake\n',
     '.codex/agents/installed/src/main/kotlin/Fake.kt': 'class Fake\n',
+    '.local-work/releases/src/main/kotlin/Fake.kt': 'import org.springframework.stereotype.Service\nclass Fake\n',
     'build.gradle.kts': 'plugins { id("java"); kotlin("jvm") }\n',
     'src/main/java/App.java': 'class App {}\n',
     'src/test/kotlin/AppTest.kt': 'class AppTest\n',
@@ -232,7 +233,7 @@ test('excludes custom convention plugins and installed bundles but retains ordin
   const generated = block(root);
   assert.match(section(generated, 'Java'), /src\/main\/java\/App\.java/);
   assert.match(section(generated, 'Kotlin'), /src\/test\/kotlin\/AppTest\.kt/);
-  assert.doesNotMatch(generated, /### (?:Java|Kotlin) \/ Spring|tools\/conventions|(?:skills|agents)\/installed/);
+  assert.doesNotMatch(generated, /### (?:Java|Kotlin) \/ Spring|tools\/conventions|(?:skills|agents)\/installed|\.local-work/);
   assert.match(section(generated, 'Kotlin'), /only changed Kotlin source and Kotlin tests/);
   assert.doesNotMatch(section(generated, 'Java'), /`(?:test-authoring|test-refactoring|kotlin-code-authoring)`/);
 });
