@@ -56,10 +56,10 @@ Pack 전체를 고르려면 checkout에서 `./vulpora setup --runtime codex --sc
 <summary>npm 버전 고정 명령 — 공개 배포 완료 후 사용</summary>
 
 ```sh
-npx --yes vulpora@1.0.0
+npx --yes vulpora@1.0.1
 ```
 
-배포 후에는 `npm install --global vulpora@1.0.0`으로 전역 명령을 설치할 수도 있습니다.
+배포 후에는 `npm install --global vulpora@1.0.1`으로 전역 명령을 설치할 수도 있습니다.
 그 전에는 위 Git 명령이나 [설치 가이드](INSTALL.md)의 검토된 로컬 tarball을 사용합니다.
 
 </details>

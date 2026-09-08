@@ -1,6 +1,15 @@
 # Changelog
 
-Vulpora(기존 Vulpora)의 사용자 관점 변경 사항을 기록합니다.
+Vulpora의 사용자 관점 변경 사항을 기록합니다.
+
+## [1.0.1] - 2026-09-08
+
+- `vulpora-init`이 Gradle Kotlin DSL과 빌드 보조 코드를 애플리케이션 Kotlin 근거에서 제외하고,
+  실제 소스·모듈 빌드 설정에 따라 Java/Kotlin 작성·테스트·리뷰 경로를 선택합니다.
+- Codex user 설치의 개인 홈 경로를 이식 가능한 참조로 바꾸고 project scope와 권한 설정을 보존합니다.
+- 난이도별 Luna 라우팅, 공유 세션 예산, 제한된 편집 제안, 출력 schema 사전 검증과 실패 처리를 보강합니다.
+- 반복 사용할 릴리즈 노트 템플릿과 업데이트 절차를 추가했습니다.
+- 전체 변경과 검증 범위는 [v1.0.1 릴리즈 노트](docs/releases/v1.0.1.md)에 기록합니다.
 
 ## [1.0.0] - 2026-09-07 — first public Vulpora release
 

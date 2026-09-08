@@ -1,7 +1,20 @@
-# Vulpora v1.0.0 release checks
+# Vulpora release checks
 
 This document defines the reproducible distribution checks and their limits. Publication status is recorded
 in the GitHub release and [issue ledger](issue-resolution.md), not inferred from a local test command.
+
+## Version and release notes
+
+Use [the release-note template](releases/TEMPLATE.md) for `docs/releases/vX.Y.Z.md`; see
+[v1.0.1](releases/v1.0.1.md) for a completed example. Record changes since the previous public tag, upgrade
+steps, observed validation, and any remaining limits. Keep `VERSION`, `package.json`, both Claude plugin
+manifests, current installation examples, and `CHANGELOG.md` aligned. Leave historical release entries intact.
+
+Build from a clean committed checkout so unrelated local work cannot enter the assets. Publish the tag's npm
+tarball, a source archive made with `git archive`, and `SHA256SUMS`. Compare packaged files with the tag and
+verify downloaded release assets against those checksums after upload. Copy the completed notes into the
+GitHub Release body and add links to the final commit's CI runs. GitHub publication and npm registry
+publication are separate; retain the documented registry status unless that publication is requested.
 
 ## Source and package
 
