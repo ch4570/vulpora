@@ -57,10 +57,10 @@ from a checkout. Already cloned the repository? Run `./vulpora` to open the inst
 <summary>Versioned npm release command — available after publication</summary>
 
 ```sh
-npx --yes vulpora@1.0.0
+npx --yes vulpora@1.0.1
 ```
 
-After publication, use `npm install --global vulpora@1.0.0` for a persistent command.
+After publication, use `npm install --global vulpora@1.0.1` for a persistent command.
 Until then, use the Git command above or a reviewed tarball from the [installation guide](INSTALL.md).
 
 </details>

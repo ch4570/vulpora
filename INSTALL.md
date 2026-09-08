@@ -2,7 +2,7 @@
 
 [English README](README.md) · [한국어 README](README.ko.md) · [아키텍처](docs/architecture.ko.md) · [전체 스킬](docs/skills.ko.md)
 
-Vulpora 1.0.0은 Claude Code와 Codex에 에이전트 28개, 스킬 62개, 14개 capability pack과
+Vulpora 1.0.1은 Claude Code와 Codex에 에이전트 28개, 스킬 62개, 14개 capability pack과
 hosted MCP 연결을 선택 설치합니다. 전체 설치의 정상 inventory는 `Agents (28)`, `Skills (62)`입니다.
 OpenCode는 저수준 installer의 project-scope agent/skill renderer만 experimental로 제공합니다. 상위 CLI와
 native execution smoke test가 완성되기 전까지 안정 지원에 포함하지 않습니다.
@@ -49,10 +49,10 @@ vulpora
 <summary>버전 고정 npm 명령 — registry 배포 이후 사용 가능</summary>
 
 ```bash
-npx --yes vulpora@1.0.0
+npx --yes vulpora@1.0.1
 
 # 계속 사용할 전역 CLI
-npm install --global vulpora@1.0.0
+npm install --global vulpora@1.0.1
 vulpora
 ```
 
@@ -415,9 +415,9 @@ MCP는 에이전트 receipt와 별개이므로 비대화형 CLI에서는 `vulpor
 
 ## 문제 해결
 
-- `npm E404`: 현재 `vulpora@1.0.0` registry 배포는 대기 중이므로 위 GitHub 명령이나 로컬 checkout을
+- `npm E404`: 현재 `vulpora@1.0.1` registry 배포는 대기 중이므로 위 GitHub 명령이나 로컬 checkout을
   사용합니다. 배포 이후에는 `npm config get registry`와
-  `npm view vulpora@1.0.0 --registry=https://registry.npmjs.org`로 registry·버전을 확인합니다.
+  `npm view vulpora@1.0.1 --registry=https://registry.npmjs.org`로 registry·버전을 확인합니다.
 - Git repository 접근 실패: `git ls-remote https://github.com/ch4570/vulpora.git`로 네트워크와
   repository 접근 권한을 확인합니다. 공개 전에는 GitHub 인증이 필요할 수 있으며, 접근 가능한
   환경에서 만든 tarball을 전달받아 오프라인 방식으로 설치할 수도 있습니다.
