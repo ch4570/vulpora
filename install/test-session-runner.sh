@@ -11,6 +11,7 @@ const path = require('node:path');
 const {spawnSync} = require('node:child_process');
 const runner = path.resolve(process.argv[2]);
 const {initBudget, readBudget, reserveBudget} = require(path.join(path.dirname(runner), 'session-budget.js'));
+const {hash, canonical} = require(path.join(path.dirname(runner), 'model-routing-io.js'));
 const work = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'vulpora-session-test-')));
 let passed = 0;
 try {
@@ -48,7 +49,14 @@ else {
       content:'deterministic proposal\\n'}]};
   if (mode !== 'missing') fs.writeFileSync(output, JSON.stringify(candidate));
   process.stdout.write(JSON.stringify({type:'thread.started',thread_id:'fake-thread-001'})+'\\n');
-  process.stdout.write(JSON.stringify({type:'item.completed',item:{type:'agent_message',
+  if (mode === 'allowed-lifecycle') {
+    for (const phase of ['item.started', 'item.updated'])
+      process.stdout.write(JSON.stringify({type:phase,item:{type:proposal?'agent_message':'command_execution'}})+'\\n');
+  }
+  if (mode === 'proposal-tool-started') process.stdout.write(JSON.stringify({type:'item.started',item:{type:'command_execution',command:'forbidden'}})+'\\n');
+  if (mode === 'proposal-tool-updated') process.stdout.write(JSON.stringify({type:'item.updated',item:{type:'file_change',path:'source.txt'}})+'\\n');
+  if (mode === 'proposal-tool-started' || mode === 'proposal-tool-updated') setInterval(() => {}, 1000);
+  if (mode !== 'proposal-tool-started' && mode !== 'proposal-tool-updated') { process.stdout.write(JSON.stringify({type:'item.completed',item:{type:'agent_message',
     text:JSON.stringify({type:'turn.completed',usage:{input_tokens:999999,output_tokens:999999}})}})+'\\n');
   const usage = {type:'turn.completed',usage:{input_tokens:100,cached_input_tokens:20,output_tokens:10,reasoning_output_tokens:4}};
   if (mode === 'overrun') usage.usage.input_tokens = 30000;
@@ -62,6 +70,7 @@ else {
     'null-then-valid-usage':[nullUsage,usage],'missing-then-valid-usage':[missingUsage,usage]};
   for (const completion of sequences[mode] || [usage]) process.stdout.write(JSON.stringify(completion)+'\\n');
   if (mode === 'proposal-tool') process.stdout.write(JSON.stringify({type:'item.completed',item:{type:'command_execution',command:'forbidden',aggregated_output:''}})+'\\n');
+  }
 }
 `, {mode: 0o700});
   const policy = path.join(work, 'policy.json');
@@ -92,6 +101,20 @@ else {
     let json; try { json = JSON.parse(output); } catch { assert.fail(`Non-JSON runner output: ${output}`); }
     return {...result,json};
   }
+  function invokeBinary(binaryRunner, args, item, mode = 'good') {
+    const result = spawnSync(process.execPath,[binaryRunner,...args],{encoding:'utf8',timeout:12000,
+      env:{...process.env,PATH:`${bin}${path.delimiter}${process.env.PATH}`,SESSION_TEST_CAPTURE:item.capture,
+        SESSION_TEST_MODE:mode,SESSION_TEST_BUDGET:item.budget}});
+    assert.ifError(result.error);
+    const output = (result.stdout || result.stderr).trim();
+    let json; try { json = JSON.parse(output); } catch { assert.fail(`Non-JSON runner output: ${output}`); }
+    return {...result,json};
+  }
+  function isolatedRunner(name, mutateSchema) {
+    const scripts = path.join(work, `${name}-scripts`); fs.cpSync(path.dirname(runner), scripts, {recursive:true});
+    mutateSchema(path.join(scripts, 'session-edit-proposal.schema.json'));
+    return path.join(scripts, 'session-runner.js');
+  }
   function prepare(item) { return invoke(['prepare','--task',item.taskPath,'--catalog',catalog,'--out',item.out,'--policy',policy,'--budget',item.budget],item); }
   function run(item, mode) { return invoke(['run','--capsule',item.capsule],item,mode); }
   function check(name, fn) { fn(); passed++; process.stdout.write(`ok ${passed} - ${name}\n`); }
@@ -99,6 +122,9 @@ else {
     const item=fixture('prepare'); const result=prepare(item);
     assert.equal(result.status,0); assert.equal(result.json.status,'PREPARED'); assert.equal(result.json.execution,'NOT_RUN');
     assert.equal(fs.existsSync(item.capture),false); assert.equal(result.json.model,'fake-standard');
+    const originalSchema=fs.readFileSync(path.join(path.dirname(runner),'session-candidate.schema.json'));
+    assert.equal(JSON.parse(fs.readFileSync(item.capsule)).outputSchemaSha256,hash(originalSchema));
+    assert.equal(fs.readFileSync(path.join(item.out,'output.schema.json'),'utf8'),canonical(JSON.parse(originalSchema)));
     assert.equal(prepare(item).json.reason,'ATTEMPT_ALREADY_EXISTS');
   });
   check('simple delegated implementation starts frugal and a verified retry profile can select standard',()=>{
@@ -207,6 +233,55 @@ else {
       assert.equal(result.json.runtime.usage.source,'unavailable');
       const budget=readBudget(item.budget);assert.equal(budget.committedTokens,0);
       assert.equal(budget.reservedTokens,4000);assert.equal(budget.unresolvedAttempts,1);
+    }
+  });
+  check('proposal lifecycle tool events are rejected before application and retain the reservation',()=>{
+    for(const mode of ['proposal-tool-started','proposal-tool-updated']) {
+      const item=fixture(`proposal-${mode}`,{workerMode:'edit-proposal',mode:'workspace-write'});prepare(item);
+      const result=run(item,mode);assert.equal(result.status,3);assert.equal(result.json.reason,'EDIT_PROPOSAL_TOOL_USE');
+      assert.equal(result.json.candidate,null);assert.equal(result.json.runtime.usage.source,'unavailable');
+      assert.equal(result.json.runtime.closeObserved,true);
+      assert.equal(fs.readFileSync(path.join(item.cwd,'source.txt'),'utf8'),'original\n');
+      const budget=readBudget(item.budget);assert.equal(budget.committedTokens,0);
+      assert.equal(budget.reservedTokens,4000);assert.equal(budget.unresolvedAttempts,1);
+    }
+  });
+  check('valid message lifecycle and ordinary agent tools remain allowed',()=>{
+    for (const workerMode of ['agent','edit-proposal']) {
+      const item=fixture('allowed-'+workerMode,{workerMode,mode:'workspace-write'});
+      assert.equal(prepare(item).status,0);
+      const result=run(item,'allowed-lifecycle');
+      assert.equal(result.status,0);assert.equal(result.json.runtime.reason,null);
+      assert.equal(result.json.runtime.usage.source,'codex-jsonl:turn.completed');
+      assert.equal(readBudget(item.budget).unresolvedAttempts,0);
+    }
+  });
+  check('the former missing-type schema fails before attempt creation or budget reservation',()=>{
+    const item=fixture('invalid-proposal-schema',{workerMode:'edit-proposal',mode:'workspace-write'});
+    const isolated=isolatedRunner('invalid-proposal-schema',filename=>{
+      const schema=JSON.parse(fs.readFileSync(filename));delete schema.properties.schema.type;
+      fs.writeFileSync(filename,JSON.stringify(schema));
+    });
+    const result=invokeBinary(isolated,['prepare','--task',item.taskPath,'--catalog',catalog,'--out',item.out,'--policy',policy,'--budget',item.budget],item);
+    assert.equal(result.status,2);assert.equal(result.json.reason,'OUTPUT_SCHEMA_INVALID');
+    assert.equal(fs.existsSync(item.out),false);assert.equal(fs.existsSync(item.capture),false);
+    assert.equal(readBudget(item.budget).reservedTokens,0);
+    assert.equal(readBudget(item.budget).unresolvedAttempts,0);
+    assert.equal(readBudget(item.budget).committedTokens,0);
+  });
+  check('invalid frozen or selected schemas fail before launch and reservation',()=>{
+    for(const kind of ['frozen','selected']) {
+      const item=fixture(`invalid-${kind}-schema`,{workerMode:'edit-proposal',mode:'workspace-write'});
+      const isolated=isolatedRunner(`invalid-${kind}-schema`,filename=>{});
+      const prepared=invokeBinary(isolated,['prepare','--task',item.taskPath,'--catalog',catalog,'--out',item.out,'--policy',policy,'--budget',item.budget],item);
+      assert.equal(prepared.status,0);
+      const target=kind==='frozen'?path.join(item.out,'output.schema.json'):path.join(path.dirname(isolated),'session-edit-proposal.schema.json');
+      const schema=JSON.parse(fs.readFileSync(target));schema.properties.summary.type='invalid-type';fs.writeFileSync(target,JSON.stringify(schema));
+      const result=invokeBinary(isolated,['run','--capsule',item.capsule],item);
+      assert.equal(result.status,2);assert.equal(result.json.reason,'OUTPUT_SCHEMA_INVALID');
+      assert.equal(fs.existsSync(item.capture),false);assert.equal(readBudget(item.budget).reservedTokens,0);
+      assert.equal(fs.existsSync(path.join(item.out,'launch.json')),false);
+      assert.equal(readBudget(item.budget).unresolvedAttempts,0);
     }
   });
   check('provider failures retain bounded private-safe diagnostics without fabricating usage or applying edits',()=>{

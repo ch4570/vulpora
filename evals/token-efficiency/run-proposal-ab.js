@@ -88,7 +88,8 @@ function sourceEvidence() {
     'evals/token-efficiency/PROPOSAL-EVAL.md','skills/start-task/scripts/session-runner.js',
     'skills/start-task/scripts/session-io.js','skills/start-task/scripts/session-budget.js',
     'skills/start-task/scripts/session-task.schema.json','skills/start-task/scripts/session-candidate.schema.json',
-    'skills/start-task/scripts/session-edit-proposal.js','skills/start-task/scripts/session-edit-proposal.schema.json'];
+    'skills/start-task/scripts/session-edit-proposal.js','skills/start-task/scripts/session-edit-proposal.schema.json',
+    'skills/start-task/scripts/session-output-schema.js'];
   const files=Object.fromEntries(names.map(name=>[name,hash(fs.readFileSync(path.join(ROOT,name)))]));
   return {files,sha256:hash(canonical(files))};
 }
