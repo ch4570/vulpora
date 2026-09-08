@@ -3,7 +3,7 @@ name: kotlin-spring-review-workflow
 description: >-
   Run Kotlin/Spring, object-oriented design, design-pattern, and behavior-preserving refactoring
   reviews against one frozen code scope, then reconcile them into one evidence-based verdict. Use
-  for Kotlin or Spring pull requests, diffs, modules, or code snippets that need a multi-angle
+  for Kotlin changes, including Kotlin/Spring pull requests, diffs, modules, or code snippets that need a multi-angle
   design and maintainability review without the broader security scope of a full backend audit.
 ---
 

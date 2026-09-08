@@ -115,6 +115,8 @@ record 'tarball contains interactive agent, skill, and MCP installer surfaces' \
    && grep -Fqx 'package/agents/agent-eval/reference/kb/skillevaluator-usage.md' '$contents' \
    && grep -Fqx 'package/skills/vulpora-installer/SKILL.md' '$contents' \
    && grep -Fqx 'package/skills/vulpora-init/scripts/update-routing-guidance.js' '$contents' \
+   && grep -Fqx 'package/skills/vulpora-init/tests/update-routing-guidance.test.sh' '$contents' \
+   && grep -Fqx 'package/skills/vulpora-init/tests/stack-detection.test.js' '$contents' \
    && grep -Fqx 'package/skills/agent-eval/scripts/run-skillevaluator.sh' '$contents' \
    && grep -Fqx 'package/skills/agent-eval/config/skillevaluator-policy.yaml' '$contents' \
    && grep -Fqx 'package/skills/agent-eval/reference/kb/skillevaluator-usage.md' '$contents' \

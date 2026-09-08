@@ -23,6 +23,10 @@ The updater must:
 
 - inspect build files, source extensions, runtime configuration, migrations, mappings, and query code without
   executing repository content;
+- distinguish application Java/Kotlin source (including ordinary tests) from Gradle Kotlin DSL, `buildSrc`,
+  `gradle`, and convention-plugin code; ignore installed skill/agent bundles and evaluation fixtures;
+- combine each module's source evidence with its local build settings; route mixed Java/Kotlin changes per
+  affected module and file language, and keep Kotlin-only authoring/test skills out of Java work;
 - write only the `<!-- VULPORA:ROUTING:START -->` ... `<!-- VULPORA:ROUTING:END -->` block in root `AGENTS.md`;
 - preserve all user-authored content outside that block and replace the block idempotently on later runs;
 - route only from observed evidence and keep absent or unsupported stacks unclaimed;
@@ -39,3 +43,7 @@ overwriting uncertain content.
 After the update, inspect `git diff -- AGENTS.md`. Confirm that manual instructions remain unchanged, evidence paths
 exist, the required `code-authoring-router` belongs to the installed dependency closure, specialist references are
 conditional recommendations, and a second `--check` invocation passes.
+
+Detection is static: it does not execute Gradle/Maven or resolve inherited plugins and dependency aliases.
+When a module has no local build file or Spring evidence, inspect its inherited/custom build before selecting
+a framework-specific route. Gradle Kotlin DSL alone never establishes Kotlin application usage.

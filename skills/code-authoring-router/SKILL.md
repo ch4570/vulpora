@@ -30,7 +30,8 @@ Record the resolved policy and any branch action with the routing evidence.
 
 | Repository and task evidence | Load before editing |
 |---|---|
-| Kotlin source/build evidence; Spring dependencies or annotations | `kotlin-code-authoring` |
+| Actual Kotlin source in the affected module, supported by its build settings; the change edits Kotlin code | `kotlin-code-authoring` |
+| Java source in the affected module, including Java/Spring | Repository-local Java authoring and test conventions; `java-spring-review-workflow` for Spring review if installed |
 | PostgreSQL driver/dialect plus affected SQL, repository query, schema, or migration | `postgres-code-authoring` |
 | SQL Server driver/dialect plus affected T-SQL, stored procedure, schema, index, or migration | `mssql-code-authoring` |
 | OpenSearch client/dependency plus affected mapping, Query DSL, pipeline, index setting, or search behavior | `opensearch-code-authoring` |
@@ -39,6 +40,10 @@ Record the resolved policy and any branch action with the routing evidence.
 4. Put `base_branch`, `work_branch`, `required_authoring_skills`, and evidence paths in plans or implementation handoffs so delegated agents apply the same constraints.
 
 Do not select a technology from the feature wording alone. If no supported stack has repository evidence, continue with repository-local conventions without inventing an authoring skill.
+
+Gradle Kotlin DSL, `buildSrc`, and convention plugins do not establish Kotlin application usage. Exclude installed
+skill/agent bundles and evaluation fixtures from service-stack evidence. In mixed modules, route each affected file
+by its implementation/test language; Kotlin-only test skills must not be applied to Java work.
 
 Read [stack detection](reference/kb/stack-detection.md) when evidence is mixed or the feature crosses multiple persistence/search boundaries.
 

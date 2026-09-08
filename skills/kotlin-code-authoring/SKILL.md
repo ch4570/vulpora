@@ -1,6 +1,6 @@
 ---
 name: kotlin-code-authoring
-description: Write or modify Kotlin application code while preserving project conventions and readable Kotlin idioms. Use when implementing a feature, bug fix, or refactor in a repository detected as Kotlin or Spring, even when the user does not name the stack; do not use for review-only requests.
+description: Write or modify Kotlin application code while preserving project conventions and readable Kotlin idioms. Use when implementing a feature, bug fix, or refactor in actual Kotlin application source, including Kotlin/Spring modules, even when the user does not name the stack; do not use for Java changes, Gradle build logic, or review-only requests.
 ---
 
 # Kotlin code authoring
