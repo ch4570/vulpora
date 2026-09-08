@@ -10,6 +10,7 @@
 #   bash install/install.sh -t <대상레포> --apply postgres-dba kotlin-spring-reviewer
 #   bash install/install.sh -t <대상레포> --apply commands githooks memory-policies
 #   bash install/install.sh -t <대상레포> --verify postgres-dba
+#   Optional --scope project|user preserves explicit install scope in Codex instructions.
 #
 # 자산 인자: pack:<id>, 에이전트/스킬/템플릿/메모리/eval id, 또는
 #            all / all-agents / all-skills / all-templates / all-memory / all-evals
@@ -27,6 +28,7 @@ RECEIPT_LIB="$SCRIPT_DIR/receipt-lib.sh"
 EXTRA_KINDS="template memory eval"
 
 TARGET=""
+SCOPE=""  # optional: user|project; omitted retains destination-based auto mode
 RUNTIME="claude-code"
 APPLY=0
 VERIFY=0
@@ -207,6 +209,8 @@ resolve_pack() {
 while [ $# -gt 0 ]; do
   case "$1" in
     -t|--target-repo) TARGET="${2:-}"; shift 2;;
+    --scope)          SCOPE="${2:-}"; shift 2;;
+    --scope=*)        SCOPE="${1#--scope=}"; shift;;
     -r|--runtime)     RUNTIME="${2:-}"; shift 2;;
     --apply)          APPLY=1; shift;;
     --verify)         VERIFY=1; shift;;
@@ -217,6 +221,11 @@ while [ $# -gt 0 ]; do
     *)                ASSETS="${ASSETS:+$ASSETS }$1"; shift;;
   esac
 done
+
+case "$SCOPE" in
+  ''|user|project) ;;
+  *) die "--scope는 user 또는 project여야 합니다." ;;
+esac
 
 [ -f "$MANIFEST" ] || die "manifest.txt를 찾을 수 없음: $MANIFEST"
 [ -f "$PACK_CATALOG" ] || die "packs.txt를 찾을 수 없음: $PACK_CATALOG"
@@ -316,22 +325,48 @@ if [ "$APPLY" = 1 ] || [ "$VERIFY" = 1 ]; then
   [ ! -L "$TARGET" ] || die "대상 레포는 symlink일 수 없습니다: $TARGET"
   TARGET="$(cd "$TARGET" && pwd -P)" \
     || die "대상 레포 canonical path를 확인할 수 없습니다: $TARGET"
+  if [ "$SCOPE" = user ]; then
+    [ -d "${HOME:-}" ] || die "user scope의 HOME directory를 확인할 수 없습니다."
+    home_target="$(cd "$HOME" && pwd -P)" \
+      || die "user scope의 HOME canonical path를 확인할 수 없습니다: $HOME"
+    [ "$TARGET" = "$home_target" ] \
+      || die "user scope의 --target은 exact canonical HOME이어야 합니다: $home_target"
+  fi
 fi
 
 VERIFY_ASSETS="$ASSETS"
 
 # --- 복사 계획 만들기: "src<TAB>dest" 행들 ---
-render_codex_adapter() { # template canonical-md codex-root agent-id output [model] [effort]
+render_codex_adapter() { # template canonical-md codex-root agent-id output [scope] [model] [effort]
   local template="$1" canonical="$2" codex_root="$3" agent_id="$4" output="$5"
   local codex_skills_root="${3%/.codex}/.agents/skills"
+  local instruction_root="$codex_root" current_home='' portable_home=0
+  local scope="${6:-}" model_override="${7-${VULPORA_CODEX_MODEL:-}}" effort_override="${8-${VULPORA_CODEX_REASONING_EFFORT:-}}"
+  # Only user installs follow the current home. Projects, including projects
+  # below HOME, must keep referencing their own installed bundle.
+  if [ "$scope" = project ]; then
+    : # An explicit project scope remains absolute even when target equals HOME.
+  elif [ "$scope" = user ]; then
+    [ -n "${HOME:-}" ] && [ -d "$HOME" ] || return 1
+    current_home="$(cd "$HOME" && pwd -P)" || return 1
+    [ "$codex_root" = "$current_home/.codex" ] || return 1
+    instruction_root='~/.codex'
+    codex_skills_root='~/.agents/skills'
+    portable_home=1
+  elif [ -n "${HOME:-}" ] && [ -d "$HOME" ]; then
+    current_home="$(cd "$HOME" && pwd -P)" || return 1
+    if [ "$codex_root" = "$current_home/.codex" ]; then
+      instruction_root='~/.codex'
+      codex_skills_root='~/.agents/skills'
+      portable_home=1
+    fi
+  fi
   # The '-' form deliberately preserves an explicitly supplied empty argument.
   # Doctor must not turn neutral installed metadata into an ambient env pin.
-  local model_override="${6-${VULPORA_CODEX_MODEL:-}}"
-  local effort_override="${7-${VULPORA_CODEX_REASONING_EFFORT:-}}"
   validate_codex_overrides "$model_override" "$effort_override"
   # TOML literal strings preserve Markdown backslashes such as PostgreSQL's
   # `\d`; fail closed if canonical content contains the literal delimiter.
-  awk -v root="$codex_root" -v skills_root="$codex_skills_root" \
+  awk -v root="$instruction_root" -v skills_root="$codex_skills_root" -v portable_home="$portable_home" \
     -v agent_id="$agent_id" -v model_override="$model_override" -v effort_override="$effort_override" '
     function resolve_root(line, token, pos) {
       # Codex agents and Agent Skills have different discovery roots. Resolve
@@ -361,6 +396,7 @@ render_codex_adapter() { # template canonical-md codex-root agent-id output [mod
       print "developer_instructions = \047\047\047"
       print "Vulpora canonical definition for " agent_id "."
       print "The installation resolved agent bundle references to " root " and skill references to " skills_root "."
+      if (portable_home) print "Before reading any referenced file, expand a leading ~/ to the current user home directory."
       print ""
       for (i = 1; i <= body_count; i++) print body[i]
       replacing = 1
@@ -610,7 +646,7 @@ if [ "$VERIFY" = 1 ]; then
         expected_adapter="$(mktemp "${TMPDIR:-/tmp}/vulpora-codex-adapter.XXXXXX")" \
           || die "Codex adapter 검증 임시 파일 생성 실패"
         if ! render_codex_adapter "$REPO_ROOT/$codex_adapter" "$REPO_ROOT/$def" \
-          "$TARGET/$RT_SUB" "$id" "$expected_adapter" "$installed_model" "$installed_effort" \
+          "$TARGET/$RT_SUB" "$id" "$expected_adapter" "$SCOPE" "$installed_model" "$installed_effort" \
           || ! cmp -s "$expected_adapter" "$installed_adapter"; then
           echo "  ✗ Codex native adapter canonical definition 불일치: $id"
           fail=1
@@ -652,7 +688,7 @@ if [ "$APPLY" = 1 ]; then
       rendered="$(mktemp "${TMPDIR:-/tmp}/vulpora-codex-adapter.XXXXXX")" \
         || die "Codex adapter 생성 임시 파일 실패: $dest"
       render_codex_adapter "$src" "$aux" "$TARGET/$RT_SUB" \
-        "$(basename "$dest" .toml)" "$rendered" \
+        "$(basename "$dest" .toml)" "$rendered" "$SCOPE" \
         || die "Codex adapter 생성 실패: $dest"
       bash "$CODEX_AGENT_VALIDATOR" "$rendered" "$(basename "$dest" .toml)" --installed \
         || die "Codex adapter TOML 검증 실패: $dest"
@@ -700,7 +736,7 @@ if [ "$APPLY" = 1 ]; then
     [ -z "$rendered" ] || rm -f "$rendered"
   done
   echo "설치 완료. 검증하려면:"
-  echo "  bash \"$SCRIPT_DIR/install.sh\" -t \"$TARGET\" --runtime $RUNTIME --verify $VERIFY_ASSETS"
+  echo "  bash \"$SCRIPT_DIR/install.sh\" -t \"$TARGET\" --runtime $RUNTIME${SCOPE:+ --scope $SCOPE} --verify $VERIFY_ASSETS"
 else
   echo "DRY-RUN입니다. 실제로 설치하려면 위 명령에 --apply 를 추가하세요."
 fi

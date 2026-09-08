@@ -167,6 +167,94 @@ strict_optional_metadata() {
   done
 }
 
+install_codex_all_with_home() { # home target
+  local fixture_home="$1" target="$2"
+  mkdir -p "$fixture_home" "$target" || return 1
+  HOME="$fixture_home" VULPORA_CODEX_MODEL='' VULPORA_CODEX_REASONING_EFFORT='' \
+    bash "$SCRIPT_DIR/install.sh" -t "$target" --runtime codex --apply all-agents \
+    >/dev/null 2>&1
+}
+
+without_developer_instructions() { # source output
+  awk '
+    /^developer_instructions[[:space:]]*=/ { skipping=1; next }
+    skipping {
+      if ($0 == "\"\"\"" || $0 == "\047\047\047") skipping=0
+      next
+    }
+    { print }
+  ' "$1"
+}
+
+restore_project_references() { # user adapter project-root equivalent output
+  local source="$1" project="$2"
+  awk -v project="$project" '
+    $0 == "Before reading any referenced file, expand a leading ~/ to the current user home directory." { next }
+    {
+      line=$0
+      gsub(/~\/\.codex/, project "/.codex", line)
+      gsub(/~\/\.agents\/skills/, project "/.agents/skills", line)
+      print line
+    }
+  ' "$source"
+}
+
+user_codex_install_is_portable() {
+  local fixture_home="$WORK/fixture home" project id adapter
+  project="$fixture_home/project fixture"
+  install_codex_all_with_home "$fixture_home" "$fixture_home" || return 1
+  for id in $(agent_ids); do
+    adapter="$fixture_home/.codex/agents/$id.toml"
+    [ -f "$adapter" ] || return 1
+    grep -Fq '~/.codex' "$adapter" || return 1
+    grep -Fq '~/.agents/skills' "$adapter" || return 1
+    grep -Fq 'Before reading any referenced file, expand a leading ~/ to the current user home directory.' "$adapter" || return 1
+    ! grep -Fq "$fixture_home" "$adapter" || return 1
+  done
+  # A project install remains the absolute-path oracle for the same adapters.
+  install_codex_all_with_home "$fixture_home" "$project" || return 1
+  for id in $(agent_ids); do
+    adapter="$project/.codex/agents/$id.toml"
+    grep -Fq "$project/.codex" "$adapter" || return 1
+    grep -Fq "$project/.agents/skills" "$adapter" || return 1
+    ! grep -Fq '~/.codex' "$adapter" || return 1
+    ! grep -Fq '~/.agents/skills' "$adapter" || return 1
+    without_developer_instructions "$adapter" > "$WORK/project.$id"
+    without_developer_instructions "$fixture_home/.codex/agents/$id.toml" > "$WORK/user.$id"
+    cmp -s "$WORK/user.$id" "$WORK/project.$id" || return 1
+    restore_project_references "$fixture_home/.codex/agents/$id.toml" "$project" > "$WORK/restored.$id"
+    cmp -s "$WORK/restored.$id" "$adapter" || return 1
+  done
+}
+
+copied_user_install_uses_current_home() {
+  local original="$WORK/fixture home" copied="$WORK/copied user" id adapter
+  mkdir -p "$copied" || return 1
+  cp -R "$original/.codex" "$copied/" || return 1
+  cp -R "$original/.agents" "$copied/" || return 1
+  HOME="$copied" bash "$SCRIPT_DIR/install.sh" -t "$copied" --runtime codex \
+    --verify all-agents >/dev/null 2>&1 || return 1
+  for id in $(agent_ids); do
+    adapter="$copied/.codex/agents/$id.toml"
+    grep -Fq '~/.codex' "$adapter" || return 1
+    ! grep -Fq "$original" "$adapter" || return 1
+  done
+}
+
+explicit_project_scope_wins_when_target_is_home() {
+  local fixture_home="$WORK/explicit scope home" adapter
+  mkdir -p "$fixture_home" || return 1
+  HOME="$fixture_home" bash "$SCRIPT_DIR/install.sh" -t "$fixture_home" --scope project --runtime codex \
+    --apply test-runner >/dev/null 2>&1 || return 1
+  adapter="$fixture_home/.codex/agents/test-runner.toml"
+  grep -Fq "$fixture_home/.codex" "$adapter" || return 1
+  ! grep -Fq '~/.codex' "$adapter" || return 1
+  HOME="$fixture_home" bash "$REPO_ROOT/vulpora" setup --runtime codex --scope project \
+    --target "$fixture_home" test-runner >/dev/null 2>&1 || return 1
+  grep -Fq "$fixture_home/.codex" "$adapter" || return 1
+  ! grep -Fq '~/.codex' "$adapter"
+}
+
 check "catalog declares the 28-agent and 62-skill release" catalog_counts_match_release
 check "every catalog agent has a Codex TOML adapter" all_source_adapters_exist
 check "every Codex adapter passes its strict contract" all_source_adapters_validate
@@ -178,6 +266,9 @@ check "explicit pins survive doctor and can be cleared by an authorized reinstal
 check "model and reasoning pins are independent optional settings" independent_model_and_effort_overrides
 check "invalid model or reasoning settings fail before any catalog mutation" invalid_override_has_no_side_effects
 check "source placeholders remain strict and installed overrides are optional but validated" strict_optional_metadata
+check "Codex user installs keep all 28 adapters portable and preserve non-instruction settings" user_codex_install_is_portable
+check "a copied user install verifies after HOME changes and keeps tilde references" copied_user_install_uses_current_home
+check "explicit project scope stays absolute when its target is HOME" explicit_project_scope_wins_when_target_is_home
 
 printf '결과: PASS=%s FAIL=%s\n' "$pass" "$fail"
 [ "$fail" = 0 ]
