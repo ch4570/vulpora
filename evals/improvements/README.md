@@ -126,6 +126,12 @@ result: it must declare `schema: vulpora.eval-result`, exactly one
 and `run`, with exactly one required target/score/run metadata field. A
 wrong schema, duplicate core key, or ambiguous inline target/actual mapping
 invalidates the supplied result source rather than being silently ignored.
+Result keys must be unquoted, block child keys use exactly two spaces, and
+`target`/`actual` inline mappings use unquoted keys with scalar token values
+(values may be quoted). Single-line list items are supported in `evidence`.
+Other syntax, including quoted or explicit keys, unsupported indentation, and
+document separators, is rejected instead of being skipped. Quoted text inside
+an evidence scalar does not declare a result field.
 
 Multi-trial evidence is first-class. For each comparable identity on each side,
 the linked rows must contain exactly one of every trial index `1..trial_count`

@@ -35,7 +35,7 @@ else if (mode === 'provider-schema-error') {
 }
 else {
   if (mode === 'huge') process.stdout.write('x'.repeat(10000));
-  if (mode === 'write' || mode === 'silent-write' || mode === 'proposal-mutate') fs.writeFileSync(require('node:path').join(prompt.cwd,'source.txt'),'worker edit\\n');
+  if (mode === 'write' || mode === 'silent-write' || mode === 'proposal-mutate') fs.writeFileSync(require('node:path').join(prompt.cwd,prompt.files[0]),'worker edit\\n');
   const output = args[args.indexOf('--output-last-message') + 1];
   let candidate = {schema:'vulpora.session-candidate/v1',task_id:prompt.task_id,
     attempt_id: mode === 'mismatch' ? 'wrong-attempt' : prompt.attempt_id,
@@ -44,7 +44,7 @@ else {
   const proposal = JSON.parse(fs.readFileSync(args[args.indexOf('--output-schema') + 1], 'utf8')).properties.schema.const === 'vulpora.session-edit-proposal/v1';
   if (proposal) candidate = {schema:'vulpora.session-edit-proposal/v1',
     task_id:mode === 'proposal-task' ? 'wrong-task' : prompt.task_id,summary:'A bounded replacement was proposed.',edits:[{
-      path:mode === 'proposal-scope' ? '../outside.txt' : 'source.txt',
+      path:mode === 'proposal-scope' ? '../outside.txt' : prompt.source_context.files[0].path,
       before_sha256:mode === 'proposal-hash' ? '0'.repeat(64) : prompt.source_context.files[0].sha256,
       content:'deterministic proposal\\n'}]};
   if (mode !== 'missing') fs.writeFileSync(output, JSON.stringify(candidate));
@@ -224,6 +224,18 @@ else {
     fs.writeFileSync(path.join(absent.cwd,'new.txt'),'another writer');
     assert.equal(run(absent).json.reason,'STALE_WORKSPACE');assert.equal(fs.existsSync(absent.capture),false);
   });
+  check('proposal parents must exist before preparation or dispatch without charging budget',()=>{
+    const missing=fixture('proposal-missing-parent',{workerMode:'edit-proposal',mode:'workspace-write',files:['missing/new.txt']});
+    const rejected=prepare(missing);assert.equal(rejected.status,2);assert.equal(rejected.json.reason,'EDIT_PARENT_MISSING');
+    assert.equal(fs.existsSync(missing.out),false);assert.equal(fs.existsSync(missing.capture),false);
+    assert.equal(readBudget(missing.budget).reservedTokens,0);assert.equal(readBudget(missing.budget).committedTokens,0);
+    const removed=fixture('proposal-removed-parent',{workerMode:'edit-proposal',mode:'workspace-write',files:['existing/new.txt']});
+    fs.mkdirSync(path.join(removed.cwd,'existing'));assert.equal(prepare(removed).status,0);
+    fs.rmdirSync(path.join(removed.cwd,'existing'));
+    const stale=run(removed);assert.equal(stale.status,2);assert.equal(stale.json.reason,'EDIT_PARENT_MISSING');
+    assert.equal(fs.existsSync(removed.capture),false);assert.equal(fs.existsSync(path.join(removed.out,'launch.json')),false);
+    assert.equal(readBudget(removed.budget).reservedTokens,0);assert.equal(readBudget(removed.budget).committedTokens,0);
+  });
   check('proposal application requires observed usage and unknown usage retains the reservation',()=>{
     for(const mode of ['usage-in-text','duplicate-usage','null-usage','valid-then-malformed-usage']) {
       const item=fixture(`proposal-${mode}`,{workerMode:'edit-proposal',mode:'workspace-write'});prepare(item);
@@ -376,6 +388,34 @@ else {
     const item=fixture('stale'); prepare(item); fs.writeFileSync(path.join(item.cwd,'source.txt'),'changed\n');
     const result=run(item); assert.equal(result.status,2); assert.equal(result.json.reason,'STALE_WORKSPACE');
     assert.equal(fs.existsSync(item.capture),false); assert.equal(fs.existsSync(path.join(item.out,'launch.json')),false);
+  });
+  check('prototype-like scoped filenames retain fingerprints and stale-source protection',()=>{
+    for(const [index,name] of ['__proto__','constructor','toString','hasOwnProperty'].entries()) {
+      const item=fixture(`prototype-stale-${index}`,{files:[name]});
+      fs.writeFileSync(path.join(item.cwd,name),'original\n');assert.equal(prepare(item).status,0);
+      const capsule=JSON.parse(fs.readFileSync(item.capsule));
+      assert.equal(Object.hasOwn(capsule.workspace.files,name),true,name);
+      assert.equal(capsule.workspace.files[name],hash('original\n'),name);
+      fs.writeFileSync(path.join(item.cwd,name),'changed\n');
+      const result=run(item);assert.equal(result.status,2,name);assert.equal(result.json.reason,'STALE_WORKSPACE',name);
+      assert.equal(fs.existsSync(item.capture),false,name);assert.equal(readBudget(item.budget).reservedTokens,0,name);
+    }
+  });
+  check('prototype-like scoped filenames support inline context and expose runtime mutations',()=>{
+    for(const [index,name] of ['__proto__','constructor','toString','hasOwnProperty'].entries()) {
+      const item=fixture(`prototype-mutation-${index}`,{files:[name],contextMode:'inline'});
+      fs.writeFileSync(path.join(item.cwd,name),'original\n');assert.equal(prepare(item).status,0,name);
+      const capsule=JSON.parse(fs.readFileSync(item.capsule));
+      assert.equal(capsule.sourceContext.files[0].sha256,hash('original\n'),name);
+      const result=run(item,'silent-write');assert.equal(result.status,3,name);
+      assert.equal(result.json.reason,'READ_ONLY_WORKSPACE_CHANGED',name);
+      assert.deepEqual(result.json.scopedFilesChanged,[name],name);
+    }
+    const item=fixture('prototype-proposal',{workerMode:'edit-proposal',mode:'workspace-write',files:['__proto__']});
+    fs.writeFileSync(path.join(item.cwd,'__proto__'),'original\n');assert.equal(prepare(item).status,0);
+    const result=run(item);assert.equal(result.status,0);assert.deepEqual(result.json.scopedFilesChanged,['__proto__']);
+    assert.deepEqual(result.json.candidate.changed_files,['__proto__']);
+    assert.equal(fs.readFileSync(path.join(item.cwd,'__proto__'),'utf8'),'deterministic proposal\n');
   });
   check('edited capsule cannot bypass preparation binding',()=>{
     const item=fixture('tampered'); prepare(item);

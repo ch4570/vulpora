@@ -74,11 +74,14 @@ interface Token {
 }
 
 function isIdentifierStart(ch: string): boolean {
-  return /[A-Za-z_]/.test(ch);
+  return /[A-Za-z_\u0080-\uffff]/.test(ch);
 }
 
 function isIdentifierPart(ch: string): boolean {
-  return /[A-Za-z0-9_$]/.test(ch);
+  // Read the whole name before applying the supported ASCII relation policy.
+  // Otherwise seedé.orders could incorrectly match an earlier CTE named seed.
+  // Whitespace is handled explicitly by tokenize, including dialect exceptions.
+  return /[A-Za-z0-9_$\u0080-\uffff]/.test(ch) && !/\s/.test(ch);
 }
 
 function isKeyword(token: Token | undefined, keyword: string): boolean {
@@ -95,6 +98,10 @@ function unterminated(): never {
 
 /** Minimal dialect-aware lexer. Literal/comment contents never become identifiers. */
 function tokenize(sql: string, d: Dialect): Token[] {
+  // Keep raw SQL NUL handling in sync with guard.ts; bound values are separate.
+  if (d.name === 'mysql' && sql.includes('\0')) {
+    throw new SchemaPolicyError('NLSQL_SCHEMA_QUERY_UNSUPPORTED', 'MySQL SQL 텍스트의 NUL은 허용되지 않습니다.');
+  }
   const tokens: Token[] = [];
   let i = 0;
 
@@ -102,13 +109,25 @@ function tokenize(sql: string, d: Dialect): Token[] {
     const ch = sql[i]!;
     const next = sql[i + 1] ?? '';
 
-    if (/\s/.test(ch)) { i++; continue; }
+    // PG/MySQL non-ASCII whitespace can be part of an identifier. Neither
+    // erase it nor split it from an ASCII prefix that could match a CTE/schema.
+    // Literals/comments are consumed below as complete units, so their data
+    // never reaches this check. Leave MSSQL's whitespace contract unchanged.
+    if (/\s/.test(ch)) {
+      if (d.name !== 'mssql' && !/[ \t\n\r\f\v]/.test(ch)) {
+        throw new SchemaPolicyError('NLSQL_INVALID_IDENTIFIER', '인용되지 않은 비ASCII 공백 식별자는 허용되지 않습니다.');
+      }
+      i++;
+      continue;
+    }
 
     // -- is a MySQL comment only when followed by whitespace/control; # is MySQL-only.
-    const mysqlDashComment = d.name !== 'mysql' || /\s/.test(sql[i + 2] ?? '');
+    const mysqlDashComment = d.name !== 'mysql' || i + 2 === sql.length
+      || /[\x01-\x20\x7f]/.test(sql[i + 2] ?? '');
     if ((ch === '-' && next === '-' && mysqlDashComment) || (d.name === 'mysql' && ch === '#')) {
       i += ch === '#' ? 1 : 2;
-      while (i < sql.length && sql[i] !== '\n') i++;
+      // Match guard.ts and the engines: MySQL consumes CR until the next LF.
+      while (i < sql.length && sql[i] !== '\n' && (d.name === 'mysql' || sql[i] !== '\r')) i++;
       continue;
     }
 
@@ -155,8 +174,11 @@ function tokenize(sql: string, d: Dialect): Token[] {
       continue;
     }
 
-    if (d.dollarQuote && ch === '$') {
-      const match = /^\$(?:[A-Za-z_][A-Za-z0-9_]*)?\$/.exec(sql.slice(i));
+    // Keep PostgreSQL's non-ASCII delimiter and identifier-boundary rules in
+    // sync with maskLiterals; literal contents must never become relations.
+    if (d.dollarQuote && ch === '$'
+      && (i === 0 || !/[A-Za-z0-9_$\u0080-\uffff]/.test(sql[i - 1]!))) {
+      const match = /^\$(?:[A-Za-z_\u0080-\uffff][A-Za-z0-9_\u0080-\uffff]*)?\$/.exec(sql.slice(i));
       if (match) {
         const end = sql.indexOf(match[0], i + match[0].length);
         if (end === -1) unterminated();
@@ -164,7 +186,7 @@ function tokenize(sql: string, d: Dialect): Token[] {
         i = end + match[0].length;
         continue;
       }
-      if (/^\$[A-Za-z0-9_]+\$/.test(sql.slice(i))) {
+      if (/^\$[A-Za-z0-9_\u0080-\uffff]+\$/.test(sql.slice(i))) {
         throw new SchemaPolicyError('NLSQL_SCHEMA_QUERY_UNSUPPORTED', '유효하지 않은 달러 인용 태그입니다.');
       }
     }
@@ -210,42 +232,59 @@ function canonicalIdentifier(token: Token, d: Dialect): string {
   return d.name === 'postgres' && !token.quoted ? token.value.toLowerCase() : token.value;
 }
 
-function matchingParen(tokens: readonly Token[], openIndex: number): number {
-  let depth = 0;
-  for (let i = openIndex; i < tokens.length; i++) {
-    if (isSymbol(tokens[i], '(')) depth++;
-    else if (isSymbol(tokens[i], ')')) {
-      depth--;
-      if (depth === 0) return i;
-    }
-  }
-  throw new SchemaPolicyError('NLSQL_SCHEMA_QUERY_UNSUPPORTED', '괄호가 닫히지 않은 SQL입니다.');
+interface QueryScope {
+  readonly start: number;
+  readonly end: number;
+  readonly ctes: ReadonlySet<string>;
 }
 
-/** Collect CTE names so unqualified CTE references are not mistaken for DB relations. */
-function collectCteNames(tokens: readonly Token[], d: Dialect): Set<string> {
-  const names = new Set<string>();
-  if (!isKeyword(tokens[0], 'with')) return names;
-  let i = isKeyword(tokens[1], 'recursive') ? 2 : 1;
+interface CteBody {
+  readonly name: string;
+  readonly start: number;
+  readonly end: number;
+}
 
-  while (i < tokens.length) {
-    const name = tokens[i];
-    if (name?.kind !== 'identifier') break;
-    names.add(canonicalIdentifier(name, d));
+/** Parse one WITH header; names acquire visibility only when its bodies are inspected. */
+function cteBodies(
+  tokens: readonly Token[], scope: QueryScope, parens: ReadonlyMap<number, number>, d: Dialect,
+): { bodies: CteBody[]; recursive: boolean; mainStart: number } {
+  const bodies: CteBody[] = [];
+  const names = new Set<string>();
+  // SQL Server recursion is implicit; "recursive" can itself be a CTE name.
+  const recursive = d.name !== 'mssql' && isKeyword(tokens[scope.start + 1], 'recursive');
+  let i = scope.start + (recursive ? 2 : 1);
+  while (i < scope.end) {
+    const token = tokens[i];
+    if (token?.kind !== 'identifier') unterminated();
+    assertIdentifier(token.value);
+    const name = canonicalIdentifier(token, d);
+    if (names.has(name)) unterminated();
+    names.add(name);
     i++;
 
-    // Optional CTE column list.
-    if (isSymbol(tokens[i], '(')) i = matchingParen(tokens, i) + 1;
-    if (!isKeyword(tokens[i], 'as')) break;
+    if (isSymbol(tokens[i], '(')) {
+      const close = parens.get(i)!;
+      // A column list cannot conceal an expression or query.
+      for (let column = i + 1; column < close; column++) {
+        if ((column - i) % 2 === 1 ? tokens[column]?.kind !== 'identifier' : !isSymbol(tokens[column], ',')) unterminated();
+      }
+      if (close === i + 1 || (close - i) % 2 !== 0) unterminated();
+      i = close + 1;
+    }
+    if (!isKeyword(tokens[i], 'as')) unterminated();
     i++;
     if (isKeyword(tokens[i], 'not') && isKeyword(tokens[i + 1], 'materialized')) i += 2;
     else if (isKeyword(tokens[i], 'materialized')) i++;
-    if (!isSymbol(tokens[i], '(')) break;
-    i = matchingParen(tokens, i) + 1;
+    if (!isSymbol(tokens[i], '(')) unterminated();
+    const close = parens.get(i)!;
+    if (close >= scope.end || close === i + 1) unterminated();
+    bodies.push({ name, start: i + 1, end: close });
+    i = close + 1;
     if (!isSymbol(tokens[i], ',')) break;
     i++;
   }
-  return names;
+  if (bodies.length === 0 || i >= scope.end) unterminated();
+  return { bodies, recursive, mainStart: i };
 }
 
 function assertRelation(
@@ -287,6 +326,7 @@ function assertRelation(
     throw new SchemaPolicyError('NLSQL_SCHEMA_QUERY_UNSUPPORTED', '테이블 반환 함수는 허용되지 않습니다.');
   }
 
+  for (const part of parts) assertIdentifier(part.value);
   if (parts.length === 1) {
     if (ctes.has(canonicalIdentifier(first, d))) return;
     throw new SchemaPolicyError(
@@ -309,13 +349,28 @@ const FROM_END = new Set([
   'except', 'intersect', 'window', 'qualify', 'for', 'connect', 'returning',
 ]);
 
+const FUNCTION_FROM_SEPARATORS = new Set(['extract', 'substring', 'trim']);
+
+/** Only these unquoted, unqualified PG/MySQL forms give FROM an expression meaning. */
+function hasFunctionFromSeparator(tokens: readonly Token[], openIndex: number, d: Dialect): boolean {
+  const name = tokens[openIndex - 1];
+  return (d.name === 'postgres' || d.name === 'mysql')
+    && isSymbol(tokens[openIndex], '(')
+    && name?.kind === 'identifier' && !name.quoted
+    && !isSymbol(tokens[openIndex - 2], '.')
+    && FUNCTION_FROM_SEPARATORS.has(name.value.toLowerCase());
+}
+
 /** Reject comma joins in one pass: every relation must have an independently checked JOIN token. */
-function assertNoCommaSources(tokens: readonly Token[]): void {
+function assertNoCommaSources(tokens: readonly Token[], d: Dialect): ReadonlyMap<number, number> {
   let depth = 0;
   const activeFromDepths = new Set<number>();
+  const functionFromDepths = new Set<number>();
+  const opens: number[] = [];
+  const parens = new Map<number, number>();
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i];
-    if (isKeyword(token, 'from')) activeFromDepths.add(depth);
+    if (isKeyword(token, 'from') && !functionFromDepths.has(depth)) activeFromDepths.add(depth);
     else if (token?.kind === 'identifier' && !token.quoted && FROM_END.has(token.value.toLowerCase())) {
       activeFromDepths.delete(depth);
     } else if (isSymbol(token, ',') && activeFromDepths.has(depth)) {
@@ -326,16 +381,21 @@ function assertNoCommaSources(tokens: readonly Token[]): void {
     }
 
     if (isSymbol(token, '(')) {
+      opens.push(i);
       depth++;
+      if (hasFunctionFromSeparator(tokens, i, d)) functionFromDepths.add(depth);
     } else if (isSymbol(token, ')')) {
       activeFromDepths.delete(depth);
+      functionFromDepths.delete(depth);
       depth--;
       if (depth < 0) {
         throw new SchemaPolicyError('NLSQL_SCHEMA_QUERY_UNSUPPORTED', '괄호가 올바르지 않은 SQL입니다.');
       }
+      parens.set(opens.pop()!, i);
     }
   }
   if (depth !== 0) throw new SchemaPolicyError('NLSQL_SCHEMA_QUERY_UNSUPPORTED', '괄호가 올바르지 않은 SQL입니다.');
+  return parens;
 }
 
 function assertFunctionSchema(
@@ -364,26 +424,59 @@ function assertFunctionSchema(
 export function assertSqlSchemaAccess(sql: string, allowedSchemas: readonly string[], d: Dialect): void {
   assertAllowedSchemasConfigured(allowedSchemas);
   const tokens = tokenize(sql, d);
-  const ctes = collectCteNames(tokens, d);
-  assertNoCommaSources(tokens);
+  const parens = assertNoCommaSources(tokens, d);
+  const pending: QueryScope[] = [{ start: 0, end: tokens.length, ctes: new Set() }];
 
-  for (let i = 0; i < tokens.length; i++) {
-    const token = tokens[i];
-    if (token?.kind === 'identifier' && isSymbol(tokens[i + 1], '(')) {
-      if (d.forbiddenFunctions.includes(token.value.toLowerCase())) {
-        throw new SchemaPolicyError('NLSQL_SCHEMA_QUERY_UNSUPPORTED', '금지된 함수 호출이 포함되어 있습니다.');
+  // Explicit scopes avoid leaking nested WITH names and avoid recursion on
+  // deeply parenthesized input. The matching-parenthesis index is built once.
+  while (pending.length) {
+    const scope = pending.pop()!;
+    if (isKeyword(tokens[scope.start], 'with')) {
+      if (d.name === 'mssql' && scope.start !== 0) unterminated();
+      const { bodies, recursive, mainStart } = cteBodies(tokens, scope, parens, d);
+      const visible = new Set(scope.ctes);
+      // PostgreSQL RECURSIVE exposes the whole WITH list. MySQL and SQL Server
+      // expose only previous siblings plus self (explicitly recursive in MySQL).
+      const allSiblingsVisible = recursive && d.name === 'postgres';
+      if (allSiblingsVisible) for (const body of bodies) visible.add(body.name);
+      for (const body of bodies) {
+        // Once complete, the PostgreSQL recursive scope is immutable and can
+        // be shared by every body instead of copying all names for every CTE.
+        const bodyNames = allSiblingsVisible ? visible : new Set(visible);
+        if (!allSiblingsVisible && (recursive || d.name === 'mssql')) bodyNames.add(body.name);
+        pending.push({ start: body.start, end: body.end, ctes: bodyNames });
+        if (!allSiblingsVisible) visible.add(body.name);
       }
-      assertFunctionSchema(tokens, i, allowedSchemas, d);
-    }
-    if (isKeyword(token, 'from') || isKeyword(token, 'join') || isKeyword(token, 'apply')) {
-      assertRelation(tokens, i + 1, ctes, allowedSchemas, d);
+      pending.push({ start: mainStart, end: scope.end, ctes: visible });
       continue;
     }
 
-    // TABLE schema.name query form. Checking every non-qualified TABLE token is
-    // conservative and covers WITH ... TABLE as well as UNION ALL TABLE.
-    if (isKeyword(token, 'table') && !isSymbol(tokens[i - 1], '.')) {
-      assertRelation(tokens, i + 1, ctes, allowedSchemas, d);
+    // The exemption belongs only to this function's own argument parentheses.
+    // Nested queries and all function calls are still inspected independently.
+    const functionFromSeparator = hasFunctionFromSeparator(tokens, scope.start - 1, d);
+    for (let i = scope.start; i < scope.end; i++) {
+      const token = tokens[i];
+      if (isSymbol(token, '(')) {
+        const close = parens.get(i)!;
+        pending.push({ start: i + 1, end: close, ctes: scope.ctes });
+        i = close;
+        continue;
+      }
+      if (token?.kind === 'identifier' && isSymbol(tokens[i + 1], '(')) {
+        if (d.forbiddenFunctions.includes(token.value.toLowerCase())) {
+          throw new SchemaPolicyError('NLSQL_SCHEMA_QUERY_UNSUPPORTED', '금지된 함수 호출이 포함되어 있습니다.');
+        }
+        assertFunctionSchema(tokens, i, allowedSchemas, d);
+      }
+      if ((isKeyword(token, 'from') && !functionFromSeparator) || isKeyword(token, 'join') || isKeyword(token, 'apply')) {
+        assertRelation(tokens, i + 1, scope.ctes, allowedSchemas, d);
+        continue;
+      }
+
+      // TABLE schema.name covers WITH ... TABLE as well as UNION ALL TABLE.
+      if (isKeyword(token, 'table') && !isSymbol(tokens[i - 1], '.')) {
+        assertRelation(tokens, i + 1, scope.ctes, allowedSchemas, d);
+      }
     }
   }
 }

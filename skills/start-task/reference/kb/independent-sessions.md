@@ -242,6 +242,11 @@ An exclusive `launch.json` prevents the same prepared attempt from starting twic
 executable, edited capsule/schema, expired route, or changed workspace before dispatch. A Git workspace snapshot
 includes HEAD and working-tree state as well as the listed files; concurrent edits can make a prepared attempt
 stale. Use a stable task workspace and prepare a new attempt from current evidence after reconciliation.
+Git diff snapshots disable external diff drivers and text-conversion filters, so custom renderers cannot hide
+tracked edits or change the fingerprint without a source change. This does not sandbox Git or disable all
+repository configuration, such as clean filters or line-ending normalization. Untracked paths are recorded by
+Git status, but only listed task files have their full contents fingerprinted; ignored files and unrelated
+untracked contents are not a whole-filesystem mutation check.
 
 Timeout, cancellation, output overflow, missing/mismatched output, and other execution failures report unknown
 mutation state. The runner attempts to stop its owned process group, but does not attest cleanup of every

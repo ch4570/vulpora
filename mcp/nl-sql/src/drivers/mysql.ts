@@ -58,6 +58,7 @@ export class MysqlDriver implements Driver {
   async runReadOnly(sql: string, params: readonly unknown[]): Promise<QueryResult> {
     const conn = await this.pool.getConnection();
     const started = Date.now();
+    let primaryFailed = false;
     try {
       // Keep unqualified stored-function resolution inside an allowed database.
       await conn.query(`USE \`${this.defaultSchema}\``);
@@ -70,9 +71,20 @@ export class MysqlDriver implements Driver {
       const list = Array.isArray(rows) ? (rows as Record<string, unknown>[]) : [];
       const names = Array.isArray(fields) ? fields.map((f) => f.name) : [];
       return { fields: names, rows: list, rowCount: list.length, elapsedMs: Date.now() - started };
+    } catch (error) {
+      primaryFailed = true;
+      throw error;
     } finally {
-      try { await conn.query('ROLLBACK'); } catch { /* 무시 */ }
-      conn.release();
+      let rollbackFailed = false;
+      try { await conn.query('ROLLBACK'); } catch { rollbackFailed = true; }
+      try {
+        // destroy() removes a suspect connection from the pool; do not release
+        // it afterwards, including when destruction itself throws.
+        if (rollbackFailed) conn.destroy();
+        else conn.release();
+      } catch (error) {
+        if (!primaryFailed) throw error;
+      }
     }
   }
 

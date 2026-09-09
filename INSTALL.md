@@ -287,6 +287,11 @@ MCP 설정 이름은 `vulpora-notion`, `vulpora-openai-docs`처럼 namespace를 
 Codex의 기존 1.2.1 URL-only `vulpora-notion` 설정은 같은 endpoint이고 `enabled_tools`가 없을 때만 제자리에서
 read-only policy를 추가합니다. 이미 다른 tool policy가 있으면 사용자 설정으로 간주해 보존하고 충돌을
 보고합니다. `vulpora mcp status ... notion`의 `configured_read_only`가 적용 완료 상태입니다.
+Policy 게시·검증·복원 중 config의 내용, 파일 identity, mode 또는 symlink/type 변경을 관측하면
+사용자 config를 보존하고 자동 후속 제거도 중단합니다. 오류에 표시된 `config.toml.vulpora.backup.*`는
+수동 검토·복구용으로 남기며, 민감한 config 내용을 포함할 수 있는 `0600` 파일입니다. 오류에는
+내용 대신 경로만 표시합니다. 검토 후 필요한 복구와 backup 삭제는 사용자가 수행해야 합니다.
+이 검사는 관측된 변경을 거부하는 보호이며, 최종 검사와 rename 사이의 경쟁까지 막는 원자적 CAS는 아닙니다.
 
 새 runtime session에서 `notion-domain-context`는 Codex/OMX의 제한된 parent MCP를 직접 사용하고, Claude
 Code에서만 exact `notion-domain-researcher`를 호출합니다. Codex/OMX 도구가 없으면 먼저 installer status를
@@ -391,9 +396,22 @@ claude plugin install vulpora@vulpora --scope user
 
 receipt가 소유한 설치 후 미수정 파일만 삭제합니다. 직접 수정했거나 안전하게 판정할 수 없는
 에이전트·스킬 파일은 경고와 함께 보존하고, MCP를 포함한 나머지 안전한 제거는 계속 진행합니다.
-전체 제거가 완료되면 `.vulpora`을 지우지만 `.claude`, `.codex`, `.agents`나 그 아래의 공용
-`agents`/`skills` 폴더는 통째로 삭제하지 않습니다. receipt에 없는 기존 파일과 폴더는 그대로 남습니다.
-단, 수정된 receipt-owned 항목을 보존한 부분 제거에서는 추후 안전한 재시도를 위해 `.vulpora`이 남을 수 있습니다.
+전체 제거가 완료되면 설치 receipt를 정리하고, `.vulpora`는 비어 있을 때만 지웁니다.
+`.vulpora/tasks`의 승인 명세·실행 기록과 receipt가 소유하지 않은 설정·파일은 그대로 남습니다.
+`.claude`, `.codex`, `.agents`나 그 아래의 공용 `agents`/`skills` 폴더도 통째로 삭제하지 않습니다.
+수정된 receipt-owned 항목을 보존한 부분 제거에서는 추후 안전한 재시도를 위해 receipt를 유지합니다.
+
+삭제 중 원래 위치로 되돌리기까지 실패하면 `receipt_rollback_failed`가 안내한 private
+`.vulpora-remove.*/candidate`에 복구본을 남기며, `original.path`에는 원래 경로를 기록합니다.
+원래 경로가 사라진 경우 receipt와 baseline은 해제되지만 복구본은 보존됩니다. 재시도는
+`nothing_installed`로 끝날 수 있으며 복구본을 자동 복원하거나 지우지 않습니다.
+안내된 경로를 확인한 뒤 수동으로 복구하세요. 진단에는 파일 내용이 아닌 경로만 출력합니다.
+
+설치 갱신이나 receipt metadata 교체 중 되돌리기가 실패하면 같은 오류가 안내하는
+`.vulpora-replace.*/old`에 이전 내용을 남기고, 같은 transaction의 `original.path`에
+원래 경로를 기록합니다. 기록이 실패해도 복구본은 남고 원래 경로는 진단에 함께 표시됩니다.
+이 경우 기존 receipt는 자동 해제되지 않으며, metadata 교체가 중단되면 정합성 검사도
+실패할 수 있습니다. 정상 설치 완료로 간주하지 말고 안내된 복구 경로를 확인하세요.
 
 비대화형으로 에이전트와 스킬을 모두 지우려면 다음을 실행합니다.
 

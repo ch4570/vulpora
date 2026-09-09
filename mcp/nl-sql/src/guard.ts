@@ -24,12 +24,22 @@ const FORBIDDEN_KEYWORDS = [
   'replace', 'load',
 ];
 
-/** dialect 규칙대로 문자열/주석/따옴표 식별자를 공백으로 치환(길이 보존). */
-export function maskLiterals(sql: string, d: Dialect): string {
+/**
+ * dialect 규칙대로 문자열/주석/따옴표 식별자를 마스킹(길이 보존).
+ * 기본값은 공백; 절 탐지용 옵션은 인용 atom만 ?로 표시하고 주석은 공백으로 둔다.
+ */
+export function maskLiterals(sql: string, d: Dialect, preserveQuotedAtoms = false): string {
+  // MySQL's byte lexer distinguishes its EOF sentinel from an embedded NUL.
+  // Do not guess at NUL inside comments/literals; bind such data via params.
+  if (d.name === 'mysql' && sql.includes('\0')) {
+    throw new SqlGuardError('MySQL SQL 텍스트의 NUL은 허용되지 않습니다. params 바인딩을 사용하세요.');
+  }
   const out: string[] = [];
   let i = 0;
   const n = sql.length;
-  const push = (count: number) => out.push(' '.repeat(count));
+  const push = (count: number, quotedAtom = false) => out.push(
+    quotedAtom && preserveQuotedAtoms ? '?' + ' '.repeat(count - 1) : ' '.repeat(count),
+  );
 
   while (i < n) {
     const ch = sql[i]!;
@@ -38,10 +48,14 @@ export function maskLiterals(sql: string, d: Dialect): string {
     // 라인 주석 (-- 항상, # 은 mysql). MySQL의 -- 는 뒤에 공백/제어문자가 필요하다.
     let matchedLine = false;
     for (const tok of d.lineComments) {
-      const mysqlDashComment = d.name !== 'mysql' || tok !== '--' || /\s/.test(sql[i + tok.length] ?? '');
+      // MySQL checks one byte: ASCII space/control or the EOF sentinel, not
+      // JavaScript Unicode whitespace (e.g. NBSP is an identifier byte).
+      const mysqlDashComment = d.name !== 'mysql' || tok !== '--'
+        || i + tok.length === n || /[\x01-\x20\x7f]/.test(sql[i + tok.length] ?? '');
       if (sql.startsWith(tok, i) && mysqlDashComment) {
         let j = i + tok.length;
-        while (j < n && sql[j] !== '\n') j++;
+        // PostgreSQL/SQL Server also end -- at CR; MySQL scans through to LF.
+        while (j < n && sql[j] !== '\n' && (d.name === 'mysql' || sql[j] !== '\r')) j++;
         push(j - i);
         i = j;
         matchedLine = true;
@@ -93,7 +107,7 @@ export function maskLiterals(sql: string, d: Dialect): string {
         j++;
       }
       if (!closed) throw new SqlGuardError('닫히지 않은 문자열 리터럴입니다.');
-      push(j - i);
+      push(j - i, true);
       i = j;
       continue;
     }
@@ -110,7 +124,7 @@ export function maskLiterals(sql: string, d: Dialect): string {
           j++;
         }
         if (!closed) throw new SqlGuardError('닫히지 않은 따옴표 식별자입니다.');
-        push(j - i);
+        push(j - i, true);
         i = j;
         matchedQuote = true;
         break;
@@ -119,18 +133,21 @@ export function maskLiterals(sql: string, d: Dialect): string {
     if (matchedQuote) continue;
 
     // 달러 인용 $tag$ … $tag$ (postgres)
-    if (d.dollarQuote && ch === '$') {
-      const tagMatch = /^\$(?:[A-Za-z_][A-Za-z0-9_]*)?\$/.exec(sql.slice(i));
+    // PostgreSQL scan.l permits non-ASCII tag characters. A delimiter cannot
+    // start inside an unquoted identifier (including identifier$tag$ suffixes).
+    if (d.dollarQuote && ch === '$'
+      && (i === 0 || !/[A-Za-z0-9_$\u0080-\uffff]/.test(sql[i - 1]!))) {
+      const tagMatch = /^\$(?:[A-Za-z_\u0080-\uffff][A-Za-z0-9_\u0080-\uffff]*)?\$/.exec(sql.slice(i));
       if (tagMatch) {
         const tag = tagMatch[0];
         const end = sql.indexOf(tag, i + tag.length);
         if (end === -1) throw new SqlGuardError('닫히지 않은 달러 인용 문자열입니다.');
         const stop = end + tag.length;
-        push(stop - i);
+        push(stop - i, true);
         i = stop;
         continue;
       }
-      if (/^\$[A-Za-z0-9_]+\$/.test(sql.slice(i))) {
+      if (/^\$[A-Za-z0-9_\u0080-\uffff]+\$/.test(sql.slice(i))) {
         throw new SqlGuardError('유효하지 않은 달러 인용 태그입니다.');
       }
     }
@@ -150,6 +167,52 @@ function hasWord(maskedLower: string, word: string): boolean {
   return re.test(maskedLower);
 }
 
+/** Nested SELECT/CTE limits do not bound the rows returned by the outer query. */
+function hasOuterLimit(maskedLower: string, d: Dialect): boolean {
+  // MySQL also permits dollar/digit-prefixed identifiers. Keep the complete
+  // identifier-shaped run so $limit and 123limit cannot become LIMIT clauses.
+  const tokens = maskedLower.match(/@@?[a-z0-9_$.\u0080-\uffff]*|[a-z0-9_$\u0080-\uffff]+|[^\s]/g) ?? [];
+  const openings: number[] = [];
+  const closing = new Map<number, number>();
+  for (let i = 0; i < tokens.length; i++) {
+    if (tokens[i] === '(') openings.push(i);
+    else if (tokens[i] === ')') {
+      const opening = openings.pop();
+      if (opening !== undefined) closing.set(opening, i);
+    }
+  }
+  let start = 0;
+  let end = tokens.length;
+  // Only unwrap parentheses enclosing the entire query, never one UNION arm.
+  // A single matching pass keeps arbitrarily deep input linear, not quadratic.
+  while (tokens[start] === '(' && closing.get(start) === end - 1) { start++; end--; }
+  let depth = 0;
+  let hasTop = false;
+  let hasSetOperation = false;
+  for (let i = start; i < end; i++) {
+    const token = tokens[i]!;
+    if (token === '(') { depth++; continue; }
+    if (token === ')') { depth--; continue; }
+    if (depth !== 0) continue;
+
+    const previous = tokens[i - 1];
+    // Qualified names and explicit output aliases are not clauses.
+    if (previous === '.' || previous === 'as') continue;
+    if (d.canAppendLimit && token === 'limit') return true;
+    if (d.name !== 'mysql' && token === 'fetch'
+      && (tokens[i + 1] === 'first' || tokens[i + 1] === 'next')) return true;
+    if (d.name === 'mssql') {
+      if (token === 'union' || token === 'intersect' || token === 'except') hasSetOperation = true;
+      const afterSelect = previous === 'select'
+        || ((previous === 'all' || previous === 'distinct') && tokens[i - 2] === 'select');
+      if (token === 'top' && afterSelect
+        && (tokens[i + 1] === '(' || /^[0-9]+$/.test(tokens[i + 1] ?? ''))) hasTop = true;
+    }
+  }
+  // TOP limits a SELECT operand, not the combined result of a set operation.
+  return hasTop && !hasSetOperation;
+}
+
 export interface GuardOk {
   readonly sql: string;
   readonly hasLimit: boolean;
@@ -158,16 +221,23 @@ export interface GuardOk {
 
 /** 읽기 전용 단일 SELECT/WITH 검증. 위반 시 SqlGuardError. */
 export function assertReadOnlySelect(rawSql: string, d: Dialect): GuardOk {
-  if (typeof rawSql !== 'string' || rawSql.trim() === '') {
+  // PG/MySQL non-ASCII whitespace can belong to an identifier. Preserve it for
+  // schema validation instead of changing a trailing table name before checking.
+  const trimSql = (value: string) => d.name === 'mssql'
+    ? value.trim() : value.replace(/^[ \t\n\r\f\v]+|[ \t\n\r\f\v]+$/g, '');
+  if (typeof rawSql !== 'string' || trimSql(rawSql) === '') {
     throw new SqlGuardError('빈 쿼리입니다.');
   }
   if (rawSql.length > MAX_SQL_CHARS) {
     throw new SqlGuardError(`SQL은 최대 ${MAX_SQL_CHARS}자까지 허용됩니다.`);
   }
-  let sql = rawSql.trim().replace(/;[\s;]*$/g, '').trim();
+  const trailingTerminators = d.name === 'mssql' ? /;[\s;]*$/g : /;[ \t\n\r\f\v;]*$/g;
+  let sql = trimSql(trimSql(rawSql).replace(trailingTerminators, ''));
   if (sql === '') throw new SqlGuardError('빈 쿼리입니다.');
 
-  const masked = maskLiterals(sql, d);
+  // Preserve each quoted atom's position, not its content. Otherwise AS "x"
+  // LIMIT would look like the output alias AS LIMIT to the clause detector.
+  const masked = maskLiterals(sql, d, true);
   const maskedLower = masked.toLowerCase();
 
   if (statementCount(masked) > 1) {
@@ -199,10 +269,7 @@ export function assertReadOnlySelect(rawSql: string, d: Dialect): GuardOk {
     throw new SqlGuardError('SQL Server 시퀀스 값 생성(NEXT VALUE FOR)은 허용되지 않습니다.');
   }
 
-  const hasLimit = /(^|[^a-z0-9_])limit([^a-z0-9_]|$)/i.test(maskedLower)
-    || /(^|[^a-z0-9_])fetch\s+(first|next)/i.test(maskedLower)
-    || /(^|[^a-z0-9_])top\s*\(/i.test(maskedLower)
-    || /(^|[^a-z0-9_])top\s+\d/i.test(maskedLower);
+  const hasLimit = hasOuterLimit(maskedLower, d);
 
   return { sql, hasLimit, isCte };
 }
