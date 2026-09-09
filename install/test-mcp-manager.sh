@@ -182,6 +182,38 @@ record 'Codex status reports the exact Notion profile as read-only' \
   "run_cli mcp status --runtime codex --scope project --target '$WORK/notion-project' notion \
      | grep -Fq 'configured_read_only: vulpora-notion'"
 
+existing_policy_dry_run_preserves_config() {
+  local variant="$1" preview="$WORK/dry-run-$1" before_calls after_calls preview_rc
+  mkdir -p "$preview/.codex"
+  case "$variant" in
+    missing) grep -v '^enabled_tools[[:space:]]*=' "$WORK/notion-project/.codex/config.toml" > "$preview/.codex/config.toml" ;;
+    exact) cp "$WORK/notion-project/.codex/config.toml" "$preview/.codex/config.toml" ;;
+    conflict) sed 's/"fetch"\]/"fetch", "notion-create-pages"]/' "$WORK/notion-project/.codex/config.toml" > "$preview/.codex/config.toml" ;;
+  esac
+  cp -R "$preview" "$preview.before"
+  before_calls="$(awk -F '\t' '$2 != "get" { count++ } END { print count + 0 }' "$fake_state/calls.log")"
+  output="$(run_cli mcp install --runtime codex --scope project --target "$preview" --dry-run notion 2>&1)"
+  preview_rc=$?
+  after_calls="$(awk -F '\t' '$2 != "get" { count++ } END { print count + 0 }' "$fake_state/calls.log")"
+  diff -qr "$preview.before" "$preview" >/dev/null || return 1
+  [ "$before_calls" = "$after_calls" ] || return 1
+  case "$variant" in
+    missing)
+      [ "$preview_rc" = 0 ] \
+        && printf '%s\n' "$output" | grep -Fq 'policy: vulpora-notion enabled_tools=notion-search,notion-fetch,search,fetch'
+      ;;
+    exact) [ "$preview_rc" = 0 ] && printf '%s\n' "$output" | grep -Fq 'already_configured: vulpora-notion' ;;
+    conflict) [ "$preview_rc" != 0 ] && printf '%s\n' "$output" | grep -Fq 'existing_mcp_policy_conflict' ;;
+  esac
+}
+
+record 'existing endpoint-only MCP dry-run previews policy without writing the config' \
+  'existing_policy_dry_run_preserves_config missing'
+record 'existing exact MCP dry-run does not rewrite config or invoke mutations' \
+  'existing_policy_dry_run_preserves_config exact'
+record 'existing conflicting MCP dry-run preserves the complete config tree' \
+  'existing_policy_dry_run_preserves_config conflict'
+
 record 'Codex 1.2.1 endpoint-only config upgrades in place without re-add' \
   "grep -v '^enabled_tools[[:space:]]*=' '$WORK/notion-project/.codex/config.toml' \
         > '$WORK/notion-project/.codex/config.toml.legacy' \

@@ -23,6 +23,11 @@ function fail(code, detail) {
   process.exit(1);
 }
 
+function compareCodeUnits(left, right) {
+  // Inventory order and fingerprints must not depend on host locale or ICU data.
+  return left < right ? -1 : left > right ? 1 : 0;
+}
+
 function canonicalJson(value) {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
   if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
@@ -33,7 +38,7 @@ function walk(root) {
   const files = [];
   function visit(directory) {
     const entries = fs.readdirSync(directory, {withFileTypes: true})
-      .sort((left, right) => left.name.localeCompare(right.name));
+      .sort((left, right) => compareCodeUnits(left.name, right.name));
     for (const entry of entries) {
       if (entry.isSymbolicLink()) continue;
       const absolute = path.join(directory, entry.name);
@@ -51,9 +56,10 @@ function relative(root, absolute) {
 }
 
 function springModuleName(root, sourcePath) {
-  const rel = relative(root, sourcePath);
+  const rel = `/${relative(root, sourcePath)}`;
   const prefix = rel.split('/src/main/')[0];
-  return prefix ? prefix.split('/').filter(Boolean).join(':') : path.basename(root);
+  // Match the runner's root-module identity without depending on checkout names.
+  return prefix ? prefix.split('/').filter(Boolean).join(':') : ':';
 }
 
 function nearestPackage(root, sourcePath) {
@@ -279,62 +285,150 @@ function balancedBody(content, openIndex, open, close) {
   return null;
 }
 
-function collectTypeConstraints(sourceFiles, root) {
+function maskSourceTrivia(content, strings = false) {
+  // Preserve offsets/newlines; imports need string literals, declaration nesting does not.
+  return content.replace(/("""[\s\S]*?"""|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`)|\/\/[^\n]*|\/\*[\s\S]*?\*\//g,
+    (match, quoted) => quoted && !strings ? quoted : match.replace(/[^\n]/g, ' '));
+}
+
+function collectTypeConstraints(sourceFiles, root, profile) {
   const types = new Map();
+  const sources = new Map();
   for (const file of sourceFiles) {
-    const content = fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
-    for (const match of content.matchAll(/\b(?:(?:data\s+)?class|record)\s+([A-Za-z_][A-Za-z0-9_]*)/g)) {
-      const tail = content.slice(match.index + match[0].length, match.index + match[0].length + 300);
-      const openOffset = tail.search(/[({]/);
-      if (openOffset < 0) continue;
-      const open = tail[openOffset];
-      const openIndex = match.index + match[0].length + openOffset;
-      const body = balancedBody(content, openIndex, open, open === '(' ? ')' : '}');
-      if (body === null) fail('SCA-5.2', `${relative(root, file)}:${lineOf(content, openIndex)}: unbalanced type declaration`);
-      const behaviors = validationBehaviors(body);
-      if (behaviors.length === 0) continue;
+    const content = maskSourceTrivia(fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n'));
+    const source = relative(root, file);
+    const syntax = maskSourceTrivia(content, true);
+    const packageName = syntax.match(/^\s*package\s+([A-Za-z_][A-Za-z0-9_.]*)/m)?.[1] || '';
+    const module = profile === 'spring-jvm' ? springModuleName(root, file) : nearestPackage(root, file).directory;
+    sources.set(source, {content, syntax, packageName, module});
+    let scanned = 0;
+    let depth = 0;
+    for (const match of syntax.matchAll(/\b(?:(?:data\s+)?class|record)\s+([A-Za-z_][A-Za-z0-9_]*)/g)) {
+      for (; scanned < match.index; scanned += 1) {
+        if (syntax[scanned] === '{') depth += 1;
+        if (syntax[scanned] === '}') depth -= 1;
+      }
+      if (depth !== 0) continue; // Nested types are not top-level package/FQN candidates.
+      const tail = content.slice(match.index + match[0].length);
+      const opening = tail.match(/^\s*([({])/);
+      let validationBody = '';
+      let unsupported = false;
+      if (!opening) {
+        // Do not scan forward into the next type/function's body for a bodyless class.
+        unsupported = !file.endsWith('.kt')
+          || !/^\s*(?:$|(?:class|data\s+class|object|interface|fun|val|var)\b)/.test(tail);
+      } else {
+        const open = opening[1];
+        const openIndex = match.index + match[0].length + opening[0].length - 1;
+        const body = balancedBody(content, openIndex, open, open === '(' ? ')' : '}');
+        if (body === null) fail('SCA-5.2', `${source}:${lineOf(content, openIndex)}: unbalanced type declaration`);
+        // Include the closing delimiter: Java record's last component has no comma.
+        validationBody = body + (open === '(' ? ')' : '}');
+        const after = content.slice(openIndex + body.length + 2);
+        if (open === '(' && /^\s*\{/.test(after)) {
+          const bodyIndex = openIndex + body.length + 2 + after.indexOf('{');
+          const classBody = balancedBody(content, bodyIndex, '{', '}');
+          if (classBody === null) fail('SCA-5.2', `${source}:${lineOf(content, bodyIndex)}: unbalanced type body`);
+          validationBody += classBody;
+        }
+        unsupported = (open === '(' && /^\s*(?::|extends\b|implements\b)/.test(after))
+          || /\b(?:class|record|interface)\s|@Valid\b|@ValidateNested\b/.test(maskSourceTrivia(validationBody, true));
+      }
+      const behaviors = validationBehaviors(maskSourceTrivia(validationBody, true));
       const entries = types.get(match[1]) || [];
-      entries.push({behaviors, source: relative(root, file)});
+      entries.push({behaviors, source, module, unsupported,
+        qualifiedName: packageName ? `${packageName}.${match[1]}` : match[1],
+        exported: /\bexport\s+(?:abstract\s+)?$/.test(content.slice(0, match.index)),
+      });
       types.set(match[1], entries);
     }
   }
-  return types;
+  return {types, sources};
+}
+
+function resolvedRequestBehaviors(typeName, typeConstraints, sourceRef, sourceLine, nest = false) {
+  const reject = (reason) => fail('SCA-5.2', `${sourceRef}:${sourceLine}: request type ${typeName}: ${reason}`);
+  if (!/^[A-Z][A-Za-z0-9_]*$/.test(typeName)) reject('only simple, non-generic request types are supported');
+  const owner = typeConstraints.sources.get(sourceRef);
+  let candidates = typeConstraints.types.get(typeName) || [];
+  if (nest) {
+    const imports = [];
+    // A side-effect import's string must not consume the next declaration's binding.
+    for (const match of owner.content.matchAll(/^\s*import\s+([^;'"]+?)\s+from\s*['"]([^'"]+)['"]/gm)) {
+      const tokenIndex = match.index + match[0].indexOf('import');
+      if (owner.syntax.slice(tokenIndex, tokenIndex + 6) !== 'import') continue;
+      const clause = match[1].trim();
+      const named = clause.match(/^\{([\s\S]*)\}$/);
+      if (named) {
+        for (const binding of named[1].split(',').map(value => value.trim())) {
+          if (binding === typeName) imports.push(match[2]);
+          else if (new RegExp(`\\bas\\s+${typeName}$`).test(binding)) reject('aliased imports are unsupported');
+        }
+      } else if (new RegExp(`\\b${typeName}\\b`).test(clause)) reject('only direct relative named imports are supported');
+    }
+    const local = candidates.filter(entry => entry.source === sourceRef);
+    if (local.length > 0) {
+      if (imports.length > 0) reject('local declaration conflicts with an import');
+      candidates = local;
+    } else {
+      if (imports.length !== 1 || !/^\.\.?\//.test(imports[0])) reject('requires one direct relative named import');
+      const imported = path.posix.normalize(path.posix.join(path.posix.dirname(sourceRef), imports[0]));
+      const paths = /\.tsx?$/.test(imported) ? [imported] : [`${imported}.ts`, `${imported}.tsx`];
+      const files = paths.filter(value => typeConstraints.sources.has(value));
+      if (files.length !== 1) reject('import does not resolve to one discovered source file');
+      candidates = candidates.filter(entry => entry.source === files[0] && entry.exported);
+    }
+  } else {
+    const imports = [];
+    for (const match of owner.content.matchAll(/^\s*import\s+([^;\n]+)/gm)) {
+      const tokenIndex = match.index + match[0].indexOf('import');
+      if (owner.syntax.slice(tokenIndex, tokenIndex + 6) !== 'import') continue;
+      const imported = match[1].trim();
+      if (new RegExp(`\\bas\\s+${typeName}$`).test(imported)) reject('aliased imports are unsupported');
+      if (/^[A-Za-z_][A-Za-z0-9_.]*$/.test(imported) && imported.split('.').at(-1) === typeName) imports.push(imported);
+    }
+    if (imports.length > 1) reject('multiple explicit imports');
+    const qualifiedName = imports[0] || (owner.packageName ? `${owner.packageName}.${typeName}` : typeName);
+    candidates = candidates.filter(entry => entry.qualifiedName === qualifiedName);
+    // Even a local candidate cannot select among identical FQNs in other modules
+    // without the build graph. Never fall back to an unrelated simple-name DTO.
+    if (candidates.length > 1) reject('qualified name has multiple declarations');
+    if (imports.length === 0) candidates = candidates.filter(entry => entry.module === owner.module);
+  }
+  if (candidates.length !== 1) reject(`resolves to ${candidates.length} declarations`);
+  if (candidates[0].unsupported) reject('inherited, generic, or nested validation requires unsupported type resolution');
+  return candidates[0].behaviors;
 }
 
 function validatedRequestBehaviors(window, typeConstraints, sourceRef, sourceLine) {
+  window = maskSourceTrivia(window, true);
   if (!/@Valid\b/.test(window)) return [];
-  const typeNames = new Set();
-  for (const match of window.matchAll(/@Valid\b[\s\S]{0,180}?\b[A-Za-z_][A-Za-z0-9_]*\s*:\s*([A-Z][A-Za-z0-9_]*)/g)) {
-    typeNames.add(match[1]);
+  const typeNames = [];
+  for (const match of window.matchAll(/@Valid\b(?:\s+@\w+(?:\([^)]*\))?)*\s+[A-Za-z_][A-Za-z0-9_]*\s*:\s*([^\s,)]+)/g)) {
+    typeNames.push(match[1]);
   }
-  for (const match of window.matchAll(/@Valid\b(?:\s+@\w+(?:\([^)]*\))?)*\s+([A-Z][A-Za-z0-9_]*)\s+[A-Za-z_][A-Za-z0-9_]*\s*[,)]/g)) {
-    typeNames.add(match[1]);
+  for (const match of window.matchAll(/@Valid\b(?:\s+@\w+(?:\([^)]*\))?)*\s+([^\s,:()]+)\s+[A-Za-z_][A-Za-z0-9_]*\s*[,)]/g)) {
+    typeNames.push(match[1]);
   }
-  if (typeNames.size === 0) fail('SCA-5.2', `${sourceRef}:${sourceLine}: unresolved @Valid request type`);
+  if (typeNames.length !== [...window.matchAll(/@Valid\b/g)].length) fail('SCA-5.2', `${sourceRef}:${sourceLine}: unresolved @Valid request type`);
   const result = new Set();
   for (const typeName of typeNames) {
-    const candidates = typeConstraints.get(typeName) || [];
-    if (candidates.length !== 1) {
-      fail('SCA-5.2', `${sourceRef}:${sourceLine}: @Valid type ${typeName} resolves to ${candidates.length} declarations`);
-    }
-    for (const behavior of candidates[0].behaviors) result.add(behavior);
+    for (const behavior of resolvedRequestBehaviors(typeName, typeConstraints, sourceRef, sourceLine)) result.add(behavior);
   }
   return [...result].sort();
 }
 
 function validatedNestRequestBehaviors(window, typeConstraints, sourceRef, sourceLine, validationEnabled) {
+  window = maskSourceTrivia(window, true);
   if (!validationEnabled && !/@UsePipes\s*\([^)]*ValidationPipe/.test(window)) return [];
-  const typeNames = new Set();
-  for (const match of window.matchAll(/@Body(?:\s*\([^)]*\))?\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*([A-Z][A-Za-z0-9_]*)/g)) {
-    typeNames.add(match[2]);
+  const typeNames = [];
+  for (const match of window.matchAll(/@Body(?:\s*\([^)]*\))?\s*[A-Za-z_][A-Za-z0-9_]*\s*:\s*([^\s,)]+)/g)) {
+    typeNames.push(match[1]);
   }
+  if (typeNames.length !== [...window.matchAll(/@Body\b/g)].length) fail('SCA-5.2', `${sourceRef}:${sourceLine}: unresolved @Body request type`);
   const result = new Set();
   for (const typeName of typeNames) {
-    const candidates = typeConstraints.get(typeName) || [];
-    if (candidates.length > 1) {
-      fail('SCA-5.2', `${sourceRef}:${sourceLine}: request type ${typeName} resolves to ${candidates.length} declarations`);
-    }
-    if (candidates.length === 1) for (const behavior of candidates[0].behaviors) result.add(behavior);
+    for (const behavior of resolvedRequestBehaviors(typeName, typeConstraints, sourceRef, sourceLine, true)) result.add(behavior);
   }
   return [...result].sort();
 }
@@ -349,6 +443,65 @@ function precedingAnnotationBlock(content, index) {
     collected.unshift(line);
   }
   return collected.join('\n');
+}
+
+function springHandlerParameters(content, start, end, sourceRef, sourceLine) {
+  const reject = () => fail('SCA-5.2', `${sourceRef}:${sourceLine}: cannot prove handler parameter boundaries`);
+  // Work in an offset-preserving lexical view, returning the original parameter
+  // text. Annotation strings/comments must not supply or terminate parentheses.
+  const window = content.slice(start, end);
+  const syntax = maskSourceTrivia(window, true);
+  function skipSpace(index) {
+    while (index < syntax.length && /\s/.test(syntax[index])) index += 1;
+    return index;
+  }
+  function closingParenthesis(open) {
+    let depth = 0;
+    for (let index = open; index < syntax.length; index += 1) {
+      if (syntax[index] === '(') depth += 1;
+      if (syntax[index] === ')' && --depth === 0) return index;
+    }
+    reject();
+  }
+  function afterAnnotation(startIndex) {
+    const name = syntax.slice(startIndex).match(/^@[A-Za-z_$][A-Za-z0-9_$.]*/);
+    if (!name) reject();
+    const index = skipSpace(startIndex + name[0].length);
+    return syntax[index] === '(' ? closingParenthesis(index) + 1 : index;
+  }
+
+  let index = skipSpace(0);
+  while (syntax[index] === '@') index = skipSpace(afterAnnotation(index));
+  const open = syntax.indexOf('(', index);
+  if (open < 0) reject();
+  const head = syntax.slice(index, open).trim();
+  if (sourceRef.endsWith('.kt')) {
+    // Receiver/generic function declarations need additional type resolution;
+    // do not search forward into their bodies for something resembling a method.
+    const modifiers = '(?:(?:public|private|protected|internal|open|final|override|suspend|inline|tailrec|operator|infix|external|actual|expect)\\s+)*';
+    if (!new RegExp(`^${modifiers}fun\\s+[A-Za-z_][A-Za-z0-9_]*$`).test(head)) reject();
+  } else if (sourceRef.endsWith('.java')) {
+    const declaration = head.replace(/^(?:(?:public|protected|private|static|final|abstract|synchronized|native|strictfp|default)\s+)*/, '');
+    // Ordinary/qualified/generic/array return types, followed by one method name.
+    // In particular, assignments and intervening field/class declarations fail.
+    const returnType = '[A-Za-z_$][A-Za-z0-9_$.]*(?:\\s*<[A-Za-z0-9_$.,?<>\\[\\]\\s]+>)?(?:\\s*\\[\\s*\\])*';
+    if (!new RegExp(`^${returnType}\\s+[A-Za-z_$][A-Za-z0-9_$]*$`).test(declaration)
+      || /\b(?:class|interface|record|return|new|throw)\b/.test(declaration)) reject();
+  } else reject();
+
+  const close = closingParenthesis(open);
+  // Annotation arrays may contain braces, but executable default-argument bodies
+  // cannot be treated as direct parameter constraints. Leave these unsupported.
+  for (let cursor = open + 1; cursor < close;) {
+    if (syntax[cursor] === '@') cursor = afterAnnotation(cursor);
+    else {
+      if (syntax[cursor] === '{' || syntax[cursor] === '}') reject();
+      cursor += 1;
+    }
+  }
+  // The return type, throws clause and block/expression body are outside this
+  // proven list. Keep ')' so the last Java parameter retains its delimiter.
+  return window.slice(open, close + 1);
 }
 
 function discoverHttp(content, sourceRef, module, surfaces, typeConstraints, resolver, composedMappings, authAnnotations) {
@@ -391,11 +544,11 @@ function discoverHttp(content, sourceRef, module, surfaces, typeConstraints, res
     const sourceLine = lineOf(content, match.index);
     const leafPaths = match.fixedPaths
       || annotationLiterals(match.args, `${sourceRef}:${sourceLine}`, ['value', 'path'], true, resolver);
-    const methodWindow = content.slice(match.index, mappings[index + 1]?.index ?? content.length);
+    const parameters = springHandlerParameters(content, match.index,
+      mappings[index + 1]?.index ?? content.length, sourceRef, sourceLine);
     const methodAnnotations = precedingAnnotationBlock(content, match.index);
-    const directValidation = validationBehaviors(methodWindow);
-    const requestValidation = directValidation.length === 0
-      ? validatedRequestBehaviors(methodWindow, typeConstraints, sourceRef, sourceLine) : [];
+    const directValidation = validationBehaviors(maskSourceTrivia(parameters, true));
+    const requestValidation = validatedRequestBehaviors(parameters, typeConstraints, sourceRef, sourceLine);
     const behaviors = new Set(['HAPPY', ...directValidation, ...requestValidation]);
     if (classAuth || hasLocalAuth(methodAnnotations, authAnnotations)) behaviors.add('AUTH-FAIL');
     for (const base of basePaths) for (const leaf of leafPaths) {
@@ -585,14 +738,14 @@ if (/(?:org\.springframework|spring-boot|spring-web|spring-kafka)/i.test(springB
   fail('SCA-5.0', 'unsupported repository profile');
 }
 
-const typeConstraints = collectTypeConstraints(sourceFiles, root);
+const typeConstraints = collectTypeConstraints(sourceFiles, root, profile);
 const resolver = collectResolver(sourceFiles, configFiles);
 const composedMappings = profile === 'spring-jvm' ? collectComposedMappings(sourceFiles, root, resolver) : new Map();
 const authAnnotations = profile === 'spring-jvm' ? collectAuthAnnotations(sourceFiles) : new Set();
 const nestSettings = profile === 'node-nestjs' ? collectNestSettings(sourceFiles, root, resolver) : new Map();
 const nestAuthDecorators = profile === 'node-nestjs' ? collectNestAuthDecorators(sourceFiles) : new Set();
 const inputs = [...new Set([...buildFiles, ...sourceFiles, ...configFiles])]
-  .sort((left, right) => relative(root, left).localeCompare(relative(root, right)));
+  .sort((left, right) => compareCodeUnits(relative(root, left), relative(root, right)));
 const fingerprint = crypto.createHash('sha256');
 fingerprint.update(`${profile}\0`);
 fingerprint.update('docs/e2e-scenarios/CONTRACT.md\0');
@@ -614,7 +767,7 @@ for (const file of inputs) {
     discoverNestHttp(content, rel, module, surfaces, typeConstraints, resolver, nestSettings, nestAuthDecorators);
   }
 }
-surfaces.sort((left, right) => left.key.localeCompare(right.key));
+surfaces.sort((left, right) => compareCodeUnits(left.key, right.key));
 for (let index = 1; index < surfaces.length; index += 1) {
   if (surfaces[index - 1].key === surfaces[index].key) {
     fail('SCA-6.2', `${surfaces[index - 1].source}, ${surfaces[index].source}`);

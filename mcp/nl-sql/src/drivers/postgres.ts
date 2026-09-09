@@ -40,6 +40,7 @@ export class PostgresDriver implements Driver {
   async runReadOnly(sql: string, params: readonly unknown[]): Promise<QueryResult> {
     const client = await this.pool.connect();
     const started = Date.now();
+    let primaryFailed = false;
     try {
       await client.query('BEGIN TRANSACTION READ ONLY');
       // Make ordinary string parsing deterministic for the static lexer. E'...'
@@ -55,9 +56,21 @@ export class PostgresDriver implements Driver {
         rowCount: res.rowCount ?? res.rows?.length ?? 0,
         elapsedMs: Date.now() - started,
       };
+    } catch (error) {
+      primaryFailed = true;
+      throw error;
     } finally {
-      try { await client.query('ROLLBACK'); } catch { /* 무시 */ }
-      client.release();
+      let rollbackFailed = false;
+      try { await client.query('ROLLBACK'); } catch { rollbackFailed = true; }
+      try {
+        // A failed rollback leaves transaction state unknown: never reuse it.
+        if (rollbackFailed) client.release(true);
+        else client.release();
+      } catch (error) {
+        // Cleanup must not replace the original setup/query failure. Without
+        // one, a failed release/discard cannot be reported as a successful query.
+        if (!primaryFailed) throw error;
+      }
     }
   }
 

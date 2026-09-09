@@ -148,6 +148,6 @@ for (const [index, values] of invalid.entries()) {
 }
 NODE
 
-node --test "$SCRIPT_DIR/stack-detection.test.js"
+node --test "$SCRIPT_DIR/stack-detection.test.js" "$SCRIPT_DIR/atomic-write.test.js"
 
 printf 'vulpora-init routing updater: PASS\n'

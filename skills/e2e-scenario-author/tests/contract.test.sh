@@ -238,6 +238,100 @@ api:
 YAML
 
 node "$DISCOVER" "$WORK/spring-repo" "$CONTRACT" > "$WORK/inventory.json"
+node - "$WORK" "$DISCOVER" "$CONTRACT" <<'NODE'
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const {spawnSync} = require('node:child_process');
+const [work, discover, contract] = process.argv.slice(2);
+const sourceModule = path.join(work, 'spring-repo/app');
+function inventory(root, env = process.env) {
+  const result = spawnSync(process.execPath, [discover, root, contract], {encoding: 'utf8', env});
+  assert.equal(result.status, 0, result.stderr);
+  return JSON.parse(result.stdout);
+}
+
+// A root-level Spring application has one module, not one per source file.
+const rootProject = path.join(work, 'root-spring-repo');
+fs.cpSync(sourceModule, rootProject, {recursive: true});
+const rootInventory = inventory(rootProject);
+assert.equal(rootInventory.profile, 'spring-jvm');
+assert.deepEqual(rootInventory.surfaces.map((surface) => surface.module),
+  [':', ':']);
+assert(rootInventory.surfaces.every((surface) => surface.target.endsWith(' (:)')));
+assert.deepEqual(inventory(rootProject), rootInventory, 'inventory must be deterministic');
+fs.writeFileSync(path.join(work, 'root-inventory.json'), JSON.stringify(rootInventory));
+
+// Checkout names are not source inputs and must not change target identities.
+const relocatedProject = path.join(work, 'relocated checkout');
+fs.cpSync(rootProject, relocatedProject, {recursive: true});
+assert.deepEqual(inventory(relocatedProject), rootInventory);
+
+// A child named after the checkout is still a separate module from the root.
+const childSource = path.join(rootProject, 'root-spring-repo/src/main/java/demo');
+fs.mkdirSync(childSource, {recursive: true});
+fs.writeFileSync(path.join(childSource, 'ChildController.java'), `
+@RestController
+class ChildController {
+  @GetMapping("/api/v1/articles")
+  public String list() { return "ok"; }
+}
+`);
+assert.deepEqual(inventory(rootProject).surfaces.map((surface) => surface.module).sort(),
+  [':', ':', 'root-spring-repo']);
+
+// Keep the existing colon-separated identity for nested Gradle/Maven modules.
+const nestedProject = path.join(work, 'nested-spring-repo');
+fs.cpSync(sourceModule, path.join(nestedProject, 'services/api'), {recursive: true});
+assert.deepEqual(inventory(nestedProject).surfaces.map((surface) => surface.module),
+  ['services:api', 'services:api']);
+
+// Source bytes, not the host's default collation, determine the inventory.
+const localeProject = path.join(work, 'locale-spring-repo');
+fs.cpSync(sourceModule, localeProject, {recursive: true});
+for (const [language, extension, classPrefix] of [['java', 'java', 'Java'], ['kotlin', 'kt', 'Kotlin']]) {
+  const directory = path.join(localeProject, 'src/main', language, 'demo');
+  fs.mkdirSync(directory, {recursive: true});
+  for (const [filename, className, route] of [
+    ['ÄController', 'AController', `/locale/${language}/ä`],
+    ['ZController', 'ZController', `/locale/${language}/z`],
+  ]) {
+    const method = language === 'java'
+      ? 'public String get() { return "ok"; }'
+      : 'fun get(): String = "ok"';
+    fs.writeFileSync(path.join(directory, `${filename}.${extension}`),
+      `@RestController\nclass ${classPrefix}${className} {\n  @GetMapping("${route}")\n  ${method}\n}\n`);
+  }
+}
+const localeInventories = [];
+for (const [requested, expected] of [
+  ['en_US.UTF-8', 'en-US'], ['sv_SE.UTF-8', 'sv-SE'], ['ko_KR.UTF-8', 'ko-KR'],
+]) {
+  const env = {...process.env, LANG: requested, LC_ALL: requested};
+  const probe = spawnSync(process.execPath,
+    ['-e', 'process.stdout.write(Intl.Collator().resolvedOptions().locale)'], {encoding: 'utf8', env});
+  assert.equal(probe.status, 0, `Intl locale probe failed for ${requested}: ${probe.stderr}`);
+  assert.equal(probe.stdout, expected,
+    `locale regression requires actual ${expected} collation, not a fallback: ${probe.stdout}`);
+  localeInventories.push(inventory(localeProject, env));
+}
+for (const current of localeInventories) {
+  assert.deepEqual(current, localeInventories[0], 'inventory must be identical across EN/SV/KO locales');
+}
+for (const current of localeInventories) {
+  assert.deepEqual(current.inputs, [...current.inputs].sort(), 'inputs use explicit code-unit ordering');
+  const keys = current.surfaces.map(surface => surface.key);
+  assert.deepEqual(keys, [...keys].sort(), 'surface keys use explicit code-unit ordering');
+}
+
+// Duplicate endpoints in different root-level files must share the same key.
+const controller = path.join(rootProject, 'src/main/kotlin/demo/ArticleController.kt');
+fs.writeFileSync(path.join(path.dirname(controller), 'OtherController.kt'),
+  fs.readFileSync(controller, 'utf8').replace('class ArticleController', 'class OtherController'));
+const duplicate = spawnSync(process.execPath, [discover, rootProject, contract], {encoding: 'utf8'});
+assert.notEqual(duplicate.status, 0, 'duplicate root endpoints must be rejected');
+assert.match(duplicate.stderr, /SCA-6\.2/);
+NODE
 inventory_fingerprint="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync(process.argv[1],"utf8")).source_fingerprint)' "$WORK/inventory.json")"
 cat > "$WORK/inventory-catalog.md" <<'MARKDOWN'
 <!-- AUTO-GENERATED by e2e-scenario-author. DO NOT EDIT. Human notes belong in docs/e2e-scenarios/notes.md. -->
@@ -315,6 +409,16 @@ Content-Type: application/json
 MARKDOWN
 sed "s/INVENTORY_FINGERPRINT/$inventory_fingerprint/" "$WORK/inventory-catalog.md" > "$WORK/inventory-catalog-bound.md"
 node "$VALIDATOR" "$WORK/inventory-catalog-bound.md" "$CONTRACT" "$WORK/inventory.json" >/dev/null
+node - "$WORK" <<'NODE'
+const fs = require('node:fs');
+const path = require('node:path');
+const work = process.argv[2];
+const inventory = JSON.parse(fs.readFileSync(path.join(work, 'root-inventory.json'), 'utf8'));
+const catalog = fs.readFileSync(path.join(work, 'inventory-catalog.md'), 'utf8')
+  .replace('INVENTORY_FINGERPRINT', inventory.source_fingerprint).replaceAll('(app)', '(:)');
+fs.writeFileSync(path.join(work, 'root-catalog.md'), catalog);
+NODE
+node "$VALIDATOR" "$WORK/root-catalog.md" "$CONTRACT" "$WORK/root-inventory.json" >/dev/null
 
 sed 's/E2E-ARTICLE-POST-VALIDATION-FAIL-NAME-NOT-BLANK/E2E-ARTICLE-POST-BOUNDARY/' \
   "$WORK/inventory-catalog-bound.md" > "$WORK/missing-source-coverage.md"
@@ -653,5 +757,10 @@ fi
 grep -Fq '`node-nestjs`' "$SKILL"
 grep -Fq 'Spring Boot or NestJS modules' "$RUNNER"
 grep -Fq 'pnpm --filter <package> run start' "$REPO_ROOT/skills/e2e-runner/reference/kb/ci-integration.md"
+
+if ! node --test "$ROOT/tests/dto-resolution.test.js" "$ROOT/tests/method-parameters.test.js" > "$WORK/dto-resolution.log" 2>&1; then
+  cat "$WORK/dto-resolution.log" >&2
+  exit 1
+fi
 
 printf '{"semantic_ac_key":"e2e_scenario_author_contract","outcome":"pass","bundled_contract":true,"catalog_validator":true,"primary_plus_teardown":true,"write_scope_consistent":true,"profile_detection":true,"spring_jvm_profile":true,"node_nestjs_profile":true,"node_nestjs_inventory_bound":true,"unknown_profile_rejected":true,"nestjs_global_prefix":true,"nestjs_validation_metadata":true,"nestjs_local_auth":true,"deterministic_inventory":true,"dynamic_runner_modules":true,"canonical_target_grammar":true,"duplicate_and_cycle_rejected":true,"undeclared_mutation_rejected":true,"shell_control_rejected":true,"teardown_reference_bound":true,"mutating_cte_rejected":true,"source_inventory_bound":true,"request_dto_constraints_discovered":true,"constant_and_property_paths_resolved":true,"composed_mapping_discovered":true,"project_auth_annotation_discovered":true,"kafka_dlq_discovered":true,"outbox_publish_consume_discovered":true,"source_coverage_required":true,"stale_fingerprint_rejected":true}\n'

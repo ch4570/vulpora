@@ -35,6 +35,7 @@ details needed for your project.
 | [Behavioral evaluation](../evals/behavioral/README.md) | Case contracts, runtime adapters, artifacts, and measurement |
 | [Evidence trust boundaries](eval-trust-boundaries.md) | What offline checks, signatures, and the bounded runner do and do not prove |
 | [Issue and evidence ledger](issue-resolution.md) | Dated integration checks, prior full-suite snapshots, and recorded native/operator verification gaps |
+| [Overnight improvement log](overnight-feedback-2026-09-08.md) | Reproduced failures, regression evidence, and review feedback from the 2026-09-08 improvement loop |
 | [Public release checklist](public-release-checklist.md) | Source rights, provenance, reviewed history, and operational release prerequisites |
 | [Security reporting](../SECURITY.md) | Private vulnerability reports |
 | [Governance](../GOVERNANCE.md) | Maintainer and contributor responsibilities |

@@ -154,6 +154,10 @@ function validateEditRepositoryContext(task) {
     let parent = task.cwd;
     for (const segment of file.split('/').slice(0, -1)) {
       parent = path.join(parent, segment);
+      let stat;
+      try { stat = fs.lstatSync(parent); }
+      catch (error) { if (error.code === 'ENOENT') fail('EDIT_PARENT_MISSING'); throw error; }
+      if (!stat.isDirectory() || stat.isSymbolicLink()) fail('INVALID_EDIT_PARENT');
       try { fs.lstatSync(path.join(parent, 'AGENTS.md')); fail('EDIT_REPOSITORY_CONTEXT_REQUIRED'); }
       catch (error) { if (error.code !== 'ENOENT') throw error; }
     }
@@ -182,7 +186,8 @@ function git(cwd, args, optional = false) {
   return result.stdout;
 }
 function snapshot(task, attemptDir) {
-  const files = {};
+  // Scoped filenames are data, including Object.prototype property names.
+  const files = Object.create(null);
   for (const name of task.files) {
     const filename = scopedFile(task.cwd, name);
     try { files[name] = hash(regularFile(filename, 4 * 1024 * 1024)); }
@@ -194,7 +199,9 @@ function snapshot(task, attemptDir) {
     const excluded = path.relative(task.cwd, attemptDir);
     const paths = ['--', '.', ...(excluded && !excluded.startsWith(`..${path.sep}`) && !path.isAbsolute(excluded)
       ? [`:(exclude,literal)${excluded}`] : [])];
-    const diff = git(task.cwd, ['diff', '--binary', 'HEAD', ...paths]);
+    // A workspace fingerprint must reflect Git's raw diff, not a configurable
+    // renderer that can hide edits, vary independently, or execute a helper.
+    const diff = git(task.cwd, ['diff', '--no-ext-diff', '--no-textconv', '--binary', 'HEAD', ...paths]);
     const status = git(task.cwd, ['status', '--porcelain=v1', '-z', '--untracked-files=all', ...paths]);
     repositorySha256 = hash(Buffer.concat([diff, Buffer.from('\0'), status]));
   }
