@@ -13,7 +13,8 @@ function run(t, seconds, script, interrupt, options = {}) {
   const args = [runner, String(seconds), ...(options.command || [process.execPath, '-e', script])];
   const child = spawn('/bin/bash', options.siblingScript
     ? ['-c', '"$1" -e "$2" >/dev/null 2>&1 & sibling=$!; printf "sibling:%s\\n" "$sibling"; shift 2; exec /bin/bash "$@"',
-      '_', process.execPath, options.siblingScript, ...args] : args, {
+      '_', process.execPath, options.siblingScript, ...args] : options.slowPs
+      ? ['-c', 'ps() { command sleep 0.25; command ps "$@"; }; export -f ps; exec /bin/bash "$@"', '_', ...args] : args, {
     detached: true, stdio: ['ignore', 'pipe', 'pipe'], env: {...process.env, ...options.env}
   });
   const owned = new Set();
@@ -60,7 +61,7 @@ function run(t, seconds, script, interrupt, options = {}) {
     child.on('close', (code, signal) => {
       clearTimeout(watchdog);
       signalTimers.forEach(clearTimeout);
-      resolve({ code, signal, stdout, stderr });
+      resolve({ code, signal, stdout, stderr, ownedPids: [...owned] });
     });
   });
 }
@@ -93,7 +94,7 @@ test('normal parent exit stops background writes and closes inherited output pip
       {stdio:['ignore',${JSON.stringify(output)},${JSON.stringify(output)},'ipc']});
       child.once('message',()=>{console.log('ready:'+child.pid);process.exit(${code});});`;
     const result = await run(t, 30, script);
-    assert.equal(result.code, code); assert.equal(result.signal, null);
+    assert.equal(result.code, code, JSON.stringify(result)); assert.equal(result.signal, null);
     assertStopped(Number(result.stdout.match(/ready:(\d+)/)[1]));
     const completed = fs.readFileSync(filename, 'utf8');
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -104,7 +105,7 @@ test('normal parent exit stops background writes and closes inherited output pip
 test('cleanup preserves an unrelated sibling in the caller process group', async t => {
   const result = await run(t, 30, 'console.log("command done");', null,
     {siblingScript: 'setInterval(()=>{},100);'});
-  assert.equal(result.code, 0);
+  assert.equal(result.code, 0, JSON.stringify(result));
   const pid = Number(result.stdout.match(/sibling:(\d+)/)[1]);
   const state = spawnSync('ps', ['-o', 'stat=', '-p', String(pid)], {encoding: 'utf8'});
   assert.equal(state.status, 0); assert.ok(state.stdout.trim() && !/^Z/.test(state.stdout.trim()));
@@ -153,6 +154,19 @@ test('a child that ignores TERM is forcibly stopped within the timeout grace', a
   assert.equal(result.signal, null);
   assert.match(result.stderr, /timeout_result=\{"outcome":"timeout","timeout_seconds":1\}/);
   assertStopped(Number(result.stdout.match(/ready:(\d+)/)[1]));
+});
+
+test('slow process inspection does not multiply the two-second cleanup grace', async t => {
+  // The heartbeat lets the harness observe the command, supervisor, timeout,
+  // and cleanup deadline jobs without adding a production-only test hook.
+  const script = 'process.on("SIGTERM",()=>{}); console.log("ready:"+process.pid);' +
+    'setInterval(()=>console.log("heartbeat"),200);';
+  const result = await run(t, 1, script, null, {slowPs: true});
+  assert.equal(result.code, 124);
+  assert.equal(result.signal, null);
+  assert.match(result.stderr, /"outcome":"timeout"/);
+  assertStopped(Number(result.stdout.match(/ready:(\d+)/)[1]));
+  for (const pid of result.ownedPids) assertStopped(pid);
 });
 
 test('timeout retains ownership of a resistant descendant after its parent exits', async t => {

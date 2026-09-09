@@ -353,7 +353,8 @@ function resolvedRequestBehaviors(typeName, typeConstraints, sourceRef, sourceLi
   let candidates = typeConstraints.types.get(typeName) || [];
   if (nest) {
     const imports = [];
-    for (const match of owner.content.matchAll(/^\s*import\s+([^;]+?)\s+from\s*['"]([^'"]+)['"]/gm)) {
+    // A side-effect import's string must not consume the next declaration's binding.
+    for (const match of owner.content.matchAll(/^\s*import\s+([^;'"]+?)\s+from\s*['"]([^'"]+)['"]/gm)) {
       const tokenIndex = match.index + match[0].indexOf('import');
       if (owner.syntax.slice(tokenIndex, tokenIndex + 6) !== 'import') continue;
       const clause = match[1].trim();

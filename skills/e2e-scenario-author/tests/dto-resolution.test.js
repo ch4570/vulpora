@@ -207,6 +207,35 @@ test('Nest distinguishes same-package DTO paths including an unconstrained DTO',
   ]);
 });
 
+for (const quote of ["'", '"']) for (const multiline of [false, true]) {
+  test(`Nest side-effect imports do not consume a following ${multiline ? 'multiline' : 'single-line'} named import (${quote})`, t => {
+    const root = fixture(t);
+    const {controller} = nest(root, '', 'alpha');
+    const binding = multiline ? '{\n  CreateRequest,\n}' : '{ CreateRequest }';
+    fs.writeFileSync(controller, fs.readFileSync(controller, 'utf8')
+      .replace("import { CreateRequest } from './create-request.dto';",
+        `import ${quote}reflect-metadata${quote}\nimport ${binding} from './create-request.dto'`));
+    assert.deepEqual(surfaces(root)[0].required_behaviors, ['HAPPY', 'VALIDATION-FAIL-ALPHA-NOT-EMPTY']);
+  });
+}
+
+for (const kind of ['alias', 're-export']) {
+  test(`Nest side-effect imports do not bypass ${kind} rejection`, t => {
+    const root = fixture(t);
+    const {controller} = nest(root, '', 'alpha');
+    let source = fs.readFileSync(controller, 'utf8')
+      .replace("import { CreateRequest } from", "import 'reflect-metadata'\nimport { CreateRequest } from");
+    if (kind === 'alias') {
+      source = source.replace('{ CreateRequest }', '{ CreateRequest as Input }').replace('request: CreateRequest', 'request: Input');
+    } else {
+      write(root, 'src/index.ts', "export { CreateRequest } from './create-request.dto'\n");
+      source = source.replace("'./create-request.dto'", "'./index'");
+    }
+    fs.writeFileSync(controller, source);
+    rejects(root);
+  });
+}
+
 for (const constrained of [false, true]) for (const exported of [false, true]) {
   test(`Nest preserves a proven same-file DTO (constrained=${constrained}, exported=${exported})`, t => {
     const root = fixture(t);

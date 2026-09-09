@@ -9,8 +9,20 @@ case "$limit" in ''|*[!0-9]*) echo "timeout must be a positive integer" >&2; exi
 [ "$limit" -gt 0 ] || { echo "timeout must be a positive integer" >&2; exit 2; }
 
 state="$(mktemp -d "${TMPDIR:-/tmp}/vulpora-timeout.XXXXXX")" || exit 1
-anchor=""; timer=""; cancelled=0; timed_out=0; cleanup_failed=0; command_rc=125
+anchor=""; timer=""; cleanup_timer=""; cancelled=0; timed_out=0; cleanup_failed=0; command_rc=125
+stop_cleanup_timer() {
+  [ -n "$cleanup_timer" ] || return 0
+  # A deadline started after cancellation can inherit ignored TERM. It has no
+  # state to flush, so stop only our still-running timer job with KILL.
+  if job_running "$cleanup_timer"; then kill -KILL "$cleanup_timer" 2>/dev/null || true; fi
+  wait "$cleanup_timer" 2>/dev/null || true
+  cleanup_timer=""
+}
+start_cleanup_timer() {
+  sleep 2 3>&- 4>&- </dev/null >/dev/null 2>&1 & cleanup_timer=$!
+}
 cleanup_state() {
+  stop_cleanup_timer
   exec 3>&- 4>&-
   [ -n "$state" ] || return 0
   rm -f "$state/hold" "$state/completion"
@@ -59,16 +71,20 @@ group_empty() {
     END { exit found ? 1 : 0 }'
 }
 stop_group() {
-  local workers ticks=0
+  local workers
   workers="$(group_workers)" || return 1
   if [ "$workers" -gt 0 ]; then
     signal_group TERM || return 1
-    while [ "$ticks" -lt 20 ]; do
-      workers="$(group_workers)" || return 1
+    # A real deadline includes time spent inspecting the process table. Counting
+    # sleeps instead multiplies the grace by each scan's cost on a busy host.
+    start_cleanup_timer
+    while job_running "$cleanup_timer"; do
+      workers="$(group_workers)" || { stop_cleanup_timer; return 1; }
       [ "$workers" -gt 0 ] || break
+      job_running "$cleanup_timer" || break
       sleep 0.1
-      ticks=$((ticks + 1))
     done
+    stop_cleanup_timer
   fi
   if [ "$workers" -gt 0 ]; then
     signal_group KILL || return 1
@@ -79,12 +95,12 @@ stop_group() {
     kill -KILL "$anchor" 2>/dev/null || return 1
   fi
   wait "$anchor" 2>/dev/null || true
-  ticks=0
+  start_cleanup_timer
   while ! group_empty; do
-    [ "$ticks" -lt 20 ] || return 1
+    if ! job_running "$cleanup_timer"; then stop_cleanup_timer; return 1; fi
     sleep 0.1
-    ticks=$((ticks + 1))
   done
+  stop_cleanup_timer
 }
 
 [ "$cancelled" -eq 0 ] || exit 130

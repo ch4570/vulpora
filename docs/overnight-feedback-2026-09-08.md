@@ -1,6 +1,7 @@
 # Overnight improvement feedback log — 2026-09-08
 
-Status: implementation complete; final verification and PR preparation. Started
+Status: implementation and review recorded; final CI/merge status is in
+[PR #7](https://github.com/ch4570/vulpora/pull/7). Started
 from `52ce077` (`v1.0.1`) on `codex/overnight-feedback-20260908`. The user ended
 further exploration on September 9 and requested a pull request. No npm release
 has been published. Final aggregate verification is recorded in the pull request.
@@ -626,3 +627,55 @@ models/databases. Public disclosure requires the maintainer's explicit exception
 to SECURITY.md. Remaining boundaries include the previously documented SQL
 Server rollback-pool limitation, check-to-rename races, and unverified real Linux
 and authenticated-runtime behavior.
+
+## PR #7: merge-readiness follow-up — 2026-09-09
+
+The maintainer explicitly approved the public draft PR as an exception to
+SECURITY.md, then authorized merge only after evaluation. The merge threshold is
+all current-head CI/evaluation checks passing, no blocking security, data-loss,
+or regression finding in the reviewed scope, and an exact match between the
+reviewed commit and the commit being merged. This does not authorize an npm
+release or replace least-privilege deployment controls.
+
+On `3e6bc98`, Linux core checks on Node 22/24, macOS core on Node 24, both SQL
+jobs, and all six push/PR evaluation jobs passed. macOS core on Node 22 failed
+two timeout tests at their seven-second outer watchdog; that failure blocks
+merge even though the other eleven jobs passed.
+
+An independent controlled probe isolated the timeout issue: adding only 150 ms
+to each process-table read extended a one-second timeout to approximately
+7.8 seconds, and 250 ms extended it to 11.2 seconds. Workers were stopped in
+both probes. Counting twenty sleeps did not bound the elapsed cleanup grace
+because process inspection time accumulated between sleeps. The seven-second
+test watchdog is retained rather than increased.
+
+Both cleanup polling phases now use an owned two-second deadline job, including
+process-inspection time in the wait budget. Existing running-job, parent PID,
+and process-group ownership checks are unchanged. Deadline jobs are stopped and
+reaped on success, failure, and cancellation; cleanup uses KILL for its own timer
+because a timer started after cancellation can inherit ignored TERM. A new
+250 ms delayed-inspection regression failed the old runner at 7.0 seconds and
+passed the candidate at 5.5 seconds, checking observed workers and timers were
+stopped. The author and final coordinator timeout runs passed **13/13**. External process
+inspection can still stall; this is not an operating-system scheduling or
+isolation guarantee.
+
+The final source-discovery review also reproduced a valid NestJS import
+regression: a semicolonless side-effect import consumed the next direct relative
+named DTO import. Restricting the binding match from crossing a quote preserves
+the declaration boundary. Four quote/multiline combinations failed before the
+fix and now pass; alias and re-export rejection remain covered by two controls.
+All **70** DTO/formal-parameter tests passed both author and coordinator reruns,
+and a separate read-only review found no blocker in this narrow change.
+The coordinator also reran the full source-author contract successfully. No
+tests were skipped or their watchdog increased to make these changes pass.
+
+The coordinator's first timeout rerun had two exit-code-1 failures in ordinary
+completion cases, before additional assertion diagnostics were present. Their
+cause is not established and is not claimed fixed. Both cases passed a focused
+rerun; the complete final suite then passed **13/13**, including delayed process
+inspection in 4.3 seconds. Assertions now preserve captured output if either
+failure recurs. The local filesystem remains near capacity, so final full
+source/package validation must be established by CI on the follow-up commit,
+not inferred from these focused runs. Separate read-only review accepted both
+the timeout ownership/timer cleanup change and the import-boundary change.
