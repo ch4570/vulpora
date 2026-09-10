@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { getDialect } from '../dist/dialect.js';
 import { SchemaPolicyError } from '../dist/schema-policy.js';
+import { ResultLimitError } from '../dist/drivers/result-budget.js';
 import { sanitizeToolCall, ToolService } from '../dist/tool-service.js';
 
 const SECRET = 'postgresql://admin:super-secret@internal-db:5432/private';
@@ -39,6 +40,26 @@ class FakeDriver {
 function body(result) {
   return result.content[0].text;
 }
+
+test('collection overflow fails query, EXPLAIN and introspection with one stable code', async () => {
+  const db = new FakeDriver();
+  db.error = new ResultLimitError();
+  const codes = [];
+  const service = new ToolService(db, throwingIntrospector(db.error), config(), getDialect('postgres'), code => codes.push(code));
+  for (const result of [
+    await service.runSelect('SELECT id FROM public.users'),
+    await service.explainSelect('SELECT id FROM public.users'),
+    await service.listSchemas(),
+    await service.listTables('public'),
+    await service.describeTable('public', 'users'),
+    await service.searchObjects('users'),
+  ]) {
+    assert.equal(result.isError, true);
+    assert.match(body(result), /\[NLSQL_RESULT_LIMIT_EXCEEDED\]/);
+    assert.doesNotMatch(body(result), /Database result|SELECT|super-secret/);
+  }
+  assert.deepEqual(codes, Array(6).fill('NLSQL_RESULT_LIMIT_EXCEEDED'));
+});
 
 test('raw introspection errors and connection details are never returned or logged', async () => {
   const codes = [];

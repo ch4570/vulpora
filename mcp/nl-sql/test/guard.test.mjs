@@ -57,6 +57,62 @@ test('dialect-specific side effects remain blocked', () => {
   );
 });
 
+for (const command of [
+  'COMMIT', 'COMMIT TRANSACTION', 'COMMIT WORK', 'ROLLBACK', 'ROLLBACK TRANSACTION',
+  'ROLLBACK WORK', 'BEGIN TRANSACTION', 'SAVE TRANSACTION savepoint',
+  'SET ROWCOUNT 0', 'SET IMPLICIT_TRANSACTIONS ON', 'USE other_database',
+  'DECLARE @value int', 'DBCC CHECKDB', 'BACKUP DATABASE synthetic TO DISK = \'synthetic\'',
+  'RESTORE DATABASE synthetic', 'KILL 1', 'SHUTDOWN', 'CHECKPOINT', 'RECONFIGURE',
+  'RETURN', 'THROW 50000, \'synthetic\', 1', 'RAISERROR (\'synthetic\', 16, 1)',
+  'GOTO target', 'IF 1 = 1 SELECT 2', 'WHILE 1 = 1 SELECT 2', 'PRINT \'synthetic\'',
+  'DENY SELECT TO public', 'WAITFOR DELAY \'00:00:01\'',
+]) {
+  test(`mssql: rejects semicolon-free control statement ${command}`, () => {
+    for (const separator of [' ', '\n', '\u00a0', ' /* gap */ ']) {
+      assert.throws(
+        () => assertReadOnlySelect(`SELECT 1${separator}${command}`, getDialect('mssql')),
+        SqlGuardError,
+      );
+    }
+  });
+}
+
+test('mssql: control words in quoted atoms, comments and complete identifiers remain data', () => {
+  const dialect = getDialect('mssql');
+  for (const sql of [
+    `SELECT 'COMMIT TRANSACTION; SET ROWCOUNT 0' AS [rollback]`,
+    'SELECT [commit], "rollback", [set] FROM [dbo].[begin]',
+    'SELECT commit_count, commit$label, @commit, @@rowcount FROM dbo.control_log',
+    'SELECT commité FROM dbo.control_log',
+    'SELECT 1 /* COMMIT TRANSACTION */ -- ROLLBACK TRANSACTION',
+    'WITH [commit] AS (SELECT 1 AS [rollback]) SELECT [rollback] FROM [commit] UNION ALL SELECT 2',
+    'SELECT CASE WHEN id = 1 THEN 1 ELSE 0 END FROM dbo.users',
+  ]) assert.doesNotThrow(() => assertReadOnlySelect(sql, dialect), sql);
+});
+
+test('mssql: numeric boundaries cannot hide a following transaction command', () => {
+  for (const value of ['1', '1.0', '1.e2', '1e+2', '$1', '£1']) {
+    for (const command of ['COMMIT', 'ROLLBACK']) {
+      assert.throws(
+        () => assertReadOnlySelect(`SELECT ${value}${command} TRANSACTION`, getDialect('mssql')),
+        SqlGuardError,
+      );
+    }
+  }
+  assert.throws(
+    () => assertReadOnlySelect('SELECT 0x01ROLLBACK TRANSACTION', getDialect('mssql')),
+    SqlGuardError,
+  );
+});
+
+test('mssql: numeric boundaries also retain existing write and side-effect denials', () => {
+  for (const command of [
+    'UPDATE dbo.users SET active = 1', 'DELETE FROM dbo.users',
+    'INSERT INTO dbo.users VALUES (1)', 'EXEC dbo.synthetic',
+    "WAITFOR DELAY '00:00:01'",
+  ]) assert.throws(() => assertReadOnlySelect(`SELECT 1${command}`, getDialect('mssql')), SqlGuardError);
+});
+
 for (const name of ['postgres', 'mysql']) {
   const dialect = getDialect(name);
   test(`${name}: nested limits do not suppress the outer row limit`, () => {

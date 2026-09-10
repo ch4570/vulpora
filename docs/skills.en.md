@@ -2,7 +2,7 @@
 
 [한국어](skills.ko.md) · English · [README](../README.md)
 
-This handbook covers the purpose and invocation of all **62 skills** in the installation manifest.
+This handbook covers the purpose and invocation of all **63 skills** in the installation manifest.
 One entry, `codex-agent-runtime`, is a disabled compatibility contract. Each skill name links to its
 actual `SKILL.md`, which defines the inputs, procedure, and expected output.
 
@@ -79,7 +79,8 @@ between choosing a model and proving that a task actually ran with it.
 | Initialize a repository and implement a change | `vulpora-init` → `start-task` | `pack:core pack:orchestration` |
 | Turn an idea into requirements and an interface | `product-requirements` → `product-ui-design` | `pack:product-discovery-ko pack:visual` |
 | Write and review Kotlin/Java with Spring | `kotlin-code-authoring`, the language's review workflow | `pack:jvm-spring` |
-| Review architecture, security, or test quality | The corresponding `*-workflow` | `pack:jvm-quality` |
+| Review architecture or test quality | The corresponding `*-workflow` | `pack:jvm-quality` |
+| Analyze and fix security and shared-resource risks | `security-scan-workflow` | `security-scan-workflow` |
 | Work on PostgreSQL, SQL Server, or OpenSearch | The corresponding authoring/review skills | `pack:postgres`, `pack:mssql`, `pack:opensearch` |
 | Verify APIs and browser flows together | `e2e-test-workflow` | `pack:qa-e2e` |
 | Produce diagrams, HTML, and PDF documents | `visual-artifact-router` | `pack:visual` |
@@ -125,6 +126,18 @@ naming conventions, and architectural rules.
 | [service](../skills/service/SKILL.md) | Scaffold domain services with transaction and collaboration boundaries | `$service "Write the domain service for reading and cancelling orders"` |
 | [flyway](../skills/flyway/SKILL.md) | Author a PostgreSQL Flyway migration alongside the entity change | `$flyway "Write the migration SQL for this Order entity change"` |
 | [test-authoring](../skills/test-authoring/SKILL.md) | Write deterministic, isolated Kotlin unit and narrow integration tests against real contracts | `$test-authoring "Test OrderService cancellation boundary cases"` |
+
+### Security and shared-data safety · 1
+
+The installer includes the required read-only `security-auditor`. Review requests stay read-only;
+explicit hardening requests also produce scoped source repairs, inspected offline regressions and
+an independent final review. Coverage includes authorization/tenants, injection, SSRF, files,
+configuration, dependencies, resource exhaustion and shared DB/cache/search/queue/storage effects.
+Neither mode operates on shared services to prove a flaw. Unverified coverage stays explicit.
+
+| Skill | Purpose | Conversation example |
+|---|---|---|
+| [security-scan-workflow](../skills/security-scan-workflow/SKILL.md) | Analyze security and shared-resource effects; fix and verify when authorized | `$security-scan-workflow "Analyze diverse vulnerabilities and fix shared-resource risks with isolated regressions"` |
 
 ### Code, design, and test quality review · 11
 

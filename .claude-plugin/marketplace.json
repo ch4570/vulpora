@@ -11,7 +11,7 @@
     {
       "name": "vulpora",
       "source": "./",
-      "description": "Vulpora 에이전트 28종과 스킬 62종을 설치하는 catalog 플러그인.",
+      "description": "Vulpora 에이전트 28종과 스킬 63종을 설치하는 catalog 플러그인.",
       "version": "1.0.1",
       "category": "development",
       "keywords": [

@@ -1,6 +1,9 @@
 import pg from 'pg';
 import type { AppConfig } from '../config.js';
 import { emitDriverCode, type Driver, type DriverErrorSink, type QueryResult } from './types.js';
+import { ResultBudget } from './result-budget.js';
+import { withDeadline } from './deadline.js';
+import { assertRuntimeCompatible, DEFAULT_MAX_INBOUND_BYTES, installInboundGate, postgresInboundStream, type InboundGate } from './inbound-budget.js';
 
 const { Pool } = pg;
 
@@ -9,8 +12,10 @@ export class PostgresDriver implements Driver {
   private readonly pool: pg.Pool;
   private readonly timeoutMs: number;
   private readonly searchPathSql: string;
+  private readonly config: AppConfig;
 
   constructor(config: AppConfig, onError: DriverErrorSink = () => {}) {
+    this.config = config;
     this.timeoutMs = config.statementTimeoutMs;
     this.searchPathSql = ['pg_catalog', ...config.allowedSchemas.map((schema) => `"${schema}"`)].join(', ');
     this.pool = new Pool({
@@ -38,34 +43,85 @@ export class PostgresDriver implements Driver {
   }
 
   async runReadOnly(sql: string, params: readonly unknown[]): Promise<QueryResult> {
+    assertRuntimeCompatible('postgres');
     const client = await this.pool.connect();
     const started = Date.now();
     let primaryFailed = false;
+    let discarded = false;
+    let inbound: InboundGate | undefined;
+    let rejectInbound!: (error: Error) => void;
+    const inboundFailure = new Promise<never>((_, reject) => { rejectInbound = reject; });
+    void inboundFailure.catch(() => {});
+    const discard = () => {
+      if (discarded) return;
+      discarded = true;
+      client.release(true);
+    };
+    const command = (text: string) => withDeadline(Promise.race([client.query(text), inboundFailure]), this.timeoutMs, discard);
     try {
-      await client.query('BEGIN TRANSACTION READ ONLY');
+      inbound = installInboundGate(postgresInboundStream(client), 'emit', this.config.maxInboundBytes ?? DEFAULT_MAX_INBOUND_BYTES, (error) => {
+        rejectInbound(error); // settle the stable error before synchronous close errors
+        discard();
+      });
+      await command('BEGIN TRANSACTION READ ONLY');
       // Make ordinary string parsing deterministic for the static lexer. E'...'
       // escape strings remain supported explicitly by the guard.
-      await client.query('SET LOCAL standard_conforming_strings = on');
-      await client.query(`SET LOCAL search_path = ${this.searchPathSql}`);
-      await client.query(`SET LOCAL statement_timeout = ${this.timeoutMs}`);
-      await client.query('SET LOCAL idle_in_transaction_session_timeout = 15000');
-      const res = await client.query({ text: sql, values: params as unknown[] });
+      await command('SET LOCAL standard_conforming_strings = on');
+      await command(`SET LOCAL search_path = ${this.searchPathSql}`);
+      await command(`SET LOCAL statement_timeout = ${this.timeoutMs}`);
+      await command('SET LOCAL idle_in_transaction_session_timeout = 15000');
+      const budget = new ResultBudget(this.config);
+      await withDeadline(Promise.race([inboundFailure, new Promise<void>((resolve, reject) => {
+        const query = new pg.Query({ text: sql, values: params as unknown[] });
+        let failed = false;
+        let described = false;
+        const stop = (error: unknown) => {
+          if (failed) return;
+          failed = true;
+          // Terminating this owned connection cancels the query without another
+          // connection, and prevents a still-running transaction from pooling.
+          reject(error);
+          try { discard(); } catch { /* preserve the collection error */ }
+        };
+        const describe = (result: pg.QueryResult) => {
+          if (!described) { budget.setFields(result.fields.map((field) => field.name)); described = true; }
+        };
+        // Attach before submission: pg.Query then disables its result.rows array.
+        query.on('row', (row: Record<string, unknown>, result) => {
+          if (failed || discarded) return;
+          try {
+            if (!result) throw new Error('Missing result metadata.');
+            describe(result); budget.addRow(row);
+          } catch (error) { stop(error); }
+        });
+        query.on('error', (error: Error) => { failed = true; reject(error); });
+        query.on('end', (result: pg.QueryResult) => {
+          if (failed || discarded) return;
+          try { describe(result); resolve(); } catch (error) { stop(error); }
+        });
+        try { client.query(query); } catch (error) { stop(error); }
+      })]), this.timeoutMs, discard);
       return {
-        fields: res.fields?.map((f) => f.name) ?? [],
-        rows: (res.rows ?? []) as Record<string, unknown>[],
-        rowCount: res.rowCount ?? res.rows?.length ?? 0,
+        fields: budget.fields,
+        rows: budget.rows,
+        rowCount: budget.rows.length,
         elapsedMs: Date.now() - started,
       };
     } catch (error) {
       primaryFailed = true;
-      throw error;
+      throw inbound?.error ?? error;
     } finally {
       let rollbackFailed = false;
-      try { await client.query('ROLLBACK'); } catch { rollbackFailed = true; }
+      if (!discarded && inbound) try { await command('ROLLBACK'); } catch { rollbackFailed = true; }
       try {
         // A failed rollback leaves transaction state unknown: never reuse it.
-        if (rollbackFailed) client.release(true);
-        else client.release();
+        if (discarded) { /* overflow already discarded the owned connection */ }
+        else if (primaryFailed || rollbackFailed || !inbound) discard();
+        else {
+          try { inbound.restore(); } catch (error) { discard(); throw error; }
+          client.release();
+        }
+        if (!primaryFailed && inbound?.error) throw inbound.error;
       } catch (error) {
         // Cleanup must not replace the original setup/query failure. Without
         // one, a failed release/discard cannot be reported as a successful query.

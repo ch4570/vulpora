@@ -16,6 +16,7 @@ Adapters receive:
 | `VULPORA_RUNTIME` | Target runtime label |
 | `VULPORA_FIXTURE_REPO` | Absolute fixture repo path |
 | `VULPORA_BASELINE_MODE` | Baseline mode requested by the case |
+| `VULPORA_CONTEXT_PROFILE` | Codex context preparation: `entry` (default) or `security-workflow` (preparation only) |
 | `VULPORA_PROMPT_FILE` | Case YAML path |
 | `VULPORA_METRICS_FILE` | Temporary flat YAML/JSON metrics sidecar to write |
 | `VULPORA_MEASUREMENTS_FILE` | Temporary JSON provenance sidecar; only validated summary fields are retained |
@@ -59,6 +60,53 @@ Other referenced files, scripts and dependency assets are not staged; the model 
 report missing required context. The fixture sandbox remains unchanged. Retained
 context provenance contains relative paths, full-file byte sizes and SHA-256 hashes,
 not source contents.
+
+### Security workflow preparation and runtime limits
+
+With `VULPORA_CONTEXT_PROFILE=security-workflow` and `agent-only`, the Codex adapter
+copies the complete same-release workflow and canonical `security-auditor` source bundle
+into a temporary directory outside the fixture. It validates mandatory references and
+INDEX links, rejects symlinks, and records `available_files` hashes separately from
+`loaded_files`. Availability does not mean the model read a file: topic KBs remain subject
+to selective INDEX routing. `plain-runtime` still contains no asset context; this opt-in
+profile rejects `agent-memory` rather than silently omitting its policies.
+
+This profile currently exits 3 with `NOT_RUN`/`INCOMPLETE` before invoking Codex. The
+canonical native-role renderer is tested offline, including exact parent write-file
+grants and a read-only auditor profile, but it is not an enabled runtime transport.
+Do not describe this preparation as successful native discovery, reviewer execution,
+or a completed security evaluation.
+
+On macOS with Codex CLI 0.154.0, two synthetic `exec --ephemeral` native probes
+(including one with `features.multi_agent_v2=true`) failed to spawn a child with
+`collab spawn failed: no thread with id`. The app-server alternative rejected
+`--ignore-user-config`; dropping that isolation flag or copying credentials is not a
+supported workaround. These are observed runtime incompatibilities, not proof that
+the role's configuration keys are unknown. The keys and inheritance behavior are
+documented in the official [configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference),
+[subagent configuration](https://learn.chatgpt.com/docs/agent-configuration/subagents), and
+[permission profiles](https://learn.chatgpt.com/docs/permissions).
+
+### Mechanical isolation preflight
+
+Every ordinary Codex invocation now checks the selected profile before starting a model.
+The check uses only synthetic files, an empty run-owned HOME/CODEX_HOME, and a shell
+command in `codex sandbox`. It requires denied outside reads/writes, an allowed fixture
+read, and fixture writes matching the selected read/write profile; it also verifies the
+resulting file contents and removes its own test files. Failure returns
+`MACHINE_ISOLATION_PROBE_FAILED` with unknown provider usage, not a successful evaluation.
+
+The check is necessary because a local synthetic CLI 0.154.0 sandbox probe parsed the
+requested deny/read profile but nevertheless allowed a sibling temporary-file read
+and a read-only fixture-file write. An explicit physical `/private/tmp` deny did not
+repair that observed probe. No real secrets or services were used. Configuration
+acceptance alone therefore cannot establish the claimed boundary, and a CLI version
+number is not a substitute for this enforcement check.
+
+A passing check proves only those four synthetic filesystem operations in the
+`sandbox` command. It does not establish network/process isolation or permission
+equivalence to authenticated `exec` with its different HOME/CODEX_HOME. Keep these
+limits explicit; reopening native execution requires that additional evidence.
 
 `estimated_tokens` remains a compatibility heuristic, always `ceil(prompt_utf8_bytes / 4)`.
 It excludes runtime system instructions, tools, history and outputs. It is neither a
