@@ -62,8 +62,8 @@ export class MysqlDriver implements Driver {
     try {
       // Keep unqualified stored-function resolution inside an allowed database.
       await conn.query(`USE \`${this.defaultSchema}\``);
-      // SELECT 한정 실행시간 제한(ms). MariaDB 등 미지원이면 무시.
-      try { await conn.query(`SET SESSION MAX_EXECUTION_TIME = ${this.timeoutMs}`); } catch { /* 무시 */ }
+      // Fail closed if the server cannot enforce the configured SELECT timeout.
+      await conn.query(`SET SESSION MAX_EXECUTION_TIME = ${this.timeoutMs}`);
       await conn.query('START TRANSACTION READ ONLY');
       // Server-side binding keeps values out of SQL text, including when the
       // server enables NO_BACKSLASH_ESCAPES (query() uses client-side escaping).

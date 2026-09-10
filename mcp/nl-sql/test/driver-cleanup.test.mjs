@@ -238,11 +238,17 @@ for (const command of [
   });
 }
 
-test('mysql: unsupported optional timeout setup still runs and cleans up the query', async t => {
-  const f = await fixture(t, 'mysql', {
-    failPhase: 'setup', failCommand: 'SET SESSION MAX_EXECUTION_TIME = 1234',
+for (const rollbackFails of [false, true]) {
+  test(`mysql: timeout setup failure prevents execution and ${rollbackFails ? 'discards' : 'releases'} the connection`, async t => {
+    const f = await fixture(t, 'mysql', {
+      failPhase: 'setup', failCommand: 'SET SESSION MAX_EXECUTION_TIME = 1234', rollbackFails,
+    });
+    await assert.rejects(f.run(), error => error === f.primaryError);
+    assert.deepEqual(f.commands, [
+      'USE `public`', 'SET SESSION MAX_EXECUTION_TIME = 1234', 'ROLLBACK',
+    ]);
+    assert.deepEqual(f.actions, [rollbackFails ? 'destroy' : 'release']);
+    assert.equal(f.total(), rollbackFails ? 0 : 1);
+    assert.equal(f.idle(), rollbackFails ? 0 : 1);
   });
-  assert.deepEqual((await f.run()).rows, [{ value: 1 }]);
-  assert.deepEqual(f.actions, ['release']);
-  assert.ok(f.commands.includes('START TRANSACTION READ ONLY'));
-});
+}

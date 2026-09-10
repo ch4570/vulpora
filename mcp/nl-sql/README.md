@@ -33,6 +33,10 @@
    | **SQL Server** | **소프트(엔진 모드 없음)** | 가드 + **읽기 전용 로그인(필수)** + 트랜잭션 `ROLLBACK`. ⚠️ 트랜잭션 읽기전용 모드가 없으므로 **반드시 db_datareader 권한만 가진 로그인**으로 접속 |
 
 4. **자원 한계** — statement timeout(기본 5s; pg `statement_timeout`, mysql `MAX_EXECUTION_TIME`, mssql `requestTimeout`), 반환 행 하드 캡(기본 100), 셀 절단, **파라미터 바인딩**으로 인젝션 회피.
+   MySQL의 시간 제한 설정이 실패하면 조회와 시작 시 연결 확인도 거부합니다. 이를 지원하지
+   않는 MySQL 호환 서버에서 제한 없이 계속 실행하는 fallback은 제공하지 않습니다.
+   SQL Server 가드는 트랜잭션·세션·관리 제어문을 차단하지만 완전한 T-SQL 문법 분석기는
+   아니므로 읽기 전용 DB 권한은 계속 필요합니다.
 5. **오류 위생** — DB 드라이버 원문 오류·호스트·사용자·연결 문자열은 MCP 응답이나 stderr로 전달하지 않는다. 외부에는 `NLSQL_DB_QUERY_FAILED` 같은 안정적인 오류 코드만 노출한다.
 6. **최소 권한 접속(운영 필수)** — 아래 dialect별 읽기 전용 역할.
 

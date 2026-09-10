@@ -24,6 +24,15 @@ const FORBIDDEN_KEYWORDS = [
   'replace', 'load',
 ];
 
+// T-SQL can start another statement without a semicolon. Keep transaction,
+// session, control-flow and administrative commands out of the driver's batch.
+// This is a conservative token guard, not a complete T-SQL grammar validator.
+const MSSQL_FORBIDDEN_COMMANDS = new Set([
+  'begin', 'commit', 'rollback', 'save', 'set', 'use', 'declare',
+  'dbcc', 'backup', 'restore', 'kill', 'shutdown', 'checkpoint', 'reconfigure',
+  'return', 'throw', 'raiserror', 'goto', 'if', 'while', 'print', 'deny',
+]);
+
 /**
  * dialect 규칙대로 문자열/주석/따옴표 식별자를 마스킹(길이 보존).
  * 기본값은 공백; 절 탐지용 옵션은 인용 atom만 ?로 표시하고 주석은 공백으로 둔다.
@@ -253,6 +262,16 @@ export function assertReadOnlySelect(rawSql: string, d: Dialect): GuardOk {
   for (const kw of FORBIDDEN_KEYWORDS) {
     if (hasWord(maskedLower, kw)) {
       throw new SqlGuardError(`금지된 키워드가 포함되어 거부합니다: ${kw.toUpperCase()}`);
+    }
+  }
+  if (d.name === 'mssql') {
+    // Preserve whole identifiers/variables, but separate numeric literals from
+    // adjacent commands (1COMMIT). Quoted atoms were already masked above.
+    const words = maskedLower.match(/0x[0-9a-f]*|(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:e[+-]?[0-9]+)?|(?:[a-z_@#]|\p{L})(?:[a-z0-9_$@#]|\p{L}|\p{N})*/gu) ?? [];
+    const command = words.find((word) => MSSQL_FORBIDDEN_COMMANDS.has(word)
+      || FORBIDDEN_KEYWORDS.includes(word) || d.forbiddenFunctions.includes(word));
+    if (command) {
+      throw new SqlGuardError(`SQL Server 제어/관리 명령은 허용되지 않습니다: ${command.toUpperCase()}`);
     }
   }
   for (const fn of d.forbiddenFunctions) {
