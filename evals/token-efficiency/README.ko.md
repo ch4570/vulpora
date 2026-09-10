@@ -16,6 +16,14 @@
 
 ## 선택적으로 측정하기
 
+다중 파일 수정·테스트 작성·리뷰 비교는 별도의 [명시적 workflow 사전 고정 실험](WORKFLOW-EVAL.md)을 사용합니다.
+[경로 선택 가이드](../../docs/workflow-economics.ko.md)는 기존 기능과 새 평가를 구분합니다.
+이 실험은 전역 기본값 변경이나 실제 청구 절감의 근거가 아닙니다.
+
+[설정 호환성 수정 후 pilot](results/workflow-pilot-configured-2026-09-09.md)는 3개 호출을 계측한 뒤
+토큰 한도로 중단됐으며, 완료 0건·미실행 6건을 기록했습니다. [전체 시도 비용 기록](results/workflow-evaluation-spend-2026-09-09.json)은
+첫 설정 오류의 불명 비용도 보존합니다. 9개 작업의 전체 비교 완료나 절감 달성으로 해석하지 않습니다.
+
 Python 3.9+와 별도 환경에 설치한 tokenizer가 필요합니다. Vulpora 설치기나 npm 의존성에는
 추가하지 않았습니다. 최초 tokenizer 실행은 인코딩 데이터를 내려받을 수 있고, 이후에는 캐시를 사용합니다.
 

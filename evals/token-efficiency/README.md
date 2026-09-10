@@ -17,6 +17,15 @@ also includes unsuccessful pilots and an invocation with unknown usage; realized
 
 ## Run the optional audit
 
+For representative bug, test-authoring and review tasks, use the separate
+[preregistered explicit-workflow pilot](WORKFLOW-EVAL.md). The [path selection guide (한국어)](../../docs/workflow-economics.ko.md)
+distinguishes existing features from evaluation proposals. This does not change global defaults or establish billed savings.
+
+The [configured workflow pilot (한국어)](results/workflow-pilot-configured-2026-09-09.md) records three
+observed invocations and an aggregate-token stop, with zero accepted tasks and six unstarted runs.
+The [all-attempt spend ledger](results/workflow-evaluation-spend-2026-09-09.json) also retains the original
+startup failure's unknown cost. The result is inconclusive, not a completed nine-run comparison or a savings claim.
+
 Python 3.9+ is required. Install the pinned tokenizer in an isolated environment; Vulpora's installer and npm
 package do not install it. The first tokenizer use can download its encoding data; subsequent runs use the cache.
 
