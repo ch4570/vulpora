@@ -2,7 +2,7 @@
 # Offline transport contract checks. The fake Codex process never calls a model.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
-node - "$SCRIPT_DIR/../skills/start-task/scripts/session-runner.js" <<'NODE'
+node - "$SCRIPT_DIR/../skills/start-task/scripts/session-runner.js" "$@" <<'NODE'
 'use strict';
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -10,6 +10,7 @@ const os = require('node:os');
 const path = require('node:path');
 const {spawnSync} = require('node:child_process');
 const runner = path.resolve(process.argv[2]);
+const nameFilter = process.argv[3];
 const {initBudget, readBudget, reserveBudget} = require(path.join(path.dirname(runner), 'session-budget.js'));
 const {hash, canonical} = require(path.join(path.dirname(runner), 'model-routing-io.js'));
 const work = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'vulpora-session-test-')));
@@ -101,8 +102,8 @@ else {
     let json; try { json = JSON.parse(output); } catch { assert.fail(`Non-JSON runner output: ${output}`); }
     return {...result,json};
   }
-  function invokeBinary(binaryRunner, args, item, mode = 'good') {
-    const result = spawnSync(process.execPath,[binaryRunner,...args],{encoding:'utf8',timeout:12000,
+  function invokeBinary(binaryRunner, args, item, mode = 'good', preload = null) {
+    const result = spawnSync(process.execPath,[...(preload ? ['--require',preload] : []),binaryRunner,...args],{encoding:'utf8',timeout:12000,
       env:{...process.env,PATH:`${bin}${path.delimiter}${process.env.PATH}`,SESSION_TEST_CAPTURE:item.capture,
         SESSION_TEST_MODE:mode,SESSION_TEST_BUDGET:item.budget}});
     assert.ifError(result.error);
@@ -117,7 +118,57 @@ else {
   }
   function prepare(item) { return invoke(['prepare','--task',item.taskPath,'--catalog',catalog,'--out',item.out,'--policy',policy,'--budget',item.budget],item); }
   function run(item, mode) { return invoke(['run','--capsule',item.capsule],item,mode); }
-  function check(name, fn) { fn(); passed++; process.stdout.write(`ok ${passed} - ${name}\n`); }
+  function check(name, fn) {
+    if (nameFilter && !name.includes(nameFilter)) return;
+    fn(); passed++; process.stdout.write(`ok ${passed} - ${name}\n`);
+  }
+
+  check('failed prelaunch publication refunds only a proven unstarted reservation',()=>{
+    for (const fault of ['ENOSPC','EACCES','published','exists','locked','cancel-published']) {
+      const item=fixture(`prelaunch-${fault}`); assert.equal(prepare(item).status,0);
+      const preload=path.join(work,`prelaunch-${fault}.cjs`);
+      fs.writeFileSync(preload,`const fs=require('node:fs'),link=fs.linkSync,rename=fs.renameSync;
+        let markerFailed=false;
+        fs.renameSync=function(from,to){const result=rename.apply(this,arguments);
+          if(markerFailed&&${JSON.stringify(fault)}==='cancel-published'&&to===${JSON.stringify(item.budget)})
+            throw Object.assign(new Error('synthetic post-publication failure'),{code:'EIO'});
+          return result;};
+        fs.linkSync=function(from,to){if(to===${JSON.stringify(path.join(item.out,'launch.json'))}){
+          markerFailed=true;
+          if(${JSON.stringify(fault)}==='published')link.apply(this,arguments);
+          if(${JSON.stringify(fault)}==='exists')fs.writeFileSync(to,'existing owner');
+          if(${JSON.stringify(fault)}==='locked')fs.mkdirSync(${JSON.stringify(item.budget+'.lock')});
+          throw Object.assign(new Error('synthetic marker publication fault'),{code:
+            ${JSON.stringify(fault)}==='exists'?'EEXIST':${JSON.stringify(fault)}==='published'?'EIO':
+            ${JSON.stringify(fault)}==='EACCES'?'EACCES':'ENOSPC'});
+        }return link.apply(this,arguments);};`);
+      const result=invokeBinary(runner,['run','--capsule',item.capsule],item,'good',preload);
+      assert.equal(result.status,2); assert.equal(fs.existsSync(item.capture),false);
+      assert.equal(fs.existsSync(path.join(item.out,'result.json')),false);
+      const budget=readBudget(item.budget);
+      assert.equal(budget.committedTokens,0); assert.equal(budget.spentRelativeUnits,0);
+      const released=['ENOSPC','EACCES'].includes(fault);
+      const ledgerReleased=released||fault==='cancel-published';
+      assert.equal(budget.reservedTokens,ledgerReleased?0:4000);
+      assert.equal(budget.reservedRelativeUnits,ledgerReleased?0:10);
+      if(released){
+        assert.equal(result.json.reason,fault); assert.equal(result.json.execution,'NOT_RUN');
+        assert.deepEqual(result.json.budgetCancellation,{status:'RELEASED',reason:'PRELAUNCH_FAILURE'});
+        assert.equal(fs.existsSync(path.join(item.out,'launch.json')),false);
+        const next=fixture(`after-${fault}`); next.budget=item.budget;
+        assert.equal(prepare(next).status,0); assert.equal(run(next).status,0);
+        assert.equal(readBudget(item.budget).committedTokens,110);
+      }else if(fault==='exists'){
+        assert.equal(result.json.reason,'ATTEMPT_ALREADY_STARTED'); assert.equal(result.json.execution,'UNKNOWN');
+        assert.equal(fs.readFileSync(path.join(item.out,'launch.json'),'utf8'),'existing owner');
+      }else{
+        assert.equal(result.json.execution,'UNKNOWN');
+        assert.equal(result.json.budgetCancellation.status,'UNKNOWN');
+        assert.equal(result.json.budgetCancellation.reason,fault==='locked'?'BUDGET_BUSY':
+          fault==='cancel-published'?'EIO':'BUDGET_LAUNCH_NOT_EXCLUDED');
+      }
+    }
+  });
   check('prepare creates exclusive bounded capsule without model execution',()=>{
     const item=fixture('prepare'); const result=prepare(item);
     assert.equal(result.status,0); assert.equal(result.json.status,'PREPARED'); assert.equal(result.json.execution,'NOT_RUN');
@@ -567,6 +618,7 @@ else {
     assert.equal(result.json.budget.reservedTokens,4000);assert.equal(result.json.budget.unresolvedAttempts,1);
     assert.equal(fs.existsSync(item.capture),false);assert.equal(fs.existsSync(path.join(item.out,'budget-receipt.json')),false);
   });
+  assert.ok(passed > 0, 'No matching session transport contracts');
   process.stdout.write(`PASS ${passed} offline session transport contracts\n`);
 } finally { fs.rmSync(work,{recursive:true,force:true}); }
 NODE
