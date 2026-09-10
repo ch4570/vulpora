@@ -1,0 +1,2064 @@
+{
+  "schema": "vulpora.skill-token-inventory/v1",
+  "source_revision": "ba19e0a296bbb0c211a8bf937790fd76ff372db4",
+  "plan": "baseline",
+  "tokenizer": {
+    "package": "tiktoken",
+    "version": "0.14.0",
+    "encoding": "o200k_base"
+  },
+  "measurement": "Exact encoding-specific source counts; not provider billing or observed runtime loads.",
+  "discovery_serialization": "name: ID\ndescription: NORMALIZED_DESCRIPTION\n",
+  "scenario_contract_sha256": "e2f42d8166c4e38eeb08d166c8b39b8b3fd0f56d445f60825f55b335da8441f6",
+  "totals": {
+    "tokens": 81303,
+    "body_tokens": 76764,
+    "frontmatter_tokens": 4603,
+    "discovery_tokens": 4342,
+    "description_tokens": 3801
+  },
+  "skills": [
+    {
+      "id": "agent-eval",
+      "path": "skills/agent-eval/SKILL.md",
+      "bytes": 6806,
+      "tokens": 1629,
+      "sha256": "7cda284afa86f5f7d5e8ecfebcf39f76cc089eaaa77a8234da998f363e4c45d4",
+      "body_tokens": 1600,
+      "frontmatter_tokens": 30,
+      "discovery_tokens": 28,
+      "description_tokens": 20,
+      "description_chars": 113,
+      "lines": 97
+    },
+    {
+      "id": "architecture-review-workflow",
+      "path": "skills/architecture-review-workflow/SKILL.md",
+      "bytes": 6969,
+      "tokens": 1352,
+      "sha256": "64e2774958a2274f0d76cd2237d7a93d5b694ecbad8c22b32aac7da90500ba9b",
+      "body_tokens": 1278,
+      "frontmatter_tokens": 75,
+      "discovery_tokens": 66,
+      "description_tokens": 57,
+      "description_chars": 326,
+      "lines": 146
+    },
+    {
+      "id": "backend-code-review-workflow",
+      "path": "skills/backend-code-review-workflow/SKILL.md",
+      "bytes": 8290,
+      "tokens": 1684,
+      "sha256": "a4f8c8a698bc80df29351d99acdf8c6f4680f56f6bb73a81f3748adde0ad5a17",
+      "body_tokens": 1618,
+      "frontmatter_tokens": 67,
+      "discovery_tokens": 59,
+      "description_tokens": 49,
+      "description_chars": 263,
+      "lines": 153
+    },
+    {
+      "id": "code-authoring-router",
+      "path": "skills/code-authoring-router/SKILL.md",
+      "bytes": 3959,
+      "tokens": 799,
+      "sha256": "32229c8ea276d633ba9f92b9a37c4f2525f6d9c3d169d2c888a2ae6d47a4bb09",
+      "body_tokens": 726,
+      "frontmatter_tokens": 74,
+      "discovery_tokens": 72,
+      "description_tokens": 63,
+      "description_chars": 325,
+      "lines": 54
+    },
+    {
+      "id": "code-diagram-extract",
+      "path": "skills/code-diagram-extract/SKILL.md",
+      "bytes": 5829,
+      "tokens": 1709,
+      "sha256": "4fe9ecff7ffa3d8d20bce066e3349a65dfb441db02ffbcd78d1a642f63ac378f",
+      "body_tokens": 1669,
+      "frontmatter_tokens": 41,
+      "discovery_tokens": 39,
+      "description_tokens": 29,
+      "description_chars": 145,
+      "lines": 85
+    },
+    {
+      "id": "codex-agent-runtime",
+      "path": "skills/codex-agent-runtime/SKILL.md",
+      "bytes": 1192,
+      "tokens": 235,
+      "sha256": "b4a2ec8adf468df71c2f64419ff75bbf28dee72c23fba75565ccc8a614e3d38b",
+      "body_tokens": 187,
+      "frontmatter_tokens": 49,
+      "discovery_tokens": 43,
+      "description_tokens": 34,
+      "description_chars": 186,
+      "lines": 27
+    },
+    {
+      "id": "design-pattern-apply",
+      "path": "skills/design-pattern-apply/SKILL.md",
+      "bytes": 3257,
+      "tokens": 704,
+      "sha256": "06308c0b5818ae0484311a84c4212d6376dc09adbb7d08a0e75d9ce448b520bc",
+      "body_tokens": 664,
+      "frontmatter_tokens": 41,
+      "discovery_tokens": 39,
+      "description_tokens": 30,
+      "description_chars": 173,
+      "lines": 58
+    },
+    {
+      "id": "diagram-styler",
+      "path": "skills/diagram-styler/SKILL.md",
+      "bytes": 2677,
+      "tokens": 592,
+      "sha256": "0bbd531f3d5858849b1e348d53e6a034df8a2a875c7354b98bd0700a7ea56b41",
+      "body_tokens": 510,
+      "frontmatter_tokens": 83,
+      "discovery_tokens": 81,
+      "description_tokens": 72,
+      "description_chars": 383,
+      "lines": 46
+    },
+    {
+      "id": "document-designer",
+      "path": "skills/document-designer/SKILL.md",
+      "bytes": 3295,
+      "tokens": 674,
+      "sha256": "615e88abc819e8ad01495c4b49e7c4739c57c68c2b5f74f2e01e6021ea7dee5c",
+      "body_tokens": 592,
+      "frontmatter_tokens": 83,
+      "discovery_tokens": 81,
+      "description_tokens": 73,
+      "description_chars": 377,
+      "lines": 52
+    },
+    {
+      "id": "e2e-report-renderer",
+      "path": "skills/e2e-report-renderer/SKILL.md",
+      "bytes": 13660,
+      "tokens": 3496,
+      "sha256": "c8a99ac786085732b65810442027de003f49db8f292885cf1382c70e610d27af",
+      "body_tokens": 3449,
+      "frontmatter_tokens": 48,
+      "discovery_tokens": 46,
+      "description_tokens": 35,
+      "description_chars": 154,
+      "lines": 175
+    },
+    {
+      "id": "e2e-runner",
+      "path": "skills/e2e-runner/SKILL.md",
+      "bytes": 6958,
+      "tokens": 1540,
+      "sha256": "0e2f447afadf8c4be118c153866f80f1a7d6ae7a6fdc65bee72225e1871c693e",
+      "body_tokens": 1499,
+      "frontmatter_tokens": 42,
+      "discovery_tokens": 40,
+      "description_tokens": 30,
+      "description_chars": 135,
+      "lines": 73
+    },
+    {
+      "id": "e2e-scenario-author",
+      "path": "skills/e2e-scenario-author/SKILL.md",
+      "bytes": 18943,
+      "tokens": 4730,
+      "sha256": "5e213564023c1b8b196c5a6adc75c1acefc10511b0ea1d48978a0cecd5887b2d",
+      "body_tokens": 4685,
+      "frontmatter_tokens": 46,
+      "discovery_tokens": 44,
+      "description_tokens": 33,
+      "description_chars": 158,
+      "lines": 262
+    },
+    {
+      "id": "e2e-test-workflow",
+      "path": "skills/e2e-test-workflow/SKILL.md",
+      "bytes": 8735,
+      "tokens": 1833,
+      "sha256": "7b64df5be419db0765c38e51880050401377b95d605696c02a9a8276475199ea",
+      "body_tokens": 1721,
+      "frontmatter_tokens": 113,
+      "discovery_tokens": 111,
+      "description_tokens": 100,
+      "description_chars": 493,
+      "lines": 159
+    },
+    {
+      "id": "entity",
+      "path": "skills/entity/SKILL.md",
+      "bytes": 3312,
+      "tokens": 823,
+      "sha256": "aa67108714c9ee4417410199441ded52c5891a45a64ed492ff51269191cd9817",
+      "body_tokens": 776,
+      "frontmatter_tokens": 48,
+      "discovery_tokens": 46,
+      "description_tokens": 41,
+      "description_chars": 202,
+      "lines": 59
+    },
+    {
+      "id": "enum",
+      "path": "skills/enum/SKILL.md",
+      "bytes": 2867,
+      "tokens": 758,
+      "sha256": "34b9b8acaa72bf01cdccf2244d545aff7804d708a447a48e65da624d8e01af4f",
+      "body_tokens": 722,
+      "frontmatter_tokens": 37,
+      "discovery_tokens": 35,
+      "description_tokens": 30,
+      "description_chars": 156,
+      "lines": 55
+    },
+    {
+      "id": "explore-dead-code",
+      "path": "skills/explore-dead-code/SKILL.md",
+      "bytes": 8346,
+      "tokens": 1597,
+      "sha256": "793a015c877e6f8b5ab1eba33e87f4612e26a1dd0b84a3ed5fde224298246e40",
+      "body_tokens": 1538,
+      "frontmatter_tokens": 60,
+      "discovery_tokens": 58,
+      "description_tokens": 50,
+      "description_chars": 225,
+      "lines": 108
+    },
+    {
+      "id": "flyway",
+      "path": "skills/flyway/SKILL.md",
+      "bytes": 3375,
+      "tokens": 872,
+      "sha256": "83aad0a896b8aa4dccd171e10dc2e5a8d2053bc1aeeb513d8a1abd104682a37b",
+      "body_tokens": 822,
+      "frontmatter_tokens": 51,
+      "discovery_tokens": 49,
+      "description_tokens": 43,
+      "description_chars": 210,
+      "lines": 56
+    },
+    {
+      "id": "git-flow",
+      "path": "skills/git-flow/SKILL.md",
+      "bytes": 2798,
+      "tokens": 592,
+      "sha256": "35be9bc8b6e9f941436cea181132edcbdb2b35793dc0611e72314b2b96eebffa",
+      "body_tokens": 553,
+      "frontmatter_tokens": 40,
+      "discovery_tokens": 38,
+      "description_tokens": 31,
+      "description_chars": 142,
+      "lines": 51
+    },
+    {
+      "id": "harness-propose",
+      "path": "skills/harness-propose/SKILL.md",
+      "bytes": 7822,
+      "tokens": 1690,
+      "sha256": "5b5307491e2390fd874f971e52385de220ef656dacd2e21f25b2ca8a74e91bf2",
+      "body_tokens": 1636,
+      "frontmatter_tokens": 55,
+      "discovery_tokens": 53,
+      "description_tokens": 45,
+      "description_chars": 294,
+      "lines": 112
+    },
+    {
+      "id": "java-spring-review-workflow",
+      "path": "skills/java-spring-review-workflow/SKILL.md",
+      "bytes": 7183,
+      "tokens": 1469,
+      "sha256": "43c590cd145b6a63f56506a3288baaeeb725a3569e5872ca25642e73392ac78e",
+      "body_tokens": 1366,
+      "frontmatter_tokens": 104,
+      "discovery_tokens": 93,
+      "description_tokens": 82,
+      "description_chars": 430,
+      "lines": 140
+    },
+    {
+      "id": "knowledge-audit",
+      "path": "skills/knowledge-audit/SKILL.md",
+      "bytes": 4475,
+      "tokens": 1192,
+      "sha256": "c434be3632a2f13fb6e46b632d97bd7f3ffcc5ae649c6ef1d70892d9cecc4697",
+      "body_tokens": 1092,
+      "frontmatter_tokens": 101,
+      "discovery_tokens": 99,
+      "description_tokens": 91,
+      "description_chars": 457,
+      "lines": 78
+    },
+    {
+      "id": "korean-dev-writer",
+      "path": "skills/korean-dev-writer/SKILL.md",
+      "bytes": 4144,
+      "tokens": 1067,
+      "sha256": "711790c5b9e547f7ef80d1c16c1741291cf4a3f1a0adcbcb6c1cff3f94d21518",
+      "body_tokens": 1009,
+      "frontmatter_tokens": 59,
+      "discovery_tokens": 57,
+      "description_tokens": 48,
+      "description_chars": 91,
+      "lines": 65
+    },
+    {
+      "id": "kotlin-code-authoring",
+      "path": "skills/kotlin-code-authoring/SKILL.md",
+      "bytes": 2959,
+      "tokens": 579,
+      "sha256": "4edb476a18f459382c8f3a77b358df6d42d96efde0b996d7f4148d4f43e4001d",
+      "body_tokens": 502,
+      "frontmatter_tokens": 78,
+      "discovery_tokens": 76,
+      "description_tokens": 67,
+      "description_chars": 346,
+      "lines": 39
+    },
+    {
+      "id": "kotlin-spring-review",
+      "path": "skills/kotlin-spring-review/SKILL.md",
+      "bytes": 6044,
+      "tokens": 1413,
+      "sha256": "64ed942a4de5e6c8f36865360d50d8d017a897b7b5c5dbcf5d7baee2fed82a28",
+      "body_tokens": 1318,
+      "frontmatter_tokens": 96,
+      "discovery_tokens": 84,
+      "description_tokens": 75,
+      "description_chars": 396,
+      "lines": 87
+    },
+    {
+      "id": "kotlin-spring-review-workflow",
+      "path": "skills/kotlin-spring-review-workflow/SKILL.md",
+      "bytes": 5654,
+      "tokens": 1139,
+      "sha256": "72ae7d632b8ad8c9b1a33619f9c6ef64f11a3bef835f9f09c0d4a6dbe0af52e1",
+      "body_tokens": 1043,
+      "frontmatter_tokens": 97,
+      "discovery_tokens": 86,
+      "description_tokens": 75,
+      "description_chars": 400,
+      "lines": 119
+    },
+    {
+      "id": "learn",
+      "path": "skills/learn/SKILL.md",
+      "bytes": 3655,
+      "tokens": 904,
+      "sha256": "439f3b0120b61b7b3dfbd1f65d2577087635d991187dbff44a925f8632a59f96",
+      "body_tokens": 822,
+      "frontmatter_tokens": 83,
+      "discovery_tokens": 81,
+      "description_tokens": 75,
+      "description_chars": 389,
+      "lines": 74
+    },
+    {
+      "id": "mapper",
+      "path": "skills/mapper/SKILL.md",
+      "bytes": 3204,
+      "tokens": 737,
+      "sha256": "b9214bd9e51711632c3e2270a8bc2948aee812c921b805f154bda51fbe3d94e4",
+      "body_tokens": 686,
+      "frontmatter_tokens": 52,
+      "discovery_tokens": 50,
+      "description_tokens": 45,
+      "description_chars": 209,
+      "lines": 61
+    },
+    {
+      "id": "markdown-publisher",
+      "path": "skills/markdown-publisher/SKILL.md",
+      "bytes": 2465,
+      "tokens": 613,
+      "sha256": "0757e1904b0fa56a6b5eb39cfc3bd37afe99e34a84073b05a979843857188d72",
+      "body_tokens": 507,
+      "frontmatter_tokens": 107,
+      "discovery_tokens": 105,
+      "description_tokens": 97,
+      "description_chars": 219,
+      "lines": 38
+    },
+    {
+      "id": "mermaid-diagrams",
+      "path": "skills/mermaid-diagrams/SKILL.md",
+      "bytes": 3095,
+      "tokens": 633,
+      "sha256": "6447052bbdf68b255834d0de5788d2b4bb6d13054f476e1586e359e33e1a7b43",
+      "body_tokens": 540,
+      "frontmatter_tokens": 94,
+      "discovery_tokens": 92,
+      "description_tokens": 83,
+      "description_chars": 438,
+      "lines": 39
+    },
+    {
+      "id": "mssql-code-authoring",
+      "path": "skills/mssql-code-authoring/SKILL.md",
+      "bytes": 6097,
+      "tokens": 1287,
+      "sha256": "4dddbae0f128bfb42d456bccb2df6b6e0a66cd1e9dc4daabb6886e7a631a0a89",
+      "body_tokens": 1165,
+      "frontmatter_tokens": 123,
+      "discovery_tokens": 121,
+      "description_tokens": 111,
+      "description_chars": 552,
+      "lines": 92
+    },
+    {
+      "id": "nl-sql-query",
+      "path": "skills/nl-sql-query/SKILL.md",
+      "bytes": 6919,
+      "tokens": 1779,
+      "sha256": "d8882cf6c21dc39356597866e30c867426a69aae6dd1a7fb0834244895b79cc1",
+      "body_tokens": 1708,
+      "frontmatter_tokens": 72,
+      "discovery_tokens": 70,
+      "description_tokens": 61,
+      "description_chars": 276,
+      "lines": 89
+    },
+    {
+      "id": "notion-domain-context",
+      "path": "skills/notion-domain-context/SKILL.md",
+      "bytes": 8102,
+      "tokens": 1818,
+      "sha256": "7fa3e45184db0129d674d2fd00158a53b97eb933feb14f635d5bfd35b339677f",
+      "body_tokens": 1768,
+      "frontmatter_tokens": 51,
+      "discovery_tokens": 49,
+      "description_tokens": 41,
+      "description_chars": 223,
+      "lines": 154
+    },
+    {
+      "id": "oop-design-review",
+      "path": "skills/oop-design-review/SKILL.md",
+      "bytes": 3197,
+      "tokens": 715,
+      "sha256": "1cae10e073e1fd50ac21d32bcb856b85b6b7d583c8304c22a54b60f6a857c306",
+      "body_tokens": 676,
+      "frontmatter_tokens": 40,
+      "discovery_tokens": 38,
+      "description_tokens": 30,
+      "description_chars": 168,
+      "lines": 56
+    },
+    {
+      "id": "opensearch-code-authoring",
+      "path": "skills/opensearch-code-authoring/SKILL.md",
+      "bytes": 2192,
+      "tokens": 425,
+      "sha256": "27bd6f41edb7cab8af3e73efbdf2f444135a2c6c750da0ea1943ca45024dc83b",
+      "body_tokens": 337,
+      "frontmatter_tokens": 89,
+      "discovery_tokens": 87,
+      "description_tokens": 76,
+      "description_chars": 371,
+      "lines": 22
+    },
+    {
+      "id": "opensearch-optimization",
+      "path": "skills/opensearch-optimization/SKILL.md",
+      "bytes": 2736,
+      "tokens": 720,
+      "sha256": "15e66dfa04ab56c20368a9b039b7539d125cee6718dd2ea151cb6e1df9b359f5",
+      "body_tokens": 590,
+      "frontmatter_tokens": 131,
+      "discovery_tokens": 121,
+      "description_tokens": 111,
+      "description_chars": 426,
+      "lines": 33
+    },
+    {
+      "id": "opensearch-query-review",
+      "path": "skills/opensearch-query-review/SKILL.md",
+      "bytes": 2522,
+      "tokens": 664,
+      "sha256": "ae1ed0c08c4081cc1fa399bc6b141738c81acad2655fe93e5ee497d91dfa3913",
+      "body_tokens": 552,
+      "frontmatter_tokens": 113,
+      "discovery_tokens": 102,
+      "description_tokens": 92,
+      "description_chars": 408,
+      "lines": 35
+    },
+    {
+      "id": "opensearch-review-workflow",
+      "path": "skills/opensearch-review-workflow/SKILL.md",
+      "bytes": 7081,
+      "tokens": 1451,
+      "sha256": "b583cd2e0863e216ffee59e5ecb0611d72ea0d37a177ae52a0d7912228de8ed8",
+      "body_tokens": 1383,
+      "frontmatter_tokens": 69,
+      "discovery_tokens": 60,
+      "description_tokens": 49,
+      "description_chars": 270,
+      "lines": 134
+    },
+    {
+      "id": "opensearch-schema-review",
+      "path": "skills/opensearch-schema-review/SKILL.md",
+      "bytes": 2686,
+      "tokens": 680,
+      "sha256": "df0d9e4c6d4e76dfbbacef0b379f762e72b6974668ef1ea56a639002cd0c1bab",
+      "body_tokens": 576,
+      "frontmatter_tokens": 105,
+      "discovery_tokens": 96,
+      "description_tokens": 86,
+      "description_chars": 378,
+      "lines": 34
+    },
+    {
+      "id": "pdf-qa",
+      "path": "skills/pdf-qa/SKILL.md",
+      "bytes": 2767,
+      "tokens": 612,
+      "sha256": "8ee6671d23a75931f602ab3d312ce3fccf7965edbc9033765877c910804f8e43",
+      "body_tokens": 526,
+      "frontmatter_tokens": 87,
+      "discovery_tokens": 85,
+      "description_tokens": 77,
+      "description_chars": 383,
+      "lines": 33
+    },
+    {
+      "id": "playwright-e2e",
+      "path": "skills/playwright-e2e/SKILL.md",
+      "bytes": 6855,
+      "tokens": 1509,
+      "sha256": "01f7e4d3633b650b03f10c3b40135894059a3ef796460e6901b0584d700f7963",
+      "body_tokens": 1431,
+      "frontmatter_tokens": 79,
+      "discovery_tokens": 77,
+      "description_tokens": 68,
+      "description_chars": 317,
+      "lines": 112
+    },
+    {
+      "id": "postgres-code-authoring",
+      "path": "skills/postgres-code-authoring/SKILL.md",
+      "bytes": 2171,
+      "tokens": 431,
+      "sha256": "0a74496f1edf3565d96c013172d095a6f210edcb3ab47fa421d23c8342aeeb4b",
+      "body_tokens": 352,
+      "frontmatter_tokens": 80,
+      "discovery_tokens": 78,
+      "description_tokens": 69,
+      "description_chars": 335,
+      "lines": 23
+    },
+    {
+      "id": "postgres-query-review",
+      "path": "skills/postgres-query-review/SKILL.md",
+      "bytes": 4000,
+      "tokens": 998,
+      "sha256": "833c588d9ac38e4fc153b8e545c9ff092d6fc2805f1a21103f51a9ca3c9f2060",
+      "body_tokens": 911,
+      "frontmatter_tokens": 88,
+      "discovery_tokens": 77,
+      "description_tokens": 69,
+      "description_chars": 382,
+      "lines": 62
+    },
+    {
+      "id": "postgres-review-workflow",
+      "path": "skills/postgres-review-workflow/SKILL.md",
+      "bytes": 7644,
+      "tokens": 1533,
+      "sha256": "9c649422639d80513aeef7105b90fe8c6e83ef5500feebafb5f82b4e88a4d35c",
+      "body_tokens": 1465,
+      "frontmatter_tokens": 69,
+      "discovery_tokens": 61,
+      "description_tokens": 52,
+      "description_chars": 274,
+      "lines": 148
+    },
+    {
+      "id": "postgres-risk-check",
+      "path": "skills/postgres-risk-check/SKILL.md",
+      "bytes": 4212,
+      "tokens": 1042,
+      "sha256": "89e3d0ca87d30d7297c7d32307a6b338a955baff2a39f8274ac117d3540e3170",
+      "body_tokens": 922,
+      "frontmatter_tokens": 121,
+      "discovery_tokens": 109,
+      "description_tokens": 101,
+      "description_chars": 415,
+      "lines": 77
+    },
+    {
+      "id": "postgres-schema-design",
+      "path": "skills/postgres-schema-design/SKILL.md",
+      "bytes": 4976,
+      "tokens": 1144,
+      "sha256": "a14c37ff92dc1eaec3993b3b7e656d1f7c825a26fc7e9cc7b0830742f7113e44",
+      "body_tokens": 1038,
+      "frontmatter_tokens": 107,
+      "discovery_tokens": 93,
+      "description_tokens": 85,
+      "description_chars": 432,
+      "lines": 83
+    },
+    {
+      "id": "product-requirements",
+      "path": "skills/product-requirements/SKILL.md",
+      "bytes": 6299,
+      "tokens": 1528,
+      "sha256": "d4003077e53cd989219f2414d9ba0ac137339a18341671327fd9d74d187e945f",
+      "body_tokens": 1428,
+      "frontmatter_tokens": 101,
+      "discovery_tokens": 99,
+      "description_tokens": 90,
+      "description_chars": 194,
+      "lines": 120
+    },
+    {
+      "id": "product-ui-design",
+      "path": "skills/product-ui-design/SKILL.md",
+      "bytes": 4445,
+      "tokens": 848,
+      "sha256": "1ba275fffe7e2d333efddb65e1707a36344d5978ba393f338c61a2f00e783aa5",
+      "body_tokens": 767,
+      "frontmatter_tokens": 82,
+      "discovery_tokens": 80,
+      "description_tokens": 72,
+      "description_chars": 396,
+      "lines": 77
+    },
+    {
+      "id": "refactoring-catalog",
+      "path": "skills/refactoring-catalog/SKILL.md",
+      "bytes": 3112,
+      "tokens": 704,
+      "sha256": "9927692855d5f7d44fd5f70613a463b3e468b03ecd23a3e468c1436f0e777b6f",
+      "body_tokens": 666,
+      "frontmatter_tokens": 39,
+      "discovery_tokens": 37,
+      "description_tokens": 28,
+      "description_chars": 162,
+      "lines": 53
+    },
+    {
+      "id": "repository",
+      "path": "skills/repository/SKILL.md",
+      "bytes": 3596,
+      "tokens": 859,
+      "sha256": "fa3a0caea6a41331f0dd3a62bc3963b06d261706c9b88cbc5a58617a0d7819d3",
+      "body_tokens": 808,
+      "frontmatter_tokens": 52,
+      "discovery_tokens": 50,
+      "description_tokens": 45,
+      "description_chars": 222,
+      "lines": 58
+    },
+    {
+      "id": "request",
+      "path": "skills/request/SKILL.md",
+      "bytes": 1795,
+      "tokens": 458,
+      "sha256": "d7658da5fd8f3a7a25e850b32555f301bf429623afbce0e51b42b0a075a65d7d",
+      "body_tokens": 421,
+      "frontmatter_tokens": 38,
+      "discovery_tokens": 36,
+      "description_tokens": 31,
+      "description_chars": 145,
+      "lines": 41
+    },
+    {
+      "id": "response",
+      "path": "skills/response/SKILL.md",
+      "bytes": 2073,
+      "tokens": 509,
+      "sha256": "02a8b5e4409e4b17422b05b2fd53147366931e7f2b0abd8684437b7026961fe7",
+      "body_tokens": 463,
+      "frontmatter_tokens": 47,
+      "discovery_tokens": 45,
+      "description_tokens": 40,
+      "description_chars": 192,
+      "lines": 47
+    },
+    {
+      "id": "retro",
+      "path": "skills/retro/SKILL.md",
+      "bytes": 4729,
+      "tokens": 1198,
+      "sha256": "a44fc698b91a9c6d068bf914acf2f008c195ae5f4c2378bdd83d48b9148c45de",
+      "body_tokens": 1114,
+      "frontmatter_tokens": 85,
+      "discovery_tokens": 83,
+      "description_tokens": 77,
+      "description_chars": 390,
+      "lines": 102
+    },
+    {
+      "id": "schema-doc-extract",
+      "path": "skills/schema-doc-extract/SKILL.md",
+      "bytes": 7709,
+      "tokens": 1796,
+      "sha256": "79dfe13f152980490841bc86ac1d3d3bba5f373cedaf5e7731530f7a4b17bc4f",
+      "body_tokens": 1759,
+      "frontmatter_tokens": 38,
+      "discovery_tokens": 36,
+      "description_tokens": 27,
+      "description_chars": 144,
+      "lines": 85
+    },
+    {
+      "id": "security-scan-workflow",
+      "path": "skills/security-scan-workflow/SKILL.md",
+      "bytes": 18270,
+      "tokens": 3679,
+      "sha256": "8343b86b55f3648a26d7b1678a487ed7a341eed672a226b1d01ef1339d4e9247",
+      "body_tokens": 3556,
+      "frontmatter_tokens": 124,
+      "discovery_tokens": 111,
+      "description_tokens": 101,
+      "description_chars": 566,
+      "lines": 221
+    },
+    {
+      "id": "service",
+      "path": "skills/service/SKILL.md",
+      "bytes": 3123,
+      "tokens": 710,
+      "sha256": "cc25499a453dfc726576e85c5fb59b9b5aba4095557c0f2fe564ffa1905d5322",
+      "body_tokens": 646,
+      "frontmatter_tokens": 65,
+      "discovery_tokens": 63,
+      "description_tokens": 58,
+      "description_chars": 279,
+      "lines": 56
+    },
+    {
+      "id": "skill-updater",
+      "path": "skills/skill-updater/SKILL.md",
+      "bytes": 9149,
+      "tokens": 1973,
+      "sha256": "9d7a3544b0e0544eb95c6223cefce6d2264f20a78d82bacc853334e1e7e23cc6",
+      "body_tokens": 1942,
+      "frontmatter_tokens": 32,
+      "discovery_tokens": 30,
+      "description_tokens": 22,
+      "description_chars": 97,
+      "lines": 162
+    },
+    {
+      "id": "start-task",
+      "path": "skills/start-task/SKILL.md",
+      "bytes": 4431,
+      "tokens": 923,
+      "sha256": "12b76623fb3db1de7d3e3eef4b4b1b5c2f101150b1842ba39970706cc935bea7",
+      "body_tokens": 889,
+      "frontmatter_tokens": 35,
+      "discovery_tokens": 33,
+      "description_tokens": 26,
+      "description_chars": 157,
+      "lines": 75
+    },
+    {
+      "id": "test-authoring",
+      "path": "skills/test-authoring/SKILL.md",
+      "bytes": 16383,
+      "tokens": 3363,
+      "sha256": "798c3aa72b8dcd918682190d425d6f1b239ef87fe26a8daee0e524617bb6e2c1",
+      "body_tokens": 3325,
+      "frontmatter_tokens": 39,
+      "discovery_tokens": 37,
+      "description_tokens": 29,
+      "description_chars": 155,
+      "lines": 156
+    },
+    {
+      "id": "test-quality-refactoring-workflow",
+      "path": "skills/test-quality-refactoring-workflow/SKILL.md",
+      "bytes": 10500,
+      "tokens": 2219,
+      "sha256": "8f476fae0b0865a2931b04f4cdcf1b80fe2a9807e428c150ce0b40cae491d582",
+      "body_tokens": 2139,
+      "frontmatter_tokens": 81,
+      "discovery_tokens": 79,
+      "description_tokens": 68,
+      "description_chars": 342,
+      "lines": 161
+    },
+    {
+      "id": "test-quality-review",
+      "path": "skills/test-quality-review/SKILL.md",
+      "bytes": 8281,
+      "tokens": 1678,
+      "sha256": "d8867e45e8baaec9408d7df42731014af64e9d9cd791eeb34ea75835a730669c",
+      "body_tokens": 1611,
+      "frontmatter_tokens": 68,
+      "discovery_tokens": 66,
+      "description_tokens": 58,
+      "description_chars": 372,
+      "lines": 127
+    },
+    {
+      "id": "test-refactoring",
+      "path": "skills/test-refactoring/SKILL.md",
+      "bytes": 9719,
+      "tokens": 2102,
+      "sha256": "c5efd587febbb73543b375e3cb25431e0fc47c0f8f4442849f51c165687b774f",
+      "body_tokens": 2072,
+      "frontmatter_tokens": 31,
+      "discovery_tokens": 29,
+      "description_tokens": 21,
+      "description_chars": 113,
+      "lines": 143
+    },
+    {
+      "id": "visual-artifact-router",
+      "path": "skills/visual-artifact-router/SKILL.md",
+      "bytes": 2910,
+      "tokens": 586,
+      "sha256": "9961162d830ecfaed34f432250c4414de3c2b1847d8f77a0a956ffe20be3e741",
+      "body_tokens": 504,
+      "frontmatter_tokens": 83,
+      "discovery_tokens": 81,
+      "description_tokens": 72,
+      "description_chars": 375,
+      "lines": 53
+    },
+    {
+      "id": "vulpora-init",
+      "path": "skills/vulpora-init/SKILL.md",
+      "bytes": 3087,
+      "tokens": 604,
+      "sha256": "1a0e21618cb79bf000ddb0645dd223efe885468778bd97ccf2b53b82d9721966",
+      "body_tokens": 539,
+      "frontmatter_tokens": 66,
+      "discovery_tokens": 64,
+      "description_tokens": 56,
+      "description_chars": 334,
+      "lines": 49
+    },
+    {
+      "id": "vulpora-installer",
+      "path": "skills/vulpora-installer/SKILL.md",
+      "bytes": 7089,
+      "tokens": 1703,
+      "sha256": "9a50c651c54f8dedf4a6b2bf41639dd08653273e8ed2560520c5ebe74fea1ed8",
+      "body_tokens": 1585,
+      "frontmatter_tokens": 119,
+      "discovery_tokens": 108,
+      "description_tokens": 99,
+      "description_chars": 468,
+      "lines": 130
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "start-task-lightweight",
+      "task": "Clear bounded direct task; entry only.",
+      "files": [
+        {
+          "path": "skills/start-task/SKILL.md",
+          "bytes": 4431,
+          "tokens": 923,
+          "sha256": "12b76623fb3db1de7d3e3eef4b4b1b5c2f101150b1842ba39970706cc935bea7"
+        }
+      ],
+      "tokens": 923
+    },
+    {
+      "id": "start-task-standard-primary",
+      "task": "Standard task with one owner and no delegation.",
+      "files": [
+        {
+          "path": "skills/start-task/SKILL.md",
+          "bytes": 4431,
+          "tokens": 923,
+          "sha256": "12b76623fb3db1de7d3e3eef4b4b1b5c2f101150b1842ba39970706cc935bea7"
+        },
+        {
+          "path": "skills/start-task/reference/kb/lightweight-path.md",
+          "bytes": 2403,
+          "tokens": 451,
+          "sha256": "19286406e7ac332e582bb05861682408b8e42853e68aaff8c979cf6eb7a8358f"
+        }
+      ],
+      "tokens": 1374
+    },
+    {
+      "id": "start-task-standard-independent",
+      "task": "Standard independent session; routing and transport references.",
+      "files": [
+        {
+          "path": "skills/start-task/SKILL.md",
+          "bytes": 4431,
+          "tokens": 923,
+          "sha256": "12b76623fb3db1de7d3e3eef4b4b1b5c2f101150b1842ba39970706cc935bea7"
+        },
+        {
+          "path": "skills/start-task/reference/kb/lightweight-path.md",
+          "bytes": 2403,
+          "tokens": 451,
+          "sha256": "19286406e7ac332e582bb05861682408b8e42853e68aaff8c979cf6eb7a8358f"
+        },
+        {
+          "path": "skills/start-task/reference/kb/model-routing.md",
+          "bytes": 10997,
+          "tokens": 2203,
+          "sha256": "8e0d10ad9fd4edf21c9613f39d2a1fd786e4cfb825a45fd715bb5b4ef00031bb"
+        },
+        {
+          "path": "skills/start-task/reference/kb/independent-sessions.md",
+          "bytes": 20257,
+          "tokens": 4094,
+          "sha256": "89dc719e4754704faea563bd860b634463af32380f395d0c789ff81909785f1e"
+        }
+      ],
+      "tokens": 7671
+    },
+    {
+      "id": "start-task-audit-ready",
+      "task": "Ready read-only/deterministic audited task, native clarification and planning, inline execution; includes declared canonical agent bundles and report template, not runtime wrappers or repeated reads.",
+      "files": [
+        {
+          "path": "skills/start-task/SKILL.md",
+          "bytes": 4431,
+          "tokens": 923,
+          "sha256": "12b76623fb3db1de7d3e3eef4b4b1b5c2f101150b1842ba39970706cc935bea7"
+        },
+        {
+          "path": "skills/start-task/reference/kb/operating-contract.md",
+          "bytes": 52360,
+          "tokens": 10867,
+          "sha256": "00f441f059fcd14303b15a54ddea785d7cf81b97d67911988bdf6bb9eed5c249"
+        },
+        {
+          "path": "skills/start-task/reference/kb/runtime-fast-path.md",
+          "bytes": 17858,
+          "tokens": 3972,
+          "sha256": "0a3112c0cf49cc9fb8a19b758850eba4b7fc9f88b6f8913ecf1433dab8f52d52"
+        },
+        {
+          "path": "skills/start-task/reference/kb/model-routing.md",
+          "bytes": 10997,
+          "tokens": 2203,
+          "sha256": "8e0d10ad9fd4edf21c9613f39d2a1fd786e4cfb825a45fd715bb5b4ef00031bb"
+        },
+        {
+          "path": "skills/start-task/reference/kb/clarity-scoring.md",
+          "bytes": 5411,
+          "tokens": 1326,
+          "sha256": "bf93353622a4ec4b52bc48116feb71f11d5039e965c9a1cb46e4f7f9bcdd1164"
+        },
+        {
+          "path": "skills/start-task/reference/kb/orchestration-report.valid.json",
+          "bytes": 7703,
+          "tokens": 2256,
+          "sha256": "9eb8dba638db697892607c9343a3bf2e06c4411135d267a6dd8487e3e38a57a5"
+        },
+        {
+          "path": "agents/requirement-dialogue.md",
+          "bytes": 18315,
+          "tokens": 4405,
+          "sha256": "6c110007f805f4807fe20e95696e752221e18e0213cd79b7874e3f7ebf7fc4ab"
+        },
+        {
+          "path": "agents/requirement-dialogue/SOUL.md",
+          "bytes": 2123,
+          "tokens": 519,
+          "sha256": "afc6a3aa6f9ec95670d618668b8f06691ecccb8b04ee80a3179da3ea5ce8e8f2"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/principles.md",
+          "bytes": 2031,
+          "tokens": 516,
+          "sha256": "4463376f7834b71df3c6a3c611c79a87505f83eaa202f12c030a533e4525f764"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/kb/INDEX.md",
+          "bytes": 951,
+          "tokens": 244,
+          "sha256": "2b73086748fc12dcf33fc26fa78a438b6ed9b9efa0cac59bdf586284dfa99529"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/kb/ambiguity-gate.md",
+          "bytes": 2071,
+          "tokens": 528,
+          "sha256": "82e04a2c466427fdaeae95f930fff446d219fde524eb40d9199cce21ea47764a"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/kb/clarity-scoring.md",
+          "bytes": 2857,
+          "tokens": 713,
+          "sha256": "22570fd436666a1adb524eb0ba45d1dcd6131fd36666463c5fd62bd282afe9ab"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/kb/clarified-spec-schema.md",
+          "bytes": 5893,
+          "tokens": 1544,
+          "sha256": "b9fbe2a47bb82ac5d520e7cddd0e8874bd91c57c1940e02662d3d54a33bcd08a"
+        },
+        {
+          "path": "agents/task-splitter.md",
+          "bytes": 12520,
+          "tokens": 3058,
+          "sha256": "d5545aa83826a9f36d4bf4091be280ec453958a4bd4c2c307700604851bd52f0"
+        },
+        {
+          "path": "agents/task-splitter/SOUL.md",
+          "bytes": 1202,
+          "tokens": 277,
+          "sha256": "9a2d9dcd46d85f37047c1c630e09bb12de37a9f648f21e160d31a7558dec17fa"
+        },
+        {
+          "path": "agents/task-splitter/reference/principles.md",
+          "bytes": 2253,
+          "tokens": 568,
+          "sha256": "d6f015e99b076b147768bd8cbac09b561ad7c0c4d64740592c9f3e9c4caea1ba"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/INDEX.md",
+          "bytes": 1297,
+          "tokens": 312,
+          "sha256": "ac04f87c60e21467847ab997326ebb8c1c934f3ebd37ae2f280fbdfd14588353"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/decomposition-quality.md",
+          "bytes": 3778,
+          "tokens": 852,
+          "sha256": "aa7392602481ee3b96f713290e00ed1a8627011310174e9f6347b46439e5ad0b"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/dependency-dag.md",
+          "bytes": 1130,
+          "tokens": 281,
+          "sha256": "2a96ad2a0148991c6979298f3a3f59099d8549345fbe84bf11bd4b604897d14d"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/ownership-write-scopes.md",
+          "bytes": 1110,
+          "tokens": 267,
+          "sha256": "c5f58113a7f09d84958c26338c9d52031f84e213944df3a2bfb811bd5df2fef2"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/acceptance-risk-budget.md",
+          "bytes": 1783,
+          "tokens": 444,
+          "sha256": "b8f9b4d584f9dc2bb05728f428b8de18f0ddb4378235e3d3690fde95175180e1"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/model-session-routing.md",
+          "bytes": 11103,
+          "tokens": 2369,
+          "sha256": "437465f97e570d0d2a8e6802146b8a5ff8394378119004dc2add43bdd80af285"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/smart-routing-policy.md",
+          "bytes": 4169,
+          "tokens": 922,
+          "sha256": "5741c2864da940a9294334194bae3797421f719d88c0e4c73ce58d2842834404"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/task-dag-schema.md",
+          "bytes": 6531,
+          "tokens": 1633,
+          "sha256": "edb064c67fe281894fd3b620c28629d8088fe30dc5ef8264ec4d822b294e8c79"
+        },
+        {
+          "path": "agents/task-orchestrator.md",
+          "bytes": 15565,
+          "tokens": 3517,
+          "sha256": "060503aed96bed820731ff6d87df450f8c7904c0b46982d8ba37c7f887785361"
+        },
+        {
+          "path": "agents/task-orchestrator/SOUL.md",
+          "bytes": 1249,
+          "tokens": 295,
+          "sha256": "c16c9c09ce6462a9256f86082059221e1935c741480789b0e63adf9088cff8f9"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/principles.md",
+          "bytes": 2311,
+          "tokens": 543,
+          "sha256": "ff7bf12514b3127dfe5ccda661d83351daedcb4c4a157884cb542500cc6a1cee"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/INDEX.md",
+          "bytes": 1157,
+          "tokens": 279,
+          "sha256": "732241e919eaa9559f8955c26028e2c9ea95e2610b8f27cef71c8a143d86a7b1"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/bounded-scheduling.md",
+          "bytes": 2004,
+          "tokens": 457,
+          "sha256": "0e23e573dfa5758dc9223565235854596a340734511a01413ed12e009d81d455"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/routing-state-machine.md",
+          "bytes": 6162,
+          "tokens": 1265,
+          "sha256": "f9a7f06216768a93da814238e5abd211529b135faf543a91a0f3d2214a496fb1"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/result-aggregation.md",
+          "bytes": 3574,
+          "tokens": 830,
+          "sha256": "2cc80964e92c008dcf0ca3273f60814024479db6924e1e8bab3a0490906efb85"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/lifecycle-reporting.md",
+          "bytes": 4053,
+          "tokens": 986,
+          "sha256": "ea5c9a411c015890cffd385f50283d31591516d26b53d4143b31abdf0b8e4854"
+        }
+      ],
+      "tokens": 49171
+    },
+    {
+      "id": "start-task-audit-question",
+      "task": "Audit ready set plus one reversible decision question and its selected Korean explanation topic.",
+      "files": [
+        {
+          "path": "skills/start-task/SKILL.md",
+          "bytes": 4431,
+          "tokens": 923,
+          "sha256": "12b76623fb3db1de7d3e3eef4b4b1b5c2f101150b1842ba39970706cc935bea7"
+        },
+        {
+          "path": "skills/start-task/reference/kb/operating-contract.md",
+          "bytes": 52360,
+          "tokens": 10867,
+          "sha256": "00f441f059fcd14303b15a54ddea785d7cf81b97d67911988bdf6bb9eed5c249"
+        },
+        {
+          "path": "skills/start-task/reference/kb/runtime-fast-path.md",
+          "bytes": 17858,
+          "tokens": 3972,
+          "sha256": "0a3112c0cf49cc9fb8a19b758850eba4b7fc9f88b6f8913ecf1433dab8f52d52"
+        },
+        {
+          "path": "skills/start-task/reference/kb/model-routing.md",
+          "bytes": 10997,
+          "tokens": 2203,
+          "sha256": "8e0d10ad9fd4edf21c9613f39d2a1fd786e4cfb825a45fd715bb5b4ef00031bb"
+        },
+        {
+          "path": "skills/start-task/reference/kb/clarity-scoring.md",
+          "bytes": 5411,
+          "tokens": 1326,
+          "sha256": "bf93353622a4ec4b52bc48116feb71f11d5039e965c9a1cb46e4f7f9bcdd1164"
+        },
+        {
+          "path": "skills/start-task/reference/kb/orchestration-report.valid.json",
+          "bytes": 7703,
+          "tokens": 2256,
+          "sha256": "9eb8dba638db697892607c9343a3bf2e06c4411135d267a6dd8487e3e38a57a5"
+        },
+        {
+          "path": "agents/requirement-dialogue.md",
+          "bytes": 18315,
+          "tokens": 4405,
+          "sha256": "6c110007f805f4807fe20e95696e752221e18e0213cd79b7874e3f7ebf7fc4ab"
+        },
+        {
+          "path": "agents/requirement-dialogue/SOUL.md",
+          "bytes": 2123,
+          "tokens": 519,
+          "sha256": "afc6a3aa6f9ec95670d618668b8f06691ecccb8b04ee80a3179da3ea5ce8e8f2"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/principles.md",
+          "bytes": 2031,
+          "tokens": 516,
+          "sha256": "4463376f7834b71df3c6a3c611c79a87505f83eaa202f12c030a533e4525f764"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/kb/INDEX.md",
+          "bytes": 951,
+          "tokens": 244,
+          "sha256": "2b73086748fc12dcf33fc26fa78a438b6ed9b9efa0cac59bdf586284dfa99529"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/kb/ambiguity-gate.md",
+          "bytes": 2071,
+          "tokens": 528,
+          "sha256": "82e04a2c466427fdaeae95f930fff446d219fde524eb40d9199cce21ea47764a"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/kb/clarity-scoring.md",
+          "bytes": 2857,
+          "tokens": 713,
+          "sha256": "22570fd436666a1adb524eb0ba45d1dcd6131fd36666463c5fd62bd282afe9ab"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/kb/clarified-spec-schema.md",
+          "bytes": 5893,
+          "tokens": 1544,
+          "sha256": "b9fbe2a47bb82ac5d520e7cddd0e8874bd91c57c1940e02662d3d54a33bcd08a"
+        },
+        {
+          "path": "agents/task-splitter.md",
+          "bytes": 12520,
+          "tokens": 3058,
+          "sha256": "d5545aa83826a9f36d4bf4091be280ec453958a4bd4c2c307700604851bd52f0"
+        },
+        {
+          "path": "agents/task-splitter/SOUL.md",
+          "bytes": 1202,
+          "tokens": 277,
+          "sha256": "9a2d9dcd46d85f37047c1c630e09bb12de37a9f648f21e160d31a7558dec17fa"
+        },
+        {
+          "path": "agents/task-splitter/reference/principles.md",
+          "bytes": 2253,
+          "tokens": 568,
+          "sha256": "d6f015e99b076b147768bd8cbac09b561ad7c0c4d64740592c9f3e9c4caea1ba"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/INDEX.md",
+          "bytes": 1297,
+          "tokens": 312,
+          "sha256": "ac04f87c60e21467847ab997326ebb8c1c934f3ebd37ae2f280fbdfd14588353"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/decomposition-quality.md",
+          "bytes": 3778,
+          "tokens": 852,
+          "sha256": "aa7392602481ee3b96f713290e00ed1a8627011310174e9f6347b46439e5ad0b"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/dependency-dag.md",
+          "bytes": 1130,
+          "tokens": 281,
+          "sha256": "2a96ad2a0148991c6979298f3a3f59099d8549345fbe84bf11bd4b604897d14d"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/ownership-write-scopes.md",
+          "bytes": 1110,
+          "tokens": 267,
+          "sha256": "c5f58113a7f09d84958c26338c9d52031f84e213944df3a2bfb811bd5df2fef2"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/acceptance-risk-budget.md",
+          "bytes": 1783,
+          "tokens": 444,
+          "sha256": "b8f9b4d584f9dc2bb05728f428b8de18f0ddb4378235e3d3690fde95175180e1"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/model-session-routing.md",
+          "bytes": 11103,
+          "tokens": 2369,
+          "sha256": "437465f97e570d0d2a8e6802146b8a5ff8394378119004dc2add43bdd80af285"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/smart-routing-policy.md",
+          "bytes": 4169,
+          "tokens": 922,
+          "sha256": "5741c2864da940a9294334194bae3797421f719d88c0e4c73ce58d2842834404"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/task-dag-schema.md",
+          "bytes": 6531,
+          "tokens": 1633,
+          "sha256": "edb064c67fe281894fd3b620c28629d8088fe30dc5ef8264ec4d822b294e8c79"
+        },
+        {
+          "path": "agents/task-orchestrator.md",
+          "bytes": 15565,
+          "tokens": 3517,
+          "sha256": "060503aed96bed820731ff6d87df450f8c7904c0b46982d8ba37c7f887785361"
+        },
+        {
+          "path": "agents/task-orchestrator/SOUL.md",
+          "bytes": 1249,
+          "tokens": 295,
+          "sha256": "c16c9c09ce6462a9256f86082059221e1935c741480789b0e63adf9088cff8f9"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/principles.md",
+          "bytes": 2311,
+          "tokens": 543,
+          "sha256": "ff7bf12514b3127dfe5ccda661d83351daedcb4c4a157884cb542500cc6a1cee"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/INDEX.md",
+          "bytes": 1157,
+          "tokens": 279,
+          "sha256": "732241e919eaa9559f8955c26028e2c9ea95e2610b8f27cef71c8a143d86a7b1"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/bounded-scheduling.md",
+          "bytes": 2004,
+          "tokens": 457,
+          "sha256": "0e23e573dfa5758dc9223565235854596a340734511a01413ed12e009d81d455"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/routing-state-machine.md",
+          "bytes": 6162,
+          "tokens": 1265,
+          "sha256": "f9a7f06216768a93da814238e5abd211529b135faf543a91a0f3d2214a496fb1"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/result-aggregation.md",
+          "bytes": 3574,
+          "tokens": 830,
+          "sha256": "2cc80964e92c008dcf0ca3273f60814024479db6924e1e8bab3a0490906efb85"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/lifecycle-reporting.md",
+          "bytes": 4053,
+          "tokens": 986,
+          "sha256": "ea5c9a411c015890cffd385f50283d31591516d26b53d4143b31abdf0b8e4854"
+        },
+        {
+          "path": "skills/start-task/reference/principles.md",
+          "bytes": 2580,
+          "tokens": 622,
+          "sha256": "3d1b7c0b1b8d8f9c35d34bb2d849491909f5381b34216ff7591b34d87ad29638"
+        },
+        {
+          "path": "skills/start-task/reference/kb/INDEX.md",
+          "bytes": 2311,
+          "tokens": 557,
+          "sha256": "7b993ea4054f6b08c44eb3ee3b1b376fb83b1d36f386799ea19b64052183e4ca"
+        },
+        {
+          "path": "skills/start-task/reference/kb/phase-gates.md",
+          "bytes": 4649,
+          "tokens": 1060,
+          "sha256": "0970138eee03d7c645d5dd4f6f24692e57c5db4d2a75f53df695e94677b6a98b"
+        },
+        {
+          "path": "skills/start-task/reference/kb/handoff-contracts.md",
+          "bytes": 5494,
+          "tokens": 1272,
+          "sha256": "1a69bb31fcef1e3bb280c31526f7c9f70bc48dd414a2e86ad4dbb497578228c1"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/kb/questioning-policy.md",
+          "bytes": 4489,
+          "tokens": 1083,
+          "sha256": "76d8f6e32d653de793a1de1d8d02f0d2f42d3f82bae67d2fb26ab700f954ccb1"
+        },
+        {
+          "path": "skills/korean-dev-writer/SKILL.md",
+          "bytes": 4144,
+          "tokens": 1067,
+          "sha256": "711790c5b9e547f7ef80d1c16c1741291cf4a3f1a0adcbcb6c1cff3f94d21518"
+        },
+        {
+          "path": "skills/korean-dev-writer/reference/principles.md",
+          "bytes": 2069,
+          "tokens": 545,
+          "sha256": "a339d58e19c304cce0016cfb0d01fd5a1d45e3b3365b7375c70de35b58df9441"
+        },
+        {
+          "path": "skills/korean-dev-writer/reference/kb/INDEX.md",
+          "bytes": 1540,
+          "tokens": 409,
+          "sha256": "1122965cfc16599904732d6eb3a50f1fa5dbd8b39b15abd073e3f0257ca569f0"
+        },
+        {
+          "path": "skills/korean-dev-writer/reference/kb/technical-explanations.md",
+          "bytes": 2114,
+          "tokens": 509,
+          "sha256": "6bc469caf7f2bbdc360f237f43bf0371ee28ea8ce7457e3722df754a23c35d6d"
+        }
+      ],
+      "tokens": 56295
+    },
+    {
+      "id": "start-task-audit-partial",
+      "task": "Audit ready set plus unresolved continuation and ledger/report detail.",
+      "files": [
+        {
+          "path": "skills/start-task/SKILL.md",
+          "bytes": 4431,
+          "tokens": 923,
+          "sha256": "12b76623fb3db1de7d3e3eef4b4b1b5c2f101150b1842ba39970706cc935bea7"
+        },
+        {
+          "path": "skills/start-task/reference/kb/operating-contract.md",
+          "bytes": 52360,
+          "tokens": 10867,
+          "sha256": "00f441f059fcd14303b15a54ddea785d7cf81b97d67911988bdf6bb9eed5c249"
+        },
+        {
+          "path": "skills/start-task/reference/kb/runtime-fast-path.md",
+          "bytes": 17858,
+          "tokens": 3972,
+          "sha256": "0a3112c0cf49cc9fb8a19b758850eba4b7fc9f88b6f8913ecf1433dab8f52d52"
+        },
+        {
+          "path": "skills/start-task/reference/kb/model-routing.md",
+          "bytes": 10997,
+          "tokens": 2203,
+          "sha256": "8e0d10ad9fd4edf21c9613f39d2a1fd786e4cfb825a45fd715bb5b4ef00031bb"
+        },
+        {
+          "path": "skills/start-task/reference/kb/clarity-scoring.md",
+          "bytes": 5411,
+          "tokens": 1326,
+          "sha256": "bf93353622a4ec4b52bc48116feb71f11d5039e965c9a1cb46e4f7f9bcdd1164"
+        },
+        {
+          "path": "skills/start-task/reference/kb/orchestration-report.valid.json",
+          "bytes": 7703,
+          "tokens": 2256,
+          "sha256": "9eb8dba638db697892607c9343a3bf2e06c4411135d267a6dd8487e3e38a57a5"
+        },
+        {
+          "path": "agents/requirement-dialogue.md",
+          "bytes": 18315,
+          "tokens": 4405,
+          "sha256": "6c110007f805f4807fe20e95696e752221e18e0213cd79b7874e3f7ebf7fc4ab"
+        },
+        {
+          "path": "agents/requirement-dialogue/SOUL.md",
+          "bytes": 2123,
+          "tokens": 519,
+          "sha256": "afc6a3aa6f9ec95670d618668b8f06691ecccb8b04ee80a3179da3ea5ce8e8f2"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/principles.md",
+          "bytes": 2031,
+          "tokens": 516,
+          "sha256": "4463376f7834b71df3c6a3c611c79a87505f83eaa202f12c030a533e4525f764"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/kb/INDEX.md",
+          "bytes": 951,
+          "tokens": 244,
+          "sha256": "2b73086748fc12dcf33fc26fa78a438b6ed9b9efa0cac59bdf586284dfa99529"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/kb/ambiguity-gate.md",
+          "bytes": 2071,
+          "tokens": 528,
+          "sha256": "82e04a2c466427fdaeae95f930fff446d219fde524eb40d9199cce21ea47764a"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/kb/clarity-scoring.md",
+          "bytes": 2857,
+          "tokens": 713,
+          "sha256": "22570fd436666a1adb524eb0ba45d1dcd6131fd36666463c5fd62bd282afe9ab"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/kb/clarified-spec-schema.md",
+          "bytes": 5893,
+          "tokens": 1544,
+          "sha256": "b9fbe2a47bb82ac5d520e7cddd0e8874bd91c57c1940e02662d3d54a33bcd08a"
+        },
+        {
+          "path": "agents/task-splitter.md",
+          "bytes": 12520,
+          "tokens": 3058,
+          "sha256": "d5545aa83826a9f36d4bf4091be280ec453958a4bd4c2c307700604851bd52f0"
+        },
+        {
+          "path": "agents/task-splitter/SOUL.md",
+          "bytes": 1202,
+          "tokens": 277,
+          "sha256": "9a2d9dcd46d85f37047c1c630e09bb12de37a9f648f21e160d31a7558dec17fa"
+        },
+        {
+          "path": "agents/task-splitter/reference/principles.md",
+          "bytes": 2253,
+          "tokens": 568,
+          "sha256": "d6f015e99b076b147768bd8cbac09b561ad7c0c4d64740592c9f3e9c4caea1ba"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/INDEX.md",
+          "bytes": 1297,
+          "tokens": 312,
+          "sha256": "ac04f87c60e21467847ab997326ebb8c1c934f3ebd37ae2f280fbdfd14588353"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/decomposition-quality.md",
+          "bytes": 3778,
+          "tokens": 852,
+          "sha256": "aa7392602481ee3b96f713290e00ed1a8627011310174e9f6347b46439e5ad0b"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/dependency-dag.md",
+          "bytes": 1130,
+          "tokens": 281,
+          "sha256": "2a96ad2a0148991c6979298f3a3f59099d8549345fbe84bf11bd4b604897d14d"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/ownership-write-scopes.md",
+          "bytes": 1110,
+          "tokens": 267,
+          "sha256": "c5f58113a7f09d84958c26338c9d52031f84e213944df3a2bfb811bd5df2fef2"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/acceptance-risk-budget.md",
+          "bytes": 1783,
+          "tokens": 444,
+          "sha256": "b8f9b4d584f9dc2bb05728f428b8de18f0ddb4378235e3d3690fde95175180e1"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/model-session-routing.md",
+          "bytes": 11103,
+          "tokens": 2369,
+          "sha256": "437465f97e570d0d2a8e6802146b8a5ff8394378119004dc2add43bdd80af285"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/smart-routing-policy.md",
+          "bytes": 4169,
+          "tokens": 922,
+          "sha256": "5741c2864da940a9294334194bae3797421f719d88c0e4c73ce58d2842834404"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/task-dag-schema.md",
+          "bytes": 6531,
+          "tokens": 1633,
+          "sha256": "edb064c67fe281894fd3b620c28629d8088fe30dc5ef8264ec4d822b294e8c79"
+        },
+        {
+          "path": "agents/task-orchestrator.md",
+          "bytes": 15565,
+          "tokens": 3517,
+          "sha256": "060503aed96bed820731ff6d87df450f8c7904c0b46982d8ba37c7f887785361"
+        },
+        {
+          "path": "agents/task-orchestrator/SOUL.md",
+          "bytes": 1249,
+          "tokens": 295,
+          "sha256": "c16c9c09ce6462a9256f86082059221e1935c741480789b0e63adf9088cff8f9"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/principles.md",
+          "bytes": 2311,
+          "tokens": 543,
+          "sha256": "ff7bf12514b3127dfe5ccda661d83351daedcb4c4a157884cb542500cc6a1cee"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/INDEX.md",
+          "bytes": 1157,
+          "tokens": 279,
+          "sha256": "732241e919eaa9559f8955c26028e2c9ea95e2610b8f27cef71c8a143d86a7b1"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/bounded-scheduling.md",
+          "bytes": 2004,
+          "tokens": 457,
+          "sha256": "0e23e573dfa5758dc9223565235854596a340734511a01413ed12e009d81d455"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/routing-state-machine.md",
+          "bytes": 6162,
+          "tokens": 1265,
+          "sha256": "f9a7f06216768a93da814238e5abd211529b135faf543a91a0f3d2214a496fb1"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/result-aggregation.md",
+          "bytes": 3574,
+          "tokens": 830,
+          "sha256": "2cc80964e92c008dcf0ca3273f60814024479db6924e1e8bab3a0490906efb85"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/lifecycle-reporting.md",
+          "bytes": 4053,
+          "tokens": 986,
+          "sha256": "ea5c9a411c015890cffd385f50283d31591516d26b53d4143b31abdf0b8e4854"
+        },
+        {
+          "path": "skills/start-task/reference/principles.md",
+          "bytes": 2580,
+          "tokens": 622,
+          "sha256": "3d1b7c0b1b8d8f9c35d34bb2d849491909f5381b34216ff7591b34d87ad29638"
+        },
+        {
+          "path": "skills/start-task/reference/kb/INDEX.md",
+          "bytes": 2311,
+          "tokens": 557,
+          "sha256": "7b993ea4054f6b08c44eb3ee3b1b376fb83b1d36f386799ea19b64052183e4ca"
+        },
+        {
+          "path": "skills/start-task/reference/kb/phase-gates.md",
+          "bytes": 4649,
+          "tokens": 1060,
+          "sha256": "0970138eee03d7c645d5dd4f6f24692e57c5db4d2a75f53df695e94677b6a98b"
+        },
+        {
+          "path": "skills/start-task/reference/kb/execution-ledger.md",
+          "bytes": 10588,
+          "tokens": 2577,
+          "sha256": "b45ec7396f10c3a0836966bda491c56548667012774831133a7efb7d317386a2"
+        },
+        {
+          "path": "skills/start-task/reference/kb/terminal-reporting.md",
+          "bytes": 5016,
+          "tokens": 1149,
+          "sha256": "d1b2c263d3db3e93bafeb42126ecb0bfc1a0d9f635695ffd274952ac88a9c33a"
+        }
+      ],
+      "tokens": 55136
+    },
+    {
+      "id": "start-task-audit-execution-child",
+      "task": "Audit ready set plus native execution-child handoff, excluding that task-specific child's own role bundle.",
+      "files": [
+        {
+          "path": "skills/start-task/SKILL.md",
+          "bytes": 4431,
+          "tokens": 923,
+          "sha256": "12b76623fb3db1de7d3e3eef4b4b1b5c2f101150b1842ba39970706cc935bea7"
+        },
+        {
+          "path": "skills/start-task/reference/kb/operating-contract.md",
+          "bytes": 52360,
+          "tokens": 10867,
+          "sha256": "00f441f059fcd14303b15a54ddea785d7cf81b97d67911988bdf6bb9eed5c249"
+        },
+        {
+          "path": "skills/start-task/reference/kb/runtime-fast-path.md",
+          "bytes": 17858,
+          "tokens": 3972,
+          "sha256": "0a3112c0cf49cc9fb8a19b758850eba4b7fc9f88b6f8913ecf1433dab8f52d52"
+        },
+        {
+          "path": "skills/start-task/reference/kb/model-routing.md",
+          "bytes": 10997,
+          "tokens": 2203,
+          "sha256": "8e0d10ad9fd4edf21c9613f39d2a1fd786e4cfb825a45fd715bb5b4ef00031bb"
+        },
+        {
+          "path": "skills/start-task/reference/kb/clarity-scoring.md",
+          "bytes": 5411,
+          "tokens": 1326,
+          "sha256": "bf93353622a4ec4b52bc48116feb71f11d5039e965c9a1cb46e4f7f9bcdd1164"
+        },
+        {
+          "path": "skills/start-task/reference/kb/orchestration-report.valid.json",
+          "bytes": 7703,
+          "tokens": 2256,
+          "sha256": "9eb8dba638db697892607c9343a3bf2e06c4411135d267a6dd8487e3e38a57a5"
+        },
+        {
+          "path": "agents/requirement-dialogue.md",
+          "bytes": 18315,
+          "tokens": 4405,
+          "sha256": "6c110007f805f4807fe20e95696e752221e18e0213cd79b7874e3f7ebf7fc4ab"
+        },
+        {
+          "path": "agents/requirement-dialogue/SOUL.md",
+          "bytes": 2123,
+          "tokens": 519,
+          "sha256": "afc6a3aa6f9ec95670d618668b8f06691ecccb8b04ee80a3179da3ea5ce8e8f2"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/principles.md",
+          "bytes": 2031,
+          "tokens": 516,
+          "sha256": "4463376f7834b71df3c6a3c611c79a87505f83eaa202f12c030a533e4525f764"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/kb/INDEX.md",
+          "bytes": 951,
+          "tokens": 244,
+          "sha256": "2b73086748fc12dcf33fc26fa78a438b6ed9b9efa0cac59bdf586284dfa99529"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/kb/ambiguity-gate.md",
+          "bytes": 2071,
+          "tokens": 528,
+          "sha256": "82e04a2c466427fdaeae95f930fff446d219fde524eb40d9199cce21ea47764a"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/kb/clarity-scoring.md",
+          "bytes": 2857,
+          "tokens": 713,
+          "sha256": "22570fd436666a1adb524eb0ba45d1dcd6131fd36666463c5fd62bd282afe9ab"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/kb/clarified-spec-schema.md",
+          "bytes": 5893,
+          "tokens": 1544,
+          "sha256": "b9fbe2a47bb82ac5d520e7cddd0e8874bd91c57c1940e02662d3d54a33bcd08a"
+        },
+        {
+          "path": "agents/task-splitter.md",
+          "bytes": 12520,
+          "tokens": 3058,
+          "sha256": "d5545aa83826a9f36d4bf4091be280ec453958a4bd4c2c307700604851bd52f0"
+        },
+        {
+          "path": "agents/task-splitter/SOUL.md",
+          "bytes": 1202,
+          "tokens": 277,
+          "sha256": "9a2d9dcd46d85f37047c1c630e09bb12de37a9f648f21e160d31a7558dec17fa"
+        },
+        {
+          "path": "agents/task-splitter/reference/principles.md",
+          "bytes": 2253,
+          "tokens": 568,
+          "sha256": "d6f015e99b076b147768bd8cbac09b561ad7c0c4d64740592c9f3e9c4caea1ba"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/INDEX.md",
+          "bytes": 1297,
+          "tokens": 312,
+          "sha256": "ac04f87c60e21467847ab997326ebb8c1c934f3ebd37ae2f280fbdfd14588353"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/decomposition-quality.md",
+          "bytes": 3778,
+          "tokens": 852,
+          "sha256": "aa7392602481ee3b96f713290e00ed1a8627011310174e9f6347b46439e5ad0b"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/dependency-dag.md",
+          "bytes": 1130,
+          "tokens": 281,
+          "sha256": "2a96ad2a0148991c6979298f3a3f59099d8549345fbe84bf11bd4b604897d14d"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/ownership-write-scopes.md",
+          "bytes": 1110,
+          "tokens": 267,
+          "sha256": "c5f58113a7f09d84958c26338c9d52031f84e213944df3a2bfb811bd5df2fef2"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/acceptance-risk-budget.md",
+          "bytes": 1783,
+          "tokens": 444,
+          "sha256": "b8f9b4d584f9dc2bb05728f428b8de18f0ddb4378235e3d3690fde95175180e1"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/model-session-routing.md",
+          "bytes": 11103,
+          "tokens": 2369,
+          "sha256": "437465f97e570d0d2a8e6802146b8a5ff8394378119004dc2add43bdd80af285"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/smart-routing-policy.md",
+          "bytes": 4169,
+          "tokens": 922,
+          "sha256": "5741c2864da940a9294334194bae3797421f719d88c0e4c73ce58d2842834404"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/task-dag-schema.md",
+          "bytes": 6531,
+          "tokens": 1633,
+          "sha256": "edb064c67fe281894fd3b620c28629d8088fe30dc5ef8264ec4d822b294e8c79"
+        },
+        {
+          "path": "agents/task-orchestrator.md",
+          "bytes": 15565,
+          "tokens": 3517,
+          "sha256": "060503aed96bed820731ff6d87df450f8c7904c0b46982d8ba37c7f887785361"
+        },
+        {
+          "path": "agents/task-orchestrator/SOUL.md",
+          "bytes": 1249,
+          "tokens": 295,
+          "sha256": "c16c9c09ce6462a9256f86082059221e1935c741480789b0e63adf9088cff8f9"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/principles.md",
+          "bytes": 2311,
+          "tokens": 543,
+          "sha256": "ff7bf12514b3127dfe5ccda661d83351daedcb4c4a157884cb542500cc6a1cee"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/INDEX.md",
+          "bytes": 1157,
+          "tokens": 279,
+          "sha256": "732241e919eaa9559f8955c26028e2c9ea95e2610b8f27cef71c8a143d86a7b1"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/bounded-scheduling.md",
+          "bytes": 2004,
+          "tokens": 457,
+          "sha256": "0e23e573dfa5758dc9223565235854596a340734511a01413ed12e009d81d455"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/routing-state-machine.md",
+          "bytes": 6162,
+          "tokens": 1265,
+          "sha256": "f9a7f06216768a93da814238e5abd211529b135faf543a91a0f3d2214a496fb1"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/result-aggregation.md",
+          "bytes": 3574,
+          "tokens": 830,
+          "sha256": "2cc80964e92c008dcf0ca3273f60814024479db6924e1e8bab3a0490906efb85"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/lifecycle-reporting.md",
+          "bytes": 4053,
+          "tokens": 986,
+          "sha256": "ea5c9a411c015890cffd385f50283d31591516d26b53d4143b31abdf0b8e4854"
+        },
+        {
+          "path": "skills/start-task/reference/principles.md",
+          "bytes": 2580,
+          "tokens": 622,
+          "sha256": "3d1b7c0b1b8d8f9c35d34bb2d849491909f5381b34216ff7591b34d87ad29638"
+        },
+        {
+          "path": "skills/start-task/reference/kb/INDEX.md",
+          "bytes": 2311,
+          "tokens": 557,
+          "sha256": "7b993ea4054f6b08c44eb3ee3b1b376fb83b1d36f386799ea19b64052183e4ca"
+        },
+        {
+          "path": "skills/start-task/reference/kb/bounded-orchestration.md",
+          "bytes": 3600,
+          "tokens": 818,
+          "sha256": "6e643f937af0995217d618caf5282d49595b80fc4d4f5e9d1951a527815683a1"
+        },
+        {
+          "path": "skills/start-task/reference/kb/handoff-contracts.md",
+          "bytes": 5494,
+          "tokens": 1272,
+          "sha256": "1a69bb31fcef1e3bb280c31526f7c9f70bc48dd414a2e86ad4dbb497578228c1"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/native-subagent-handoff.md",
+          "bytes": 6177,
+          "tokens": 1369,
+          "sha256": "9280755f9de7d3f8731c074e6e9c155c45f75ae6b4d70ab4aa684ccd3861c509"
+        }
+      ],
+      "tokens": 53809
+    },
+    {
+      "id": "start-task-audit-conflict",
+      "task": "Execution-child coordination plus integration conflict guidance; excludes task-specific authoring and child role bundles.",
+      "files": [
+        {
+          "path": "skills/start-task/SKILL.md",
+          "bytes": 4431,
+          "tokens": 923,
+          "sha256": "12b76623fb3db1de7d3e3eef4b4b1b5c2f101150b1842ba39970706cc935bea7"
+        },
+        {
+          "path": "skills/start-task/reference/kb/operating-contract.md",
+          "bytes": 52360,
+          "tokens": 10867,
+          "sha256": "00f441f059fcd14303b15a54ddea785d7cf81b97d67911988bdf6bb9eed5c249"
+        },
+        {
+          "path": "skills/start-task/reference/kb/runtime-fast-path.md",
+          "bytes": 17858,
+          "tokens": 3972,
+          "sha256": "0a3112c0cf49cc9fb8a19b758850eba4b7fc9f88b6f8913ecf1433dab8f52d52"
+        },
+        {
+          "path": "skills/start-task/reference/kb/model-routing.md",
+          "bytes": 10997,
+          "tokens": 2203,
+          "sha256": "8e0d10ad9fd4edf21c9613f39d2a1fd786e4cfb825a45fd715bb5b4ef00031bb"
+        },
+        {
+          "path": "skills/start-task/reference/kb/clarity-scoring.md",
+          "bytes": 5411,
+          "tokens": 1326,
+          "sha256": "bf93353622a4ec4b52bc48116feb71f11d5039e965c9a1cb46e4f7f9bcdd1164"
+        },
+        {
+          "path": "skills/start-task/reference/kb/orchestration-report.valid.json",
+          "bytes": 7703,
+          "tokens": 2256,
+          "sha256": "9eb8dba638db697892607c9343a3bf2e06c4411135d267a6dd8487e3e38a57a5"
+        },
+        {
+          "path": "agents/requirement-dialogue.md",
+          "bytes": 18315,
+          "tokens": 4405,
+          "sha256": "6c110007f805f4807fe20e95696e752221e18e0213cd79b7874e3f7ebf7fc4ab"
+        },
+        {
+          "path": "agents/requirement-dialogue/SOUL.md",
+          "bytes": 2123,
+          "tokens": 519,
+          "sha256": "afc6a3aa6f9ec95670d618668b8f06691ecccb8b04ee80a3179da3ea5ce8e8f2"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/principles.md",
+          "bytes": 2031,
+          "tokens": 516,
+          "sha256": "4463376f7834b71df3c6a3c611c79a87505f83eaa202f12c030a533e4525f764"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/kb/INDEX.md",
+          "bytes": 951,
+          "tokens": 244,
+          "sha256": "2b73086748fc12dcf33fc26fa78a438b6ed9b9efa0cac59bdf586284dfa99529"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/kb/ambiguity-gate.md",
+          "bytes": 2071,
+          "tokens": 528,
+          "sha256": "82e04a2c466427fdaeae95f930fff446d219fde524eb40d9199cce21ea47764a"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/kb/clarity-scoring.md",
+          "bytes": 2857,
+          "tokens": 713,
+          "sha256": "22570fd436666a1adb524eb0ba45d1dcd6131fd36666463c5fd62bd282afe9ab"
+        },
+        {
+          "path": "agents/requirement-dialogue/reference/kb/clarified-spec-schema.md",
+          "bytes": 5893,
+          "tokens": 1544,
+          "sha256": "b9fbe2a47bb82ac5d520e7cddd0e8874bd91c57c1940e02662d3d54a33bcd08a"
+        },
+        {
+          "path": "agents/task-splitter.md",
+          "bytes": 12520,
+          "tokens": 3058,
+          "sha256": "d5545aa83826a9f36d4bf4091be280ec453958a4bd4c2c307700604851bd52f0"
+        },
+        {
+          "path": "agents/task-splitter/SOUL.md",
+          "bytes": 1202,
+          "tokens": 277,
+          "sha256": "9a2d9dcd46d85f37047c1c630e09bb12de37a9f648f21e160d31a7558dec17fa"
+        },
+        {
+          "path": "agents/task-splitter/reference/principles.md",
+          "bytes": 2253,
+          "tokens": 568,
+          "sha256": "d6f015e99b076b147768bd8cbac09b561ad7c0c4d64740592c9f3e9c4caea1ba"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/INDEX.md",
+          "bytes": 1297,
+          "tokens": 312,
+          "sha256": "ac04f87c60e21467847ab997326ebb8c1c934f3ebd37ae2f280fbdfd14588353"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/decomposition-quality.md",
+          "bytes": 3778,
+          "tokens": 852,
+          "sha256": "aa7392602481ee3b96f713290e00ed1a8627011310174e9f6347b46439e5ad0b"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/dependency-dag.md",
+          "bytes": 1130,
+          "tokens": 281,
+          "sha256": "2a96ad2a0148991c6979298f3a3f59099d8549345fbe84bf11bd4b604897d14d"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/ownership-write-scopes.md",
+          "bytes": 1110,
+          "tokens": 267,
+          "sha256": "c5f58113a7f09d84958c26338c9d52031f84e213944df3a2bfb811bd5df2fef2"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/acceptance-risk-budget.md",
+          "bytes": 1783,
+          "tokens": 444,
+          "sha256": "b8f9b4d584f9dc2bb05728f428b8de18f0ddb4378235e3d3690fde95175180e1"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/model-session-routing.md",
+          "bytes": 11103,
+          "tokens": 2369,
+          "sha256": "437465f97e570d0d2a8e6802146b8a5ff8394378119004dc2add43bdd80af285"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/smart-routing-policy.md",
+          "bytes": 4169,
+          "tokens": 922,
+          "sha256": "5741c2864da940a9294334194bae3797421f719d88c0e4c73ce58d2842834404"
+        },
+        {
+          "path": "agents/task-splitter/reference/kb/task-dag-schema.md",
+          "bytes": 6531,
+          "tokens": 1633,
+          "sha256": "edb064c67fe281894fd3b620c28629d8088fe30dc5ef8264ec4d822b294e8c79"
+        },
+        {
+          "path": "agents/task-orchestrator.md",
+          "bytes": 15565,
+          "tokens": 3517,
+          "sha256": "060503aed96bed820731ff6d87df450f8c7904c0b46982d8ba37c7f887785361"
+        },
+        {
+          "path": "agents/task-orchestrator/SOUL.md",
+          "bytes": 1249,
+          "tokens": 295,
+          "sha256": "c16c9c09ce6462a9256f86082059221e1935c741480789b0e63adf9088cff8f9"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/principles.md",
+          "bytes": 2311,
+          "tokens": 543,
+          "sha256": "ff7bf12514b3127dfe5ccda661d83351daedcb4c4a157884cb542500cc6a1cee"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/INDEX.md",
+          "bytes": 1157,
+          "tokens": 279,
+          "sha256": "732241e919eaa9559f8955c26028e2c9ea95e2610b8f27cef71c8a143d86a7b1"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/bounded-scheduling.md",
+          "bytes": 2004,
+          "tokens": 457,
+          "sha256": "0e23e573dfa5758dc9223565235854596a340734511a01413ed12e009d81d455"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/routing-state-machine.md",
+          "bytes": 6162,
+          "tokens": 1265,
+          "sha256": "f9a7f06216768a93da814238e5abd211529b135faf543a91a0f3d2214a496fb1"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/result-aggregation.md",
+          "bytes": 3574,
+          "tokens": 830,
+          "sha256": "2cc80964e92c008dcf0ca3273f60814024479db6924e1e8bab3a0490906efb85"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/lifecycle-reporting.md",
+          "bytes": 4053,
+          "tokens": 986,
+          "sha256": "ea5c9a411c015890cffd385f50283d31591516d26b53d4143b31abdf0b8e4854"
+        },
+        {
+          "path": "skills/start-task/reference/principles.md",
+          "bytes": 2580,
+          "tokens": 622,
+          "sha256": "3d1b7c0b1b8d8f9c35d34bb2d849491909f5381b34216ff7591b34d87ad29638"
+        },
+        {
+          "path": "skills/start-task/reference/kb/INDEX.md",
+          "bytes": 2311,
+          "tokens": 557,
+          "sha256": "7b993ea4054f6b08c44eb3ee3b1b376fb83b1d36f386799ea19b64052183e4ca"
+        },
+        {
+          "path": "skills/start-task/reference/kb/bounded-orchestration.md",
+          "bytes": 3600,
+          "tokens": 818,
+          "sha256": "6e643f937af0995217d618caf5282d49595b80fc4d4f5e9d1951a527815683a1"
+        },
+        {
+          "path": "skills/start-task/reference/kb/handoff-contracts.md",
+          "bytes": 5494,
+          "tokens": 1272,
+          "sha256": "1a69bb31fcef1e3bb280c31526f7c9f70bc48dd414a2e86ad4dbb497578228c1"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/native-subagent-handoff.md",
+          "bytes": 6177,
+          "tokens": 1369,
+          "sha256": "9280755f9de7d3f8731c074e6e9c155c45f75ae6b4d70ab4aa684ccd3861c509"
+        },
+        {
+          "path": "agents/task-orchestrator/reference/kb/integration-conflicts.md",
+          "bytes": 1574,
+          "tokens": 355,
+          "sha256": "1d47e5bd5c19ca86ddd4035d61e330f6f4c5c85e46239c1fb732afa7ba9d87b0"
+        }
+      ],
+      "tokens": 54164
+    }
+  ]
+}

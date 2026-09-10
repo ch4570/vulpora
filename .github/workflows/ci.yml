@@ -15,6 +15,31 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  token-budgets:
+    name: Declared workflow source-token budgets
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Prepare existing optional tokenizer dependency
+        shell: bash
+        run: |
+          python3 -m venv "$RUNNER_TEMP/vulpora-token-audit"
+          "$RUNNER_TEMP/vulpora-token-audit/bin/pip" install --disable-pip-version-check -r evals/token-efficiency/requirements.txt
+      - name: Check route coverage and exact source-token bounds
+        shell: bash
+        env:
+          TIKTOKEN_CACHE_DIR: ${{ runner.temp }}/vulpora-tokenizer-cache
+        run: |
+          bash install/test-token-load-coverage.sh
+          "$RUNNER_TEMP/vulpora-token-audit/bin/python" evals/token-efficiency/measure-skills.py \
+            --scenarios evals/token-efficiency/start-task-load-scenarios.json \
+            --baseline evals/token-efficiency/baselines/2026-09-10/start-task-source.json \
+            --check --output "$RUNNER_TEMP/start-task-token-budget.json"
+
   core:
     name: Core / ${{ matrix.os }} / Node ${{ matrix.node }}
     runs-on: ${{ matrix.os }}

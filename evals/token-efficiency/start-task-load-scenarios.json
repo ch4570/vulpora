@@ -1,0 +1,475 @@
+{
+  "schema": "vulpora.skill-load-scenarios/v1",
+  "description": "Declared start-task source loads with source-anchor and main-route link coverage. Count unique source files once; exclude runtime wrappers, provider overhead, repeated reads, and task-specific authoring/child bundles unless stated.",
+  "file_groups": {
+    "lightweight": [
+      "skills/start-task/SKILL.md"
+    ],
+    "standard": [
+      "@lightweight",
+      "skills/start-task/reference/kb/lightweight-path.md"
+    ],
+    "independent": [
+      "@standard",
+      "skills/start-task/reference/kb/model-routing.md",
+      "skills/start-task/reference/kb/independent-sessions.md"
+    ],
+    "auditCore": [
+      "@lightweight",
+      "skills/start-task/reference/kb/operating-contract.md",
+      "skills/start-task/reference/kb/runtime-fast-path.md",
+      "skills/start-task/reference/kb/model-routing.md",
+      "skills/start-task/reference/kb/clarity-scoring.md",
+      "skills/start-task/reference/kb/orchestration-report.valid.json"
+    ],
+    "requirement-dialogue": [
+      "agents/requirement-dialogue.md",
+      "agents/requirement-dialogue/SOUL.md",
+      "agents/requirement-dialogue/reference/principles.md",
+      "agents/requirement-dialogue/reference/kb/INDEX.md",
+      "agents/requirement-dialogue/reference/kb/ambiguity-gate.md",
+      "agents/requirement-dialogue/reference/kb/clarity-scoring.md",
+      "agents/requirement-dialogue/reference/kb/clarified-spec-schema.md"
+    ],
+    "task-splitter": [
+      "agents/task-splitter.md",
+      "agents/task-splitter/SOUL.md",
+      "agents/task-splitter/reference/principles.md",
+      "agents/task-splitter/reference/kb/INDEX.md",
+      "agents/task-splitter/reference/kb/decomposition-quality.md",
+      "agents/task-splitter/reference/kb/dependency-dag.md",
+      "agents/task-splitter/reference/kb/ownership-write-scopes.md",
+      "agents/task-splitter/reference/kb/acceptance-risk-budget.md",
+      "agents/task-splitter/reference/kb/model-session-routing.md",
+      "agents/task-splitter/reference/kb/smart-routing-policy.md",
+      "agents/task-splitter/reference/kb/task-dag-schema.md"
+    ],
+    "task-orchestrator": [
+      "agents/task-orchestrator.md",
+      "agents/task-orchestrator/SOUL.md",
+      "agents/task-orchestrator/reference/principles.md",
+      "agents/task-orchestrator/reference/kb/INDEX.md",
+      "agents/task-orchestrator/reference/kb/bounded-scheduling.md",
+      "agents/task-orchestrator/reference/kb/routing-state-machine.md",
+      "agents/task-orchestrator/reference/kb/result-aggregation.md",
+      "agents/task-orchestrator/reference/kb/lifecycle-reporting.md"
+    ],
+    "auditReady": [
+      "@auditCore",
+      "@requirement-dialogue",
+      "@task-splitter",
+      "@task-orchestrator"
+    ],
+    "auditFallback": [
+      "skills/start-task/reference/principles.md",
+      "skills/start-task/reference/kb/INDEX.md"
+    ],
+    "questionExtra": [
+      "@auditFallback",
+      "skills/start-task/reference/kb/phase-gates.md",
+      "skills/start-task/reference/kb/handoff-contracts.md",
+      "agents/requirement-dialogue/reference/kb/questioning-policy.md",
+      "skills/korean-dev-writer/SKILL.md",
+      "skills/korean-dev-writer/reference/principles.md",
+      "skills/korean-dev-writer/reference/kb/INDEX.md",
+      "skills/korean-dev-writer/reference/kb/technical-explanations.md"
+    ],
+    "partialExtra": [
+      "@auditFallback",
+      "skills/start-task/reference/kb/phase-gates.md",
+      "skills/start-task/reference/kb/execution-ledger.md",
+      "skills/start-task/reference/kb/terminal-reporting.md"
+    ],
+    "executionExtra": [
+      "@auditFallback",
+      "skills/start-task/reference/kb/bounded-orchestration.md",
+      "skills/start-task/reference/kb/handoff-contracts.md",
+      "agents/task-orchestrator/reference/kb/native-subagent-handoff.md"
+    ]
+  },
+  "load_coverage": {
+    "roots": {
+      "start-task-lightweight": [
+        "skills/start-task/SKILL.md"
+      ],
+      "start-task-standard-primary": [
+        "skills/start-task/SKILL.md"
+      ],
+      "start-task-standard-independent": [
+        "skills/start-task/SKILL.md"
+      ],
+      "start-task-audit-ready": [
+        "skills/start-task/SKILL.md"
+      ],
+      "start-task-audit-question": [
+        "skills/start-task/SKILL.md"
+      ],
+      "start-task-audit-partial": [
+        "skills/start-task/SKILL.md"
+      ],
+      "start-task-audit-execution-child": [
+        "skills/start-task/SKILL.md"
+      ],
+      "start-task-audit-conflict": [
+        "skills/start-task/SKILL.md"
+      ]
+    },
+    "rules": [
+      {
+        "source": "skills/start-task/SKILL.md",
+        "anchor": "**Standard:** read the [standard path](reference/kb/lightweight-path.md).",
+        "routes": [
+          "start-task-standard-primary",
+          "start-task-standard-independent"
+        ],
+        "files": [
+          "skills/start-task/reference/kb/lightweight-path.md"
+        ]
+      },
+      {
+        "source": "skills/start-task/reference/kb/lightweight-path.md",
+        "anchor": "For actual delegation",
+        "routes": [
+          "start-task-standard-independent"
+        ],
+        "files": [
+          "skills/start-task/reference/kb/model-routing.md",
+          "skills/start-task/reference/kb/independent-sessions.md"
+        ]
+      },
+      {
+        "source": "skills/start-task/SKILL.md",
+        "anchor": "**Audit:** read the [operating contract](reference/kb/operating-contract.md) and",
+        "routes": [
+          "start-task-audit-ready",
+          "start-task-audit-question",
+          "start-task-audit-partial",
+          "start-task-audit-execution-child",
+          "start-task-audit-conflict"
+        ],
+        "files": [
+          "skills/start-task/SKILL.md",
+          "skills/start-task/reference/kb/operating-contract.md",
+          "skills/start-task/reference/kb/runtime-fast-path.md",
+          "skills/start-task/reference/kb/model-routing.md",
+          "skills/start-task/reference/kb/clarity-scoring.md",
+          "skills/start-task/reference/kb/orchestration-report.valid.json"
+        ]
+      },
+      {
+        "source": "agents/requirement-dialogue.md",
+        "anchor": "## Context routing",
+        "routes": [
+          "start-task-audit-ready",
+          "start-task-audit-question",
+          "start-task-audit-partial",
+          "start-task-audit-execution-child",
+          "start-task-audit-conflict"
+        ],
+        "files": [
+          "agents/requirement-dialogue.md",
+          "agents/requirement-dialogue/SOUL.md",
+          "agents/requirement-dialogue/reference/principles.md",
+          "agents/requirement-dialogue/reference/kb/INDEX.md",
+          "agents/requirement-dialogue/reference/kb/ambiguity-gate.md",
+          "agents/requirement-dialogue/reference/kb/clarity-scoring.md",
+          "agents/requirement-dialogue/reference/kb/clarified-spec-schema.md"
+        ]
+      },
+      {
+        "source": "agents/task-splitter.md",
+        "anchor": "## Context routing",
+        "routes": [
+          "start-task-audit-ready",
+          "start-task-audit-question",
+          "start-task-audit-partial",
+          "start-task-audit-execution-child",
+          "start-task-audit-conflict"
+        ],
+        "files": [
+          "agents/task-splitter.md",
+          "agents/task-splitter/SOUL.md",
+          "agents/task-splitter/reference/principles.md",
+          "agents/task-splitter/reference/kb/INDEX.md",
+          "agents/task-splitter/reference/kb/decomposition-quality.md",
+          "agents/task-splitter/reference/kb/dependency-dag.md",
+          "agents/task-splitter/reference/kb/ownership-write-scopes.md",
+          "agents/task-splitter/reference/kb/acceptance-risk-budget.md",
+          "agents/task-splitter/reference/kb/model-session-routing.md",
+          "agents/task-splitter/reference/kb/smart-routing-policy.md",
+          "agents/task-splitter/reference/kb/task-dag-schema.md"
+        ]
+      },
+      {
+        "source": "agents/task-orchestrator.md",
+        "anchor": "## Context routing",
+        "routes": [
+          "start-task-audit-ready",
+          "start-task-audit-question",
+          "start-task-audit-partial",
+          "start-task-audit-execution-child",
+          "start-task-audit-conflict"
+        ],
+        "files": [
+          "agents/task-orchestrator.md",
+          "agents/task-orchestrator/SOUL.md",
+          "agents/task-orchestrator/reference/principles.md",
+          "agents/task-orchestrator/reference/kb/INDEX.md",
+          "agents/task-orchestrator/reference/kb/bounded-scheduling.md",
+          "agents/task-orchestrator/reference/kb/routing-state-machine.md",
+          "agents/task-orchestrator/reference/kb/result-aggregation.md",
+          "agents/task-orchestrator/reference/kb/lifecycle-reporting.md"
+        ]
+      },
+      {
+        "source": "skills/start-task/reference/kb/runtime-fast-path.md",
+        "anchor": "reference/kb/orchestration-report.valid.json",
+        "routes": [
+          "start-task-audit-ready",
+          "start-task-audit-question",
+          "start-task-audit-partial",
+          "start-task-audit-execution-child",
+          "start-task-audit-conflict"
+        ],
+        "files": [
+          "skills/start-task/reference/kb/orchestration-report.valid.json"
+        ]
+      },
+      {
+        "source": "skills/start-task/reference/kb/operating-contract.md",
+        "anchor": "Load [phase-gates](phase-gates.md)",
+        "routes": [
+          "start-task-audit-question"
+        ],
+        "files": [
+          "skills/start-task/reference/principles.md",
+          "skills/start-task/reference/kb/INDEX.md",
+          "skills/start-task/reference/kb/phase-gates.md",
+          "skills/start-task/reference/kb/handoff-contracts.md",
+          "agents/requirement-dialogue/reference/kb/questioning-policy.md",
+          "skills/korean-dev-writer/SKILL.md",
+          "skills/korean-dev-writer/reference/principles.md",
+          "skills/korean-dev-writer/reference/kb/INDEX.md",
+          "skills/korean-dev-writer/reference/kb/technical-explanations.md"
+        ]
+      },
+      {
+        "source": "skills/start-task/reference/kb/operating-contract.md",
+        "anchor": "partial continuation",
+        "routes": [
+          "start-task-audit-partial"
+        ],
+        "files": [
+          "skills/start-task/reference/principles.md",
+          "skills/start-task/reference/kb/INDEX.md",
+          "skills/start-task/reference/kb/phase-gates.md",
+          "skills/start-task/reference/kb/execution-ledger.md",
+          "skills/start-task/reference/kb/terminal-reporting.md"
+        ]
+      },
+      {
+        "source": "skills/start-task/reference/kb/operating-contract.md",
+        "anchor": "Load [bounded-orchestration](bounded-orchestration.md)",
+        "routes": [
+          "start-task-audit-execution-child",
+          "start-task-audit-conflict"
+        ],
+        "files": [
+          "skills/start-task/reference/principles.md",
+          "skills/start-task/reference/kb/INDEX.md",
+          "skills/start-task/reference/kb/bounded-orchestration.md",
+          "skills/start-task/reference/kb/handoff-contracts.md",
+          "agents/task-orchestrator/reference/kb/native-subagent-handoff.md"
+        ]
+      },
+      {
+        "source": "agents/task-orchestrator/reference/kb/INDEX.md",
+        "anchor": "[integration-conflicts](integration-conflicts.md)",
+        "routes": [
+          "start-task-audit-conflict"
+        ],
+        "files": [
+          "agents/task-orchestrator/reference/kb/integration-conflicts.md"
+        ]
+      }
+    ],
+    "link_sources": [
+      "skills/start-task/SKILL.md",
+      "skills/start-task/reference/kb/lightweight-path.md",
+      "skills/start-task/reference/kb/operating-contract.md",
+      "agents/requirement-dialogue/reference/kb/INDEX.md",
+      "agents/task-splitter/reference/kb/INDEX.md",
+      "agents/task-orchestrator/reference/kb/INDEX.md",
+      "agents/requirement-dialogue.md",
+      "agents/task-splitter.md",
+      "agents/task-orchestrator.md"
+    ],
+    "excluded_links": {},
+    "link_targets": {
+      "skills/start-task/SKILL.md": [
+        "skills/start-task/reference/kb/lightweight-path.md",
+        "skills/start-task/reference/kb/operating-contract.md",
+        "skills/start-task/reference/kb/runtime-fast-path.md"
+      ],
+      "skills/start-task/reference/kb/lightweight-path.md": [
+        "skills/start-task/SKILL.md",
+        "skills/start-task/reference/kb/model-routing.md",
+        "skills/start-task/reference/kb/independent-sessions.md"
+      ],
+      "skills/start-task/reference/kb/operating-contract.md": [
+        "skills/start-task/reference/kb/runtime-fast-path.md",
+        "skills/start-task/reference/principles.md",
+        "skills/start-task/reference/kb/INDEX.md",
+        "skills/start-task/reference/kb/phase-gates.md",
+        "skills/start-task/reference/kb/clarity-scoring.md",
+        "skills/start-task/reference/kb/handoff-contracts.md",
+        "skills/start-task/reference/kb/bounded-orchestration.md",
+        "skills/start-task/reference/kb/model-routing.md",
+        "skills/start-task/reference/kb/execution-ledger.md",
+        "skills/start-task/reference/kb/terminal-reporting.md"
+      ],
+      "agents/requirement-dialogue/reference/kb/INDEX.md": [
+        "agents/requirement-dialogue/reference/kb/ambiguity-gate.md",
+        "agents/requirement-dialogue/reference/kb/clarity-scoring.md",
+        "agents/requirement-dialogue/reference/kb/questioning-policy.md",
+        "agents/requirement-dialogue/reference/kb/clarified-spec-schema.md",
+        "agents/requirement-dialogue/reference/principles.md"
+      ],
+      "agents/task-splitter/reference/kb/INDEX.md": [
+        "agents/task-splitter/reference/kb/decomposition-quality.md",
+        "agents/task-splitter/reference/kb/dependency-dag.md",
+        "agents/task-splitter/reference/kb/ownership-write-scopes.md",
+        "agents/task-splitter/reference/kb/acceptance-risk-budget.md",
+        "agents/task-splitter/reference/kb/model-session-routing.md",
+        "agents/task-splitter/reference/kb/smart-routing-policy.md",
+        "agents/task-splitter/reference/kb/task-dag-schema.md",
+        "agents/task-splitter/reference/principles.md"
+      ],
+      "agents/task-orchestrator/reference/kb/INDEX.md": [
+        "agents/task-orchestrator/reference/kb/bounded-scheduling.md",
+        "agents/task-orchestrator/reference/kb/native-subagent-handoff.md",
+        "agents/task-orchestrator/reference/kb/routing-state-machine.md",
+        "agents/task-orchestrator/reference/kb/result-aggregation.md",
+        "agents/task-orchestrator/reference/kb/integration-conflicts.md",
+        "agents/task-orchestrator/reference/kb/lifecycle-reporting.md",
+        "agents/task-orchestrator/reference/principles.md"
+      ],
+      "agents/requirement-dialogue.md": [
+        "agents/requirement-dialogue/SOUL.md",
+        "agents/requirement-dialogue/reference/principles.md",
+        "agents/requirement-dialogue/reference/kb/INDEX.md"
+      ],
+      "agents/task-splitter.md": [
+        "agents/task-splitter/SOUL.md",
+        "agents/task-splitter/reference/principles.md",
+        "agents/task-splitter/reference/kb/INDEX.md"
+      ],
+      "agents/task-orchestrator.md": [
+        "agents/task-orchestrator/SOUL.md",
+        "agents/task-orchestrator/reference/principles.md",
+        "agents/task-orchestrator/reference/kb/INDEX.md"
+      ]
+    }
+  },
+  "scenarios": [
+    {
+      "id": "start-task-lightweight",
+      "task": "Clear bounded direct task; entry only.",
+      "baseline": [
+        "@lightweight"
+      ],
+      "candidate": [
+        "@lightweight"
+      ],
+      "max_tokens": 1000
+    },
+    {
+      "id": "start-task-standard-primary",
+      "task": "Standard task with one owner and no delegation.",
+      "baseline": [
+        "@standard"
+      ],
+      "candidate": [
+        "@standard"
+      ],
+      "max_tokens": 1500
+    },
+    {
+      "id": "start-task-standard-independent",
+      "task": "Standard independent session; routing and transport references.",
+      "baseline": [
+        "@independent"
+      ],
+      "candidate": [
+        "@independent"
+      ],
+      "max_tokens": 7900
+    },
+    {
+      "id": "start-task-audit-ready",
+      "task": "Ready read-only/deterministic audited task, native clarification and planning, inline execution; includes declared canonical agent bundles and report template, not runtime wrappers or repeated reads.",
+      "baseline": [
+        "@auditReady"
+      ],
+      "candidate": [
+        "@auditReady"
+      ],
+      "max_tokens": 51700
+    },
+    {
+      "id": "start-task-audit-question",
+      "task": "Audit ready set plus one reversible decision question and its selected Korean explanation topic.",
+      "baseline": [
+        "@auditReady",
+        "@questionExtra"
+      ],
+      "candidate": [
+        "@auditReady",
+        "@questionExtra"
+      ],
+      "max_tokens": 59200
+    },
+    {
+      "id": "start-task-audit-partial",
+      "task": "Audit ready set plus unresolved continuation and ledger/report detail.",
+      "baseline": [
+        "@auditReady",
+        "@partialExtra"
+      ],
+      "candidate": [
+        "@auditReady",
+        "@partialExtra"
+      ],
+      "max_tokens": 57900
+    },
+    {
+      "id": "start-task-audit-execution-child",
+      "task": "Audit ready set plus native execution-child handoff, excluding that task-specific child's own role bundle.",
+      "baseline": [
+        "@auditReady",
+        "@executionExtra"
+      ],
+      "candidate": [
+        "@auditReady",
+        "@executionExtra"
+      ],
+      "max_tokens": 56500
+    },
+    {
+      "id": "start-task-audit-conflict",
+      "task": "Execution-child coordination plus integration conflict guidance; excludes task-specific authoring and child role bundles.",
+      "baseline": [
+        "@auditReady",
+        "@executionExtra",
+        "agents/task-orchestrator/reference/kb/integration-conflicts.md"
+      ],
+      "candidate": [
+        "@auditReady",
+        "@executionExtra",
+        "agents/task-orchestrator/reference/kb/integration-conflicts.md"
+      ],
+      "max_tokens": 56900
+    }
+  ],
+  "max_discovery_tokens": 4500
+}

@@ -6,6 +6,9 @@
 **tiktoken 0.14.0의 `o200k_base` 인코딩**을 사용합니다. 이 인코딩에 대한 정확한 수치이며,
 제공자의 과금 토큰이나 런타임이 실제로 읽은 문맥을 측정한 값은 아닙니다. 도구는 모델을 호출하지 않습니다.
 
+`start-task` 경로별 예산과 필수 참조 coverage는 [별도 검사 안내](../../docs/start-task-token-budgets.ko.md)를
+따릅니다. 새 2026-09-10 공개 소스 baseline을 사용하며 기존 측정 기록은 보존합니다.
+
 실제 실행 사용량은 [편집안 방식 비교](PROPOSAL-EVAL.md)와 [설계 재검토·결과](../../docs/token-efficiency-design-review.md)를
 참고하세요. 새 8회 비교에서 양쪽 모두 4/4 첫 시도 통과를 유지하면서 총토큰이 265,559 → 43,513으로
 83.6% 줄었습니다. 작은 합성 과제의 실행 방식 비교이며, [실험 지출 기록](results/context-improvement-spend-2026-09-07.json)에는
