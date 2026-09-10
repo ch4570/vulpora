@@ -2,7 +2,7 @@
 
 [한국어](skills.ko.md) · English · [README](../README.md)
 
-This handbook covers the purpose and invocation of all **63 skills** in the installation manifest.
+This handbook covers the purpose and invocation of all **64 skills** in the installation manifest.
 One entry, `codex-agent-runtime`, is a disabled compatibility contract. Each skill name links to its
 actual `SKILL.md`, which defines the inputs, procedure, and expected output.
 
@@ -139,7 +139,7 @@ Neither mode operates on shared services to prove a flaw. Unverified coverage st
 |---|---|---|
 | [security-scan-workflow](../skills/security-scan-workflow/SKILL.md) | Analyze security and shared-resource effects; fix and verify when authorized | `$security-scan-workflow "Analyze diverse vulnerabilities and fix shared-resource risks with isolated regressions"` |
 
-### Code, design, and test quality review · 11
+### Code, design, and test quality review · 12
 
 Supply target files, modules, or a diff range and baseline for consolidated reviews. Review-only
 requests do not authorize code changes. Workflows that dispatch specialists require those agents
@@ -155,6 +155,7 @@ and an explicit model route to be available in the current runtime.
 | [oop-design-review](../skills/oop-design-review/SKILL.md) | Assess SOLID, GRASP, cohesion, and encapsulation | `$oop-design-review "Review responsibility allocation across the payment policy classes"` |
 | [design-pattern-apply](../skills/design-pattern-apply/SKILL.md) | Assess whether a pattern fits a real axis of change and how to apply it | `$design-pattern-apply "Assess whether these shipping policy branches need Strategy"` |
 | [refactoring-catalog](../skills/refactoring-catalog/SKILL.md) | Select behavior-preserving refactoring steps and verification for code smells | `$refactoring-catalog "Propose steps to reduce duplicate branches in OrderService"` |
+| [explore-dead-code](../skills/explore-dead-code/SKILL.md) | Quickly scan unreferenced code candidates with batched searches and evidence/confidence; hold uncertain indirect registrations and external APIs for follow-up, without deletion | `$explore-dead-code "Find unreferenced code candidates in src and report evidence and confidence without deleting anything"` |
 | [test-quality-review](../skills/test-quality-review/SKILL.md) | Audit test oracles, boundaries, isolation, and fault detection | `$test-quality-review "Review whether OrderServiceTest detects plausible defects"` |
 | [test-refactoring](../skills/test-refactoring/SKILL.md) | Improve Kotlin/JVM tests and fixtures only for validated quality findings | `$test-refactoring "Fix the attached findings within OrderServiceTest and its fixtures"` |
 | [test-quality-refactoring-workflow](../skills/test-quality-refactoring-workflow/SKILL.md) | Coordinate quality auditing, test-side improvements, negative proof, and fresh execution | `$test-quality-refactoring-workflow "Review and improve the order module's Kotlin tests, limiting edits to tests and fixtures"` |

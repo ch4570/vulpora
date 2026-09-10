@@ -101,6 +101,7 @@ skill | postgres-schema-design | skills/postgres-schema-design | - | - | -
 skill | product-requirements | skills/product-requirements | - | korean-dev-writer | -
 skill | product-ui-design | skills/product-ui-design | - | - | -
 skill | refactoring-catalog | skills/refactoring-catalog | - | - | -
+skill | explore-dead-code | skills/explore-dead-code | - | - | -
 skill | repository | skills/repository | - | service kotlin-code-authoring | -
 skill | request | skills/request | - | enum kotlin-code-authoring | -
 skill | response | skills/response | - | kotlin-code-authoring | -

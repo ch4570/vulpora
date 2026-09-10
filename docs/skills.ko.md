@@ -2,7 +2,7 @@
 
 한국어 · [English](skills.en.md) · [README](../README.ko.md)
 
-설치 매니페스트에 등록된 **63개 스킬**의 용도와 호출 예제를 정리합니다. 이 중
+설치 매니페스트에 등록된 **64개 스킬**의 용도와 호출 예제를 정리합니다. 이 중
 `codex-agent-runtime`은 실행 기능이 비활성화된 호환성 항목입니다. 각 스킬 이름을 누르면 실제
 `SKILL.md`의 입력, 절차, 출력 계약을 확인할 수 있습니다.
 
@@ -137,7 +137,7 @@ $start-task --audit "운영 데이터 마이그레이션 계획과 검증 근거
 |---|---|---|
 | [security-scan-workflow](../skills/security-scan-workflow/SKILL.md) | 다양한 취약점과 공용 리소스 영향 분석, 요청 시 수정·검증 | `$security-scan-workflow "다양한 보안 취약점을 분석하고 공용 리소스 위험 코드를 수정·검증해줘"` |
 
-### 코드·설계·테스트 품질 리뷰 · 11개
+### 코드·설계·테스트 품질 리뷰 · 12개
 
 통합 리뷰에는 대상 파일·모듈 또는 diff 범위와 비교 기준을 전달합니다. 리뷰만 요청하면
 코드를 수정하지 않습니다. 전문 에이전트를 실행하는 workflow는 런타임에서 해당 에이전트와
@@ -153,6 +153,7 @@ $start-task --audit "운영 데이터 마이그레이션 계획과 검증 근거
 | [oop-design-review](../skills/oop-design-review/SKILL.md) | SOLID·GRASP·응집도·캡슐화 검토 | `$oop-design-review "결제 정책 클래스들의 책임 분배를 검토해줘"` |
 | [design-pattern-apply](../skills/design-pattern-apply/SKILL.md) | 실제 변경 축에 맞는 패턴의 필요성과 적용 방법 판단 | `$design-pattern-apply "배송 정책 분기에 Strategy가 필요한지 판단해줘"` |
 | [refactoring-catalog](../skills/refactoring-catalog/SKILL.md) | 코드 냄새에 맞는 리팩터링 기법·순서·검증 제안 | `$refactoring-catalog "OrderService의 중복 분기를 줄일 절차를 제안해줘"` |
+| [explore-dead-code](../skills/explore-dead-code/SKILL.md) | 미참조 코드 후보를 묶음 검색해 근거·신뢰도로 보고하며 간접 등록·외부 API는 추가 확인 대상으로 유지, 삭제 없음 | `$explore-dead-code "src에서 참조가 없는 코드 후보를 빠르게 찾고 삭제 없이 근거와 신뢰도를 보고해줘"` |
 | [test-quality-review](../skills/test-quality-review/SKILL.md) | 기존 테스트의 oracle·경계·격리·결함 탐지력 감사 | `$test-quality-review "OrderServiceTest의 실제 결함 탐지력을 리뷰해줘"` |
 | [test-refactoring](../skills/test-refactoring/SKILL.md) | 검증된 finding에 한해 Kotlin/JVM 테스트·fixture 개선 | `$test-refactoring "첨부한 품질 finding을 OrderServiceTest와 fixture 범위에서 수정해줘"` |
 | [test-quality-refactoring-workflow](../skills/test-quality-refactoring-workflow/SKILL.md) | 품질 감사부터 테스트 개선·결함 탐지·실행 근거 재검증까지 조정 | `$test-quality-refactoring-workflow "주문 모듈의 Kotlin 테스트 품질을 검토하고 test와 fixture 범위에서 개선해줘"` |

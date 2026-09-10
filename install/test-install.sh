@@ -124,6 +124,12 @@ record 'code authoring router remains a runtime-neutral minimal router' \
   "assert_resolution code-authoring-router \
      '' \
      'code-authoring-router'"
+record 'dead code exploration installs its self-contained skill without extra agents' \
+  "assert_resolution explore-dead-code \
+     '' \
+     'explore-dead-code' \
+   && diff -r '$SCRIPT_DIR/../skills/explore-dead-code' \
+      '$WORK/resolution-explore-dead-code/.agents/skills/explore-dead-code'"
 record 'Kotlin Spring review workflow resolves its complete skill suite without unrelated agents' \
   "assert_resolution kotlin-spring-review-workflow \
      '' \

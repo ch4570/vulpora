@@ -12,7 +12,7 @@ Vulpora gives **Codex and Claude Code** reusable specialist roles, task workflow
 Install the capabilities your project needs, invoke a skill, and carry work through implementation,
 review, and verification in your existing coding runtime.
 
-**14 packs · 28 agents · 63 skill entries · macOS / Linux · Apache-2.0**
+**14 packs · 28 agents · 64 skill entries · macOS / Linux · Apache-2.0**
 
 The fox and its many tails represent distinct specialties working toward one goal.
 The package, command, and project namespace are **`vulpora`**. [Name and artwork](docs/naming.md).
@@ -159,6 +159,7 @@ Marketplace installations may expose namespaced commands; choose the command sho
 |---|---|
 | Implement using project conventions | `$code-authoring-router "Add cursor pagination to the search API"` |
 | Review backend changes | `$backend-code-review-workflow "Review the current diff"` |
+| Find unreferenced code candidates | `$explore-dead-code "Quickly scan src for unreferenced code and report evidence without deleting anything"` |
 | Analyze and fix security and shared-resource risks | `$security-scan-workflow "Analyze diverse vulnerabilities and fix shared-resource risks with isolated regressions"` |
 | Design an interface | `$product-ui-design "Design the empty, loading, and error states for this dashboard"` |
 | Improve existing tests | `$test-quality-refactoring-workflow "Review and strengthen the order service tests"` |
@@ -214,12 +215,12 @@ The [agent catalog](docs/catalog-guide.md#agent-catalog) lists all 28 specialist
 
 ## Skill catalog
 
-The manifest has **63 skill entries**. `codex-agent-runtime` is a disabled compatibility entry;
+The manifest has **64 skill entries**. `codex-agent-runtime` is a disabled compatibility entry;
 the handbook marks it explicitly instead of suggesting it as an execution path.
 
 <!-- SKILL_SUMMARY_START -->
 <details>
-<summary>Browse all 63 skill entries by category</summary>
+<summary>Browse all 64 skill entries by category</summary>
 
 | Area | Skills |
 |---|---|
@@ -227,7 +228,7 @@ the handbook marks it explicitly instead of suggesting it as an execution path.
 | Installation, routing, and task entry · 5 | [vulpora-init](skills/vulpora-init/SKILL.md), [vulpora-installer](skills/vulpora-installer/SKILL.md), [code-authoring-router](skills/code-authoring-router/SKILL.md), [start-task](skills/start-task/SKILL.md), [codex-agent-runtime](skills/codex-agent-runtime/SKILL.md) |
 | Product requirements and UI · 2 | [product-requirements](skills/product-requirements/SKILL.md), [product-ui-design](skills/product-ui-design/SKILL.md) |
 | Kotlin and Spring authoring · 10 | [kotlin-code-authoring](skills/kotlin-code-authoring/SKILL.md), [entity](skills/entity/SKILL.md), [enum](skills/enum/SKILL.md), [mapper](skills/mapper/SKILL.md), [repository](skills/repository/SKILL.md), [request](skills/request/SKILL.md), [response](skills/response/SKILL.md), [service](skills/service/SKILL.md), [flyway](skills/flyway/SKILL.md), [test-authoring](skills/test-authoring/SKILL.md) |
-| Code, design, and test quality review · 11 | [architecture-review-workflow](skills/architecture-review-workflow/SKILL.md), [backend-code-review-workflow](skills/backend-code-review-workflow/SKILL.md), [java-spring-review-workflow](skills/java-spring-review-workflow/SKILL.md), [kotlin-spring-review-workflow](skills/kotlin-spring-review-workflow/SKILL.md), [kotlin-spring-review](skills/kotlin-spring-review/SKILL.md), [oop-design-review](skills/oop-design-review/SKILL.md), [design-pattern-apply](skills/design-pattern-apply/SKILL.md), [refactoring-catalog](skills/refactoring-catalog/SKILL.md), [test-quality-review](skills/test-quality-review/SKILL.md), [test-refactoring](skills/test-refactoring/SKILL.md), [test-quality-refactoring-workflow](skills/test-quality-refactoring-workflow/SKILL.md) |
+| Code, design, and test quality review · 12 | [architecture-review-workflow](skills/architecture-review-workflow/SKILL.md), [backend-code-review-workflow](skills/backend-code-review-workflow/SKILL.md), [java-spring-review-workflow](skills/java-spring-review-workflow/SKILL.md), [kotlin-spring-review-workflow](skills/kotlin-spring-review-workflow/SKILL.md), [kotlin-spring-review](skills/kotlin-spring-review/SKILL.md), [oop-design-review](skills/oop-design-review/SKILL.md), [design-pattern-apply](skills/design-pattern-apply/SKILL.md), [refactoring-catalog](skills/refactoring-catalog/SKILL.md), [explore-dead-code](skills/explore-dead-code/SKILL.md), [test-quality-review](skills/test-quality-review/SKILL.md), [test-refactoring](skills/test-refactoring/SKILL.md), [test-quality-refactoring-workflow](skills/test-quality-refactoring-workflow/SKILL.md) |
 | Databases and search · 12 | [postgres-code-authoring](skills/postgres-code-authoring/SKILL.md), [postgres-query-review](skills/postgres-query-review/SKILL.md), [postgres-schema-design](skills/postgres-schema-design/SKILL.md), [postgres-risk-check](skills/postgres-risk-check/SKILL.md), [postgres-review-workflow](skills/postgres-review-workflow/SKILL.md), [mssql-code-authoring](skills/mssql-code-authoring/SKILL.md), [opensearch-code-authoring](skills/opensearch-code-authoring/SKILL.md), [opensearch-query-review](skills/opensearch-query-review/SKILL.md), [opensearch-schema-review](skills/opensearch-schema-review/SKILL.md), [opensearch-optimization](skills/opensearch-optimization/SKILL.md), [opensearch-review-workflow](skills/opensearch-review-workflow/SKILL.md), [nl-sql-query](skills/nl-sql-query/SKILL.md) |
 | QA and E2E · 5 | [e2e-scenario-author](skills/e2e-scenario-author/SKILL.md), [e2e-runner](skills/e2e-runner/SKILL.md), [playwright-e2e](skills/playwright-e2e/SKILL.md), [e2e-report-renderer](skills/e2e-report-renderer/SKILL.md), [e2e-test-workflow](skills/e2e-test-workflow/SKILL.md) |
 | Documents, diagrams, and visual artifacts · 9 | [code-diagram-extract](skills/code-diagram-extract/SKILL.md), [schema-doc-extract](skills/schema-doc-extract/SKILL.md), [mermaid-diagrams](skills/mermaid-diagrams/SKILL.md), [diagram-styler](skills/diagram-styler/SKILL.md), [document-designer](skills/document-designer/SKILL.md), [markdown-publisher](skills/markdown-publisher/SKILL.md), [pdf-qa](skills/pdf-qa/SKILL.md), [visual-artifact-router](skills/visual-artifact-router/SKILL.md), [korean-dev-writer](skills/korean-dev-writer/SKILL.md) |
@@ -264,7 +265,7 @@ The coding runtime executes work; the installer manages the catalog and its life
 vulpora/                  # Current GitHub repository path
 ├── vulpora                 # Public CLI entry
 ├── agents/                 # 28 role definitions, adapters, knowledge bundles
-├── skills/                 # 63 SKILL.md entries, scripts, references
+├── skills/                 # 64 SKILL.md entries, scripts, references
 ├── install/                # Manifest, packs, installer, receipts, checks
 ├── .claude-plugin/         # Claude Code marketplace compatibility
 ├── mcp/nl-sql/             # Separately built database MCP server
