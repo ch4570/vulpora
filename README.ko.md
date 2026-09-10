@@ -158,7 +158,7 @@ Marketplace로 설치하면 namespace가 붙을 수 있으므로 런타임에 �
 |---|---|
 | 프로젝트 관례에 맞춰 구현 | `$code-authoring-router "검색 API에 커서 페이지네이션을 추가해줘"` |
 | 백엔드 변경 리뷰 | `$backend-code-review-workflow "현재 diff를 리뷰해줘"` |
-| 보안·공유 데이터 삭제 위험 점검 | `$security-scan-workflow "credential 노출, XSS, CSRF, SQL Injection과 DB·Redis 광범위 삭제를 점검해줘"` |
+| 보안·공용 리소스 위험 분석과 수정 | `$security-scan-workflow "다양한 보안 취약점을 분석하고 공용 리소스 위험 코드를 수정·검증해줘"` |
 | UI 설계 | `$product-ui-design "대시보드의 빈 화면·로딩·오류 상태를 설계해줘"` |
 | 기존 테스트 강화 | `$test-quality-refactoring-workflow "주문 서비스 테스트의 품질을 검토하고 개선해줘"` |
 | 기존 E2E 카탈로그 실행 | `$e2e-test-workflow "설정된 테스트 환경에서 결제 시나리오를 실행해줘"` |

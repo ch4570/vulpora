@@ -159,7 +159,7 @@ Marketplace installations may expose namespaced commands; choose the command sho
 |---|---|
 | Implement using project conventions | `$code-authoring-router "Add cursor pagination to the search API"` |
 | Review backend changes | `$backend-code-review-workflow "Review the current diff"` |
-| Scan security and shared-data deletion risks | `$security-scan-workflow "Check credential exposure, XSS, CSRF, SQL injection, and destructive DB/Redis calls"` |
+| Analyze and fix security and shared-resource risks | `$security-scan-workflow "Analyze diverse vulnerabilities and fix shared-resource risks with isolated regressions"` |
 | Design an interface | `$product-ui-design "Design the empty, loading, and error states for this dashboard"` |
 | Improve existing tests | `$test-quality-refactoring-workflow "Review and strengthen the order service tests"` |
 | Run an existing E2E catalog | `$e2e-test-workflow "Run checkout scenarios in the configured test environment"` |

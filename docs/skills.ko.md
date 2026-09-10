@@ -79,7 +79,7 @@ $start-task --audit "운영 데이터 마이그레이션 계획과 검증 근거
 | 아이디어를 요구사항과 화면으로 구체화하기 | `product-requirements` → `product-ui-design` | `pack:product-discovery-ko pack:visual` |
 | Kotlin/Java·Spring 코드 작성과 리뷰 | `kotlin-code-authoring`, 해당 언어의 통합 리뷰 | `pack:jvm-spring` |
 | 아키텍처·테스트 품질 검토 | 해당 `*-workflow` | `pack:jvm-quality` |
-| 보안·공용 DB·Redis 삭제 위험 점검 | `security-scan-workflow` | `security-scan-workflow` |
+| 보안·공용 리소스 위험 분석과 수정 | `security-scan-workflow` | `security-scan-workflow` |
 | PostgreSQL·SQL Server·OpenSearch 작업 | 해당 `*-code-authoring`, `*-review-workflow` | `pack:postgres`, `pack:mssql`, `pack:opensearch` |
 | API와 브라우저를 함께 검증하기 | `e2e-test-workflow` | `pack:qa-e2e` |
 | 다이어그램·HTML·PDF 문서 만들기 | `visual-artifact-router` | `pack:visual` |
@@ -127,13 +127,15 @@ $start-task --audit "운영 데이터 마이그레이션 계획과 검증 근거
 
 ### 보안·공유 데이터 안전성 · 1개
 
-설치 시 필수 `security-auditor` 에이전트가 포함됩니다. 저장소·파일·diff 범위를 전달하면
-읽기 전용 소스 검토로 근거, 점검하지 못한 범위와 개선안을 보고합니다. 취약 코드를 실행하거나
-DB·Redis 서버에 접속하지 않습니다.
+설치 시 필수 읽기 전용 `security-auditor`가 포함됩니다. 검토 요청은 읽기 전용으로 처리하고,
+수정 요청은 소스 수정, 안전성을 확인한 오프라인 회귀 테스트와 독립 재검토까지 수행합니다.
+인가·테넌트, 주입, SSRF, 파일, 설정·의존성, 자원 고갈과 DB·캐시·검색·큐·객체 저장소의
+공유 영향 경로를 분석합니다. 취약점을 증명하려고 공유 서비스에 접속하지 않으며,
+확인하지 못한 범위는 별도로 표시합니다.
 
 | 스킬 | 용도 | 대화창 호출 예제 |
 |---|---|---|
-| [security-scan-workflow](../skills/security-scan-workflow/SKILL.md) | credential 노출, XSS, CSRF, SQL Injection과 공용 DB·Redis 광범위 삭제 위험 추적 | `$security-scan-workflow "이 저장소의 credential 노출, XSS, CSRF, SQL Injection, deleteAll(), Redis FLUSHDB 위험을 점검해줘"` |
+| [security-scan-workflow](../skills/security-scan-workflow/SKILL.md) | 다양한 취약점과 공용 리소스 영향 분석, 요청 시 수정·검증 | `$security-scan-workflow "다양한 보안 취약점을 분석하고 공용 리소스 위험 코드를 수정·검증해줘"` |
 
 ### 코드·설계·테스트 품질 리뷰 · 11개
 

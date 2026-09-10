@@ -80,7 +80,7 @@ between choosing a model and proving that a task actually ran with it.
 | Turn an idea into requirements and an interface | `product-requirements` → `product-ui-design` | `pack:product-discovery-ko pack:visual` |
 | Write and review Kotlin/Java with Spring | `kotlin-code-authoring`, the language's review workflow | `pack:jvm-spring` |
 | Review architecture or test quality | The corresponding `*-workflow` | `pack:jvm-quality` |
-| Scan security and shared DB/Redis deletion risks | `security-scan-workflow` | `security-scan-workflow` |
+| Analyze and fix security and shared-resource risks | `security-scan-workflow` | `security-scan-workflow` |
 | Work on PostgreSQL, SQL Server, or OpenSearch | The corresponding authoring/review skills | `pack:postgres`, `pack:mssql`, `pack:opensearch` |
 | Verify APIs and browser flows together | `e2e-test-workflow` | `pack:qa-e2e` |
 | Produce diagrams, HTML, and PDF documents | `visual-artifact-router` | `pack:visual` |
@@ -129,13 +129,15 @@ naming conventions, and architectural rules.
 
 ### Security and shared-data safety · 1
 
-The installer includes the required `security-auditor` agent. Supply the repository, files, or diff
-to inspect; the workflow performs a read-only source review and reports evidence, coverage gaps,
-and remediation. It does not execute vulnerable code or connect to a database or Redis server.
+The installer includes the required read-only `security-auditor`. Review requests stay read-only;
+explicit hardening requests also produce scoped source repairs, inspected offline regressions and
+an independent final review. Coverage includes authorization/tenants, injection, SSRF, files,
+configuration, dependencies, resource exhaustion and shared DB/cache/search/queue/storage effects.
+Neither mode operates on shared services to prove a flaw. Unverified coverage stays explicit.
 
 | Skill | Purpose | Conversation example |
 |---|---|---|
-| [security-scan-workflow](../skills/security-scan-workflow/SKILL.md) | Trace credential exposure, XSS, CSRF, SQL injection, and destructive shared DB/Redis operations | `$security-scan-workflow "Scan this repository for credential exposure, XSS, CSRF, SQL injection, deleteAll(), and Redis FLUSHDB risks"` |
+| [security-scan-workflow](../skills/security-scan-workflow/SKILL.md) | Analyze security and shared-resource effects; fix and verify when authorized | `$security-scan-workflow "Analyze diverse vulnerabilities and fix shared-resource risks with isolated regressions"` |
 
 ### Code, design, and test quality review · 11
 
