@@ -12,7 +12,7 @@ Vulpora gives **Codex and Claude Code** reusable specialist roles, task workflow
 Install the capabilities your project needs, invoke a skill, and carry work through implementation,
 review, and verification in your existing coding runtime.
 
-**14 packs · 28 agents · 62 skill entries · macOS / Linux · Apache-2.0**
+**14 packs · 28 agents · 63 skill entries · macOS / Linux · Apache-2.0**
 
 The fox and its many tails represent distinct specialties working toward one goal.
 The package, command, and project namespace are **`vulpora`**. [Name and artwork](docs/naming.md).
@@ -159,6 +159,7 @@ Marketplace installations may expose namespaced commands; choose the command sho
 |---|---|
 | Implement using project conventions | `$code-authoring-router "Add cursor pagination to the search API"` |
 | Review backend changes | `$backend-code-review-workflow "Review the current diff"` |
+| Scan security and shared-data deletion risks | `$security-scan-workflow "Check credential exposure, XSS, CSRF, SQL injection, and destructive DB/Redis calls"` |
 | Design an interface | `$product-ui-design "Design the empty, loading, and error states for this dashboard"` |
 | Improve existing tests | `$test-quality-refactoring-workflow "Review and strengthen the order service tests"` |
 | Run an existing E2E catalog | `$e2e-test-workflow "Run checkout scenarios in the configured test environment"` |
@@ -213,15 +214,16 @@ The [agent catalog](docs/catalog-guide.md#agent-catalog) lists all 28 specialist
 
 ## Skill catalog
 
-The manifest has **62 skill entries**. `codex-agent-runtime` is a disabled compatibility entry;
+The manifest has **63 skill entries**. `codex-agent-runtime` is a disabled compatibility entry;
 the handbook marks it explicitly instead of suggesting it as an execution path.
 
 <!-- SKILL_SUMMARY_START -->
 <details>
-<summary>Browse all 62 skill entries by category</summary>
+<summary>Browse all 63 skill entries by category</summary>
 
 | Area | Skills |
 |---|---|
+| Security and shared-data safety · 1 | [security-scan-workflow](skills/security-scan-workflow/SKILL.md) |
 | Installation, routing, and task entry · 5 | [vulpora-init](skills/vulpora-init/SKILL.md), [vulpora-installer](skills/vulpora-installer/SKILL.md), [code-authoring-router](skills/code-authoring-router/SKILL.md), [start-task](skills/start-task/SKILL.md), [codex-agent-runtime](skills/codex-agent-runtime/SKILL.md) |
 | Product requirements and UI · 2 | [product-requirements](skills/product-requirements/SKILL.md), [product-ui-design](skills/product-ui-design/SKILL.md) |
 | Kotlin and Spring authoring · 10 | [kotlin-code-authoring](skills/kotlin-code-authoring/SKILL.md), [entity](skills/entity/SKILL.md), [enum](skills/enum/SKILL.md), [mapper](skills/mapper/SKILL.md), [repository](skills/repository/SKILL.md), [request](skills/request/SKILL.md), [response](skills/response/SKILL.md), [service](skills/service/SKILL.md), [flyway](skills/flyway/SKILL.md), [test-authoring](skills/test-authoring/SKILL.md) |
@@ -262,7 +264,7 @@ The coding runtime executes work; the installer manages the catalog and its life
 vulpora/                  # Current GitHub repository path
 ├── vulpora                 # Public CLI entry
 ├── agents/                 # 28 role definitions, adapters, knowledge bundles
-├── skills/                 # 62 SKILL.md entries, scripts, references
+├── skills/                 # 63 SKILL.md entries, scripts, references
 ├── install/                # Manifest, packs, installer, receipts, checks
 ├── .claude-plugin/         # Claude Code marketplace compatibility
 ├── mcp/nl-sql/             # Separately built database MCP server

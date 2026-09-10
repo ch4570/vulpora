@@ -2,7 +2,7 @@
 
 한국어 · [English](skills.en.md) · [README](../README.ko.md)
 
-설치 매니페스트에 등록된 **62개 스킬**의 용도와 호출 예제를 정리합니다. 이 중
+설치 매니페스트에 등록된 **63개 스킬**의 용도와 호출 예제를 정리합니다. 이 중
 `codex-agent-runtime`은 실행 기능이 비활성화된 호환성 항목입니다. 각 스킬 이름을 누르면 실제
 `SKILL.md`의 입력, 절차, 출력 계약을 확인할 수 있습니다.
 
@@ -78,7 +78,8 @@ $start-task --audit "운영 데이터 마이그레이션 계획과 검증 근거
 | 저장소 초기화 후 구현하기 | `vulpora-init` → `start-task` | `pack:core pack:orchestration` |
 | 아이디어를 요구사항과 화면으로 구체화하기 | `product-requirements` → `product-ui-design` | `pack:product-discovery-ko pack:visual` |
 | Kotlin/Java·Spring 코드 작성과 리뷰 | `kotlin-code-authoring`, 해당 언어의 통합 리뷰 | `pack:jvm-spring` |
-| 아키텍처·보안·테스트 품질 검토 | 해당 `*-workflow` | `pack:jvm-quality` |
+| 아키텍처·테스트 품질 검토 | 해당 `*-workflow` | `pack:jvm-quality` |
+| 보안·공용 DB·Redis 삭제 위험 점검 | `security-scan-workflow` | `security-scan-workflow` |
 | PostgreSQL·SQL Server·OpenSearch 작업 | 해당 `*-code-authoring`, `*-review-workflow` | `pack:postgres`, `pack:mssql`, `pack:opensearch` |
 | API와 브라우저를 함께 검증하기 | `e2e-test-workflow` | `pack:qa-e2e` |
 | 다이어그램·HTML·PDF 문서 만들기 | `visual-artifact-router` | `pack:visual` |
@@ -123,6 +124,16 @@ $start-task --audit "운영 데이터 마이그레이션 계획과 검증 근거
 | [service](../skills/service/SKILL.md) | transaction 경계와 협력 규칙에 맞는 도메인 service 생성 | `$service "주문 조회와 취소의 도메인 service를 작성해줘"` |
 | [flyway](../skills/flyway/SKILL.md) | 엔티티 변경과 함께 PostgreSQL Flyway migration 작성 | `$flyway "Order 엔티티 변경에 맞는 migration SQL을 작성해줘"` |
 | [test-authoring](../skills/test-authoring/SKILL.md) | 계약·결정성·격리를 검증하는 Kotlin 단위·좁은 통합 테스트 작성 | `$test-authoring "OrderService의 취소 경계 조건을 테스트해줘"` |
+
+### 보안·공유 데이터 안전성 · 1개
+
+설치 시 필수 `security-auditor` 에이전트가 포함됩니다. 저장소·파일·diff 범위를 전달하면
+읽기 전용 소스 검토로 근거, 점검하지 못한 범위와 개선안을 보고합니다. 취약 코드를 실행하거나
+DB·Redis 서버에 접속하지 않습니다.
+
+| 스킬 | 용도 | 대화창 호출 예제 |
+|---|---|---|
+| [security-scan-workflow](../skills/security-scan-workflow/SKILL.md) | credential 노출, XSS, CSRF, SQL Injection과 공용 DB·Redis 광범위 삭제 위험 추적 | `$security-scan-workflow "이 저장소의 credential 노출, XSS, CSRF, SQL Injection, deleteAll(), Redis FLUSHDB 위험을 점검해줘"` |
 
 ### 코드·설계·테스트 품질 리뷰 · 11개
 

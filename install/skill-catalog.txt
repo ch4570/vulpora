@@ -53,6 +53,7 @@ request | Request DTO 생성 | Bean Validation과 Kotlin 규칙에 맞는 REST �
 response | Response DTO 생성 | 변환 factory와 pagination 규칙을 포함한 REST 응답 DTO를 생성합니다.
 retro | 작업 회고 | 완료한 작업을 Keep·Problem·Try로 정리하고 개선 항목을 도출합니다.
 schema-doc-extract | DB 스키마 문서화 | migration과 ORM 코드를 분석해 Mermaid ERD와 테이블 명세를 생성합니다.
+security-scan-workflow | 코드·공유 데이터 보안 스캔 | 비밀 노출, XSS·CSRF·SQL 주입과 DB·Redis 광범위 삭제를 점검합니다.
 code-diagram-extract | 코드 흐름 다이어그램 | 실행 경로를 추적해 실제 파일·라인에 연결된 Mermaid 다이어그램을 만듭니다.
 service | 도메인 Service 생성 | transaction 경계와 orchestration 규칙에 맞는 도메인 service를 생성합니다.
 skill-updater | 스킬 유지보수 | 스킬 구조, 지식 출처와 버전을 점검하고 안전하게 업데이트합니다.

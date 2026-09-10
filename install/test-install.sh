@@ -112,6 +112,10 @@ record 'backend review workflow resolves its complete typed agent and skill clos
   "assert_resolution backend-code-review-workflow \
      'security-auditor' \
      'backend-code-review-workflow kotlin-spring-review refactoring-catalog design-pattern-apply oop-design-review'"
+record 'security scan workflow installs only its required security auditor and skill' \
+  "assert_resolution security-scan-workflow \
+     'security-auditor' \
+     'security-scan-workflow'"
 record 'E2E test workflow resolves its exact author, runner, browser, and renderer closure' \
   "assert_resolution e2e-test-workflow \
      '' \

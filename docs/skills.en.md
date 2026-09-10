@@ -2,7 +2,7 @@
 
 [한국어](skills.ko.md) · English · [README](../README.md)
 
-This handbook covers the purpose and invocation of all **62 skills** in the installation manifest.
+This handbook covers the purpose and invocation of all **63 skills** in the installation manifest.
 One entry, `codex-agent-runtime`, is a disabled compatibility contract. Each skill name links to its
 actual `SKILL.md`, which defines the inputs, procedure, and expected output.
 
@@ -79,7 +79,8 @@ between choosing a model and proving that a task actually ran with it.
 | Initialize a repository and implement a change | `vulpora-init` → `start-task` | `pack:core pack:orchestration` |
 | Turn an idea into requirements and an interface | `product-requirements` → `product-ui-design` | `pack:product-discovery-ko pack:visual` |
 | Write and review Kotlin/Java with Spring | `kotlin-code-authoring`, the language's review workflow | `pack:jvm-spring` |
-| Review architecture, security, or test quality | The corresponding `*-workflow` | `pack:jvm-quality` |
+| Review architecture or test quality | The corresponding `*-workflow` | `pack:jvm-quality` |
+| Scan security and shared DB/Redis deletion risks | `security-scan-workflow` | `security-scan-workflow` |
 | Work on PostgreSQL, SQL Server, or OpenSearch | The corresponding authoring/review skills | `pack:postgres`, `pack:mssql`, `pack:opensearch` |
 | Verify APIs and browser flows together | `e2e-test-workflow` | `pack:qa-e2e` |
 | Produce diagrams, HTML, and PDF documents | `visual-artifact-router` | `pack:visual` |
@@ -125,6 +126,16 @@ naming conventions, and architectural rules.
 | [service](../skills/service/SKILL.md) | Scaffold domain services with transaction and collaboration boundaries | `$service "Write the domain service for reading and cancelling orders"` |
 | [flyway](../skills/flyway/SKILL.md) | Author a PostgreSQL Flyway migration alongside the entity change | `$flyway "Write the migration SQL for this Order entity change"` |
 | [test-authoring](../skills/test-authoring/SKILL.md) | Write deterministic, isolated Kotlin unit and narrow integration tests against real contracts | `$test-authoring "Test OrderService cancellation boundary cases"` |
+
+### Security and shared-data safety · 1
+
+The installer includes the required `security-auditor` agent. Supply the repository, files, or diff
+to inspect; the workflow performs a read-only source review and reports evidence, coverage gaps,
+and remediation. It does not execute vulnerable code or connect to a database or Redis server.
+
+| Skill | Purpose | Conversation example |
+|---|---|---|
+| [security-scan-workflow](../skills/security-scan-workflow/SKILL.md) | Trace credential exposure, XSS, CSRF, SQL injection, and destructive shared DB/Redis operations | `$security-scan-workflow "Scan this repository for credential exposure, XSS, CSRF, SQL injection, deleteAll(), and Redis FLUSHDB risks"` |
 
 ### Code, design, and test quality review · 11
 

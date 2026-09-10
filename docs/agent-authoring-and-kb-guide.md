@@ -282,7 +282,7 @@ distribution과 runtime 상태는 다음 단계를 따로 기록한다.
 | executed | catalog agent가 대표 case를 실제 수행 | exit status·artifact·redacted metrics |
 
 `packaged`, `copied`, `discovered`를 “agent가 대표 작업을 성공적으로 수행했다”와 합치지 않는다.
-현재 Codex npm과 Claude marketplace는 Agents(28), Skills(62)를 배포하며, template/memory/eval은
+현재 Codex npm과 Claude marketplace는 Agents(28), Skills(63)를 배포하며, template/memory/eval은
 명시적 selector로만 설치한다.
 
 ## 9. 로컬 검증과 PR 증거
@@ -302,7 +302,7 @@ VULPORA_REQUIRE_CODEX=1 bash install/test-install.sh
 - `--validate`는 behavioral case 계약만 확인하며 agent를 실제 실행하지 않는다.
 - `check-manifest.sh`는 현재 내부 KB routing·설치 후 link·contract 완전성을 검사하지 않는다.
 - `test-install.sh`는 선택 agent·skill과 typed dependency closure 설치를 검증한다.
-  `test-plugin-distribution.sh`와 `test-npm-package.sh`는 두 runtime의 Agents(28)/Skills(62) 계약을 확인한다.
+  `test-plugin-distribution.sh`와 `test-npm-package.sh`는 두 runtime의 Agents(28)/Skills(63) 계약을 확인한다.
 - 실제 behavioral run에는 runtime adapter와 safety metrics가 필요하다. adapter가 없으면 미검증으로
   보고하며 성공으로 올리지 않는다.
 

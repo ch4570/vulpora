@@ -11,7 +11,7 @@
 Vulpora는 **Codex와 Claude Code**에 전문 역할, 작업 스킬, 참고 지식을 설치하는 도구입니다.
 프로젝트에 필요한 능력만 선택하고, 기존 코딩 런타임에서 구현·리뷰·검증까지 이어갑니다.
 
-**14개 pack · 28개 에이전트 · 62개 스킬 항목 · macOS / Linux · Apache-2.0**
+**14개 pack · 28개 에이전트 · 63개 스킬 항목 · macOS / Linux · Apache-2.0**
 
 여러 꼬리가 하나의 몸으로 움직이는 여우에 서로 다른 전문성의 협업을 담았습니다.
 npm 패키지·명령어·프로젝트 네임스페이스는 **`vulpora`**입니다. [이름과 이미지](docs/naming.md).
@@ -158,6 +158,7 @@ Marketplace로 설치하면 namespace가 붙을 수 있으므로 런타임에 �
 |---|---|
 | 프로젝트 관례에 맞춰 구현 | `$code-authoring-router "검색 API에 커서 페이지네이션을 추가해줘"` |
 | 백엔드 변경 리뷰 | `$backend-code-review-workflow "현재 diff를 리뷰해줘"` |
+| 보안·공유 데이터 삭제 위험 점검 | `$security-scan-workflow "credential 노출, XSS, CSRF, SQL Injection과 DB·Redis 광범위 삭제를 점검해줘"` |
 | UI 설계 | `$product-ui-design "대시보드의 빈 화면·로딩·오류 상태를 설계해줘"` |
 | 기존 테스트 강화 | `$test-quality-refactoring-workflow "주문 서비스 테스트의 품질을 검토하고 개선해줘"` |
 | 기존 E2E 카탈로그 실행 | `$e2e-test-workflow "설정된 테스트 환경에서 결제 시나리오를 실행해줘"` |
@@ -212,15 +213,16 @@ Claude Code 모두를 대상으로 합니다. 비대화형 `setup`은 실제 적
 
 ## 스킬 카탈로그
 
-Manifest에는 **62개 스킬 항목**이 등록돼 있습니다. `codex-agent-runtime`은 비활성 호환 항목이며,
+Manifest에는 **63개 스킬 항목**이 등록돼 있습니다. `codex-agent-runtime`은 비활성 호환 항목이며,
 실행할 수 있는 스킬처럼 안내하지 않고 가이드에 별도 표시했습니다.
 
 <!-- SKILL_SUMMARY_START -->
 <details>
-<summary>분야별 전체 62개 스킬 펼쳐보기</summary>
+<summary>분야별 전체 63개 스킬 펼쳐보기</summary>
 
 | 분야 | 스킬 |
 |---|---|
+| 보안·공유 데이터 안전성 · 1개 | [security-scan-workflow](skills/security-scan-workflow/SKILL.md) |
 | 설치·라우팅·작업 시작 · 5개 | [vulpora-init](skills/vulpora-init/SKILL.md), [vulpora-installer](skills/vulpora-installer/SKILL.md), [code-authoring-router](skills/code-authoring-router/SKILL.md), [start-task](skills/start-task/SKILL.md), [codex-agent-runtime](skills/codex-agent-runtime/SKILL.md) |
 | 제품 요구사항·UI · 2개 | [product-requirements](skills/product-requirements/SKILL.md), [product-ui-design](skills/product-ui-design/SKILL.md) |
 | Kotlin·Spring 작성 · 10개 | [kotlin-code-authoring](skills/kotlin-code-authoring/SKILL.md), [entity](skills/entity/SKILL.md), [enum](skills/enum/SKILL.md), [mapper](skills/mapper/SKILL.md), [repository](skills/repository/SKILL.md), [request](skills/request/SKILL.md), [response](skills/response/SKILL.md), [service](skills/service/SKILL.md), [flyway](skills/flyway/SKILL.md), [test-authoring](skills/test-authoring/SKILL.md) |
@@ -261,7 +263,7 @@ flowchart LR
 vulpora/                  # 현재 GitHub 저장소 경로
 ├── vulpora                 # 새 공개 CLI 진입점
 ├── agents/                 # 28개 역할 정의, adapter, 지식 bundle
-├── skills/                 # 62개 SKILL.md 항목, 스크립트, 참고 자료
+├── skills/                 # 63개 SKILL.md 항목, 스크립트, 참고 자료
 ├── install/                # Manifest, pack, 설치기, receipt, 검사
 ├── .claude-plugin/         # Claude Code marketplace 호환
 ├── mcp/nl-sql/             # 별도로 빌드하는 DB MCP 서버

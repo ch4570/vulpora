@@ -2,6 +2,13 @@
 
 Vulpora의 사용자 관점 변경 사항을 기록합니다.
 
+## Next release
+
+- `security-scan-workflow`를 추가했습니다. credential 노출, XSS, CSRF, SQL Injection과
+  공용 DB·Redis에 영향을 주는 `deleteAll()`, 무조건 삭제, `FLUSHDB`·`FLUSHALL` 등을
+  읽기 전용으로 추적하고 근거·영향 범위·개선안을 보고합니다. 실제 비밀값은 보고서에 남기지 않습니다.
+- 선택 설치 시 필수 `security-auditor`를 함께 설치하며, 현재 스킬 카탈로그는 63개입니다.
+
 ## [1.0.1] - 2026-09-08
 
 - OpenSearch·PostgreSQL 리뷰의 필수 의존성과 설치 목록을 구분해 추가 작성 스킬로 인한

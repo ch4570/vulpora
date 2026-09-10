@@ -106,6 +106,7 @@ skill | request | skills/request | - | enum kotlin-code-authoring | -
 skill | response | skills/response | - | kotlin-code-authoring | -
 skill | retro | skills/retro | - | learn harness-propose | -
 skill | schema-doc-extract | skills/schema-doc-extract | - | - | -
+skill | security-scan-workflow | skills/security-scan-workflow | - | agent:security-auditor | -
 skill | code-diagram-extract | skills/code-diagram-extract | - | - | -
 skill | service | skills/service | - | mapper kotlin-code-authoring | -
 skill | skill-updater | skills/skill-updater | - | - | -

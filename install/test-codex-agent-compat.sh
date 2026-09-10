@@ -78,12 +78,12 @@ skill_count_matches_catalog() {
   expected="$(skill_ids | wc -l | tr -d ' ')"
   actual="$(find "$REPO_ROOT/skills" -mindepth 2 -maxdepth 2 -type f -name SKILL.md \
     | wc -l | tr -d ' ')"
-  [ "$expected" = 62 ] && [ "$actual" = "$expected" ]
+  [ "$expected" = 63 ] && [ "$actual" = "$expected" ]
 }
 
 catalog_counts_match_release() {
   [ "$(agent_ids | wc -l | tr -d ' ')" = 28 ] \
-    && [ "$(skill_ids | wc -l | tr -d ' ')" = 62 ]
+    && [ "$(skill_ids | wc -l | tr -d ' ')" = 63 ]
 }
 
 install_fixture() { # label model-override effort-override
@@ -255,12 +255,12 @@ explicit_project_scope_wins_when_target_is_home() {
   ! grep -Fq '~/.codex' "$adapter"
 }
 
-check "catalog declares the 28-agent and 62-skill release" catalog_counts_match_release
+check "catalog declares the 28-agent and 63-skill release" catalog_counts_match_release
 check "every catalog agent has a Codex TOML adapter" all_source_adapters_exist
 check "every Codex adapter passes its strict contract" all_source_adapters_validate
 check "Codex adapter count matches the agent catalog" adapter_count_matches_catalog
 check "every catalog skill has a SKILL.md entrypoint" all_catalog_skills_exist
-check "skill entrypoint count matches the 62-skill catalog" skill_count_matches_catalog
+check "skill entrypoint count matches the 63-skill catalog" skill_count_matches_catalog
 check "default installed adapters are dispatch-neutral and doctor ignores ambient pins" neutral_install_and_verify
 check "explicit pins survive doctor and can be cleared by an authorized reinstall" explicit_overrides_and_verify
 check "model and reasoning pins are independent optional settings" independent_model_and_effort_overrides

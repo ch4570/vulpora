@@ -2,8 +2,8 @@
 
 [English README](README.md) · [한국어 README](README.ko.md) · [아키텍처](docs/architecture.ko.md) · [전체 스킬](docs/skills.ko.md)
 
-Vulpora 1.0.1은 Claude Code와 Codex에 에이전트 28개, 스킬 62개, 14개 capability pack과
-hosted MCP 연결을 선택 설치합니다. 전체 설치의 정상 inventory는 `Agents (28)`, `Skills (62)`입니다.
+Vulpora의 현재 카탈로그는 Claude Code와 Codex에 에이전트 28개, 스킬 63개, 14개 capability pack과
+hosted MCP 연결을 선택 설치합니다. 전체 설치의 정상 inventory는 `Agents (28)`, `Skills (63)`입니다.
 OpenCode는 저수준 installer의 project-scope agent/skill renderer만 experimental로 제공합니다. 상위 CLI와
 native execution smoke test가 완성되기 전까지 안정 지원에 포함하지 않습니다.
 
@@ -330,7 +330,7 @@ vulpora uninstall --runtime codex --scope project test-authoring
 ```
 
 Claude Code는 `--runtime claude-code`를 사용하며 같은 selector 계약을 따릅니다. `all-agents`는
-에이전트 28개, `all-skills`는 스킬 62개를 root selector로 삼고 각 자산의 typed dependency closure를
+에이전트 28개, `all-skills`는 스킬 63개를 root selector로 삼고 각 자산의 typed dependency closure를
 함께 해소합니다. 따라서 `all-agents`에 필수 스킬이, `all-skills`에 workflow 필수 에이전트가 포함될 수 있습니다.
 선택 제거는 receipt가 소유하고 설치 후
 바뀌지 않은 경로만 삭제합니다. 사용자가 수정한 파일과 선택하지 않은 에이전트·스킬은 보존합니다.
