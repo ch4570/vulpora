@@ -17,6 +17,7 @@ details needed for your project.
 | [Model routing](review-workflow-model-routing.md) | Cost profiles, explicit runtime selection, escalation, and specialist lanes |
 | [Native model-routing boundary](../skills/start-task/reference/kb/model-routing.md) | Executable catalog discovery, configuration preflight, neutral Codex defaults, explicit pins, and requested versus observed child evidence |
 | [Start-task orchestration](start-task-orchestration.md) | Lightweight, standard, and audit execution profiles and completion evidence |
+| [Start-task source-token budgets (한국어)](start-task-token-budgets.ko.md) | Source-backed route coverage, conditional audit loads, and reproducible token bounds |
 | [Visual artifact pipeline](visual-artifact-pipeline.md) | Editable sources, rendering, inspection, and document/diagram QA |
 | [NL-to-SQL MCP](../mcp/nl-sql/README.md) | Separate build and configuration for read-only database access |
 | [Name and visual identity](naming.md) | Vulpora's fox-inspired name, artwork, and project identifiers |

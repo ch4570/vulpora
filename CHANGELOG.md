@@ -4,6 +4,8 @@ Vulpora의 사용자 관점 변경 사항을 기록합니다.
 
 ## Next release
 
+- `start-task`의 경량·일반·독립 세션·감사 분기별 소스 토큰 예산과 필수 참조
+  coverage 검사를 추가했습니다. 공개 소스 baseline을 별도로 기록하고 과거 측정은 보존합니다.
 - `harness-propose`가 Codex·Claude·공존 설치와 호스트 목록을 구분해 수집하고,
   기존 보고서가 없는 프로젝트에서도 독립 제안서를 작성하도록 보완했습니다.
   호스트 ID의 namespace를 보존하며 정책 파일을 임의로 생성하지 않습니다.

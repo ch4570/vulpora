@@ -6,6 +6,9 @@ Measure skill discovery, entry bodies, and complete selected reference loads sep
 **tiktoken 0.14.0 with `o200k_base`**. Counts are exact for that encoding; they are neither provider billing nor
 observed runtime context use. No model is called by this tool.
 
+The [start-task route budget guide (한국어)](../../docs/start-task-token-budgets.ko.md) covers source-backed
+reference inventories and conditional audit paths using a separate 2026-09-10 public-source baseline. Historical measurements remain unchanged.
+
 For actual runtime usage, see the [matched edit-proposal transport study](PROPOSAL-EVAL.md) and
 [design review with results](../../docs/token-efficiency-design-review.md). Its eight-run confirmation preserves
 4/4 first-pass acceptance in each arm while reducing observed total tokens from 265,559 to 43,513 (83.6%).
