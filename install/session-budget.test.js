@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const {spawn} = require('node:child_process');
-const {initBudget, readBudget, reserveBudget, settleBudget} = require('../skills/start-task/scripts/session-budget.js');
+const {initBudget, readBudget, reserveBudget, settleBudget, cancelBudget} = require('../skills/start-task/scripts/session-budget.js');
 const {canonical, hash} = require('../skills/start-task/scripts/model-routing-io.js');
 const modulePath = path.resolve(__dirname, '../skills/start-task/scripts/session-budget.js');
 
@@ -24,6 +24,81 @@ function fixture(t, limits = {totalTokens: 1000, maxRelativeUnits: 30}) {
 function observed(inputTokens, outputTokens, extra = {}) {
   return {source: 'codex-jsonl:turn.completed', inputTokens, outputTokens, ...extra};
 }
+
+function cancellation(f, attemptId = 'attempt-1') {
+  const attemptDir = path.join(f.directory, attemptId);
+  fs.mkdirSync(attemptDir);
+  fs.writeFileSync(path.join(attemptDir, 'capsule.json'), attemptId);
+  return f.request(attemptId, {attemptDir});
+}
+
+test('proven prelaunch cancellation returns capacity once without inventing observed usage', t => {
+  const f = fixture(t); f.reserve();
+  const request = cancellation(f);
+  const result = cancelBudget(f.filename, request);
+  assert.equal(result.reservedTokens, 0); assert.equal(result.reservedRelativeUnits, 0);
+  assert.equal(result.remainingTokens, 1000); assert.equal(result.remainingRelativeUnits, 30);
+  assert.equal(result.committedTokens, 0); assert.equal(result.spentRelativeUnits, 0);
+  const bytes = fs.readFileSync(f.filename);
+  const [attempt] = JSON.parse(bytes).attempts;
+  assert.equal(attempt.state, 'cancelled'); assert.equal(attempt.usage, null); assert.equal(attempt.usageSha256, null);
+  assert.deepEqual(cancelBudget(f.filename, request), result);
+  assert.deepEqual(fs.readFileSync(f.filename), bytes);
+  assert.throws(() => f.reserve(), {code: 'BUDGET_ATTEMPT_ALREADY_RESERVED'});
+  assert.throws(() => f.settle(), {code: 'BUDGET_ATTEMPT_CANCELLED'});
+  assert.equal(f.reserve('next', {estimatedTokens: 1000, relativeUnits: 30}).remainingTokens, 0);
+});
+
+test('cancellation verifies budget, attempt and capsule bindings before an idempotent return', t => {
+  const f = fixture(t); f.reserve(); const request = cancellation(f);
+  for (const cancelled of [false, true]) {
+    if (cancelled) cancelBudget(f.filename, request);
+    const bytes = fs.readFileSync(f.filename);
+    for (const [extra, code] of [[{budgetId: 'wrong'}, 'BUDGET_ID_MISMATCH'],
+      [{attemptId: 'wrong'}, 'BUDGET_ATTEMPT_NOT_FOUND'],
+      [{capsuleSha256: hash('wrong')}, 'BUDGET_ATTEMPT_BINDING_MISMATCH']]) {
+      assert.throws(() => cancelBudget(f.filename, {...request, ...extra}), {code});
+      assert.deepEqual(fs.readFileSync(f.filename), bytes);
+    }
+  }
+});
+
+test('published markers, changed capsules and unknown or settled execution cannot be cancelled', t => {
+  for (const marker of ['launch.json', 'result.json']) {
+    const f = fixture(t); f.reserve(); const request = cancellation(f);
+    fs.writeFileSync(path.join(request.attemptDir, marker), '{}');
+    assert.throws(() => cancelBudget(f.filename, request), {code: 'BUDGET_LAUNCH_NOT_EXCLUDED'});
+    assert.equal(readBudget(f.filename).reservedTokens, 400);
+  }
+  const changed = fixture(t); changed.reserve(); const request = cancellation(changed);
+  fs.writeFileSync(path.join(request.attemptDir, 'capsule.json'), 'changed');
+  assert.throws(() => cancelBudget(changed.filename, request), {code: 'BUDGET_ATTEMPT_BINDING_MISMATCH'});
+  for (const usage of [null, observed(100, 20)]) {
+    const f = fixture(t); f.reserve(); const request = cancellation(f); f.settle('attempt-1', usage);
+    const bytes = fs.readFileSync(f.filename);
+    assert.throws(() => cancelBudget(f.filename, request), {code: 'BUDGET_ATTEMPT_NOT_RESERVED'});
+    assert.deepEqual(fs.readFileSync(f.filename), bytes);
+  }
+});
+
+test('concurrent cancellations release one reservation and preserve its tombstone', {timeout: 15000}, async t => {
+  const f = fixture(t); f.reserve(); const request = cancellation(f);
+  const worker = `const {cancelBudget}=require(process.argv[1]);
+    (async()=>{for(let n=0;n<300;n++){try{const result=cancelBudget(process.argv[2],JSON.parse(process.argv[3]));
+      process.stdout.write(JSON.stringify(result));return;}catch(e){if(e.code!=='BUDGET_BUSY')throw e;
+      await new Promise(r=>setTimeout(r,2));}}throw Error('RETRY_TIMEOUT');})().catch(e=>{console.error(e);process.exitCode=1;});`;
+  const results = await Promise.all(Array.from({length: 6}, () => new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, ['-e', worker, modulePath, f.filename, JSON.stringify(request)]);
+    t.after(() => { if (child.exitCode === null) child.kill('SIGKILL'); });
+    let stdout = '', stderr = '';
+    child.stdout.on('data', data => { stdout += data; }); child.stderr.on('data', data => { stderr += data; });
+    child.once('error', reject);
+    child.once('close', code => code === 0 ? resolve(JSON.parse(stdout)) : reject(new Error(stderr)));
+  })));
+  for (const result of results) assert.deepEqual(result, f.budget);
+  assert.equal(JSON.parse(fs.readFileSync(f.filename)).attempts.length, 1);
+  assert.equal(fs.existsSync(`${f.filename}.lock`), false);
+});
 
 test('exclusive initialization returns only summary fields and cannot reset prior spend', t => {
   const f = fixture(t);

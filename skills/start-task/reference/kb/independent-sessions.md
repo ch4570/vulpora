@@ -106,6 +106,18 @@ Missing or invalid runtime usage retains the reservation and blocks further laun
 shared allowance is recorded and also blocks new launches. This is admission control and accounting, not a
 provider billing or total-token hard cap. Do not replace the shared budget or supply manual usage to clear a block.
 
+If publishing `launch.json` fails before execution, the runner cancels the bound reservation only when the
+unchanged capsule and absence of both launch/result markers can be verified under the budget lock. Cancellation
+releases tokens and relative units without manufacturing zero provider usage. A retained `cancelled` attempt
+prevents double refunds and reuse; prepare a new attempt after correcting the local failure. Existing markers
+prevent cancellation. A cancellation error can occur before or after ledger publication; the error records the
+original cause and `budgetCancellation.status: RELEASED|UNKNOWN` with its reason. Inspect the persisted budget
+before further work; an exception alone proves neither a refund nor a retained reservation. No refund CLI or
+automatic budget reset is provided.
+
+Current readers accept existing v1 budgets. The additive `cancelled` state is rejected by older readers, so keep
+all sessions sharing such a budget on the updated runner; do not downgrade or erase cancellation history.
+
 Budget errors and settlement failures remain explicit in the result. If settlement was busy after the result
 was persisted, retry accounting from that result with:
 

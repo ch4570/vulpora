@@ -15,7 +15,7 @@ const {createTelemetry} = require('./session-telemetry.js');
 const {buildEditPrompt, validateEditProposal, applyEditProposal, MAX_BYTES: MAX_PROPOSAL_BYTES} = require('./session-edit-proposal.js');
 const {readOutputSchema} = require('./session-output-schema.js');
 const {selectTaskExecution, resolveTaskRoute} = require('./task-router.js');
-const {initBudget, readBudget, reserveBudget, settleBudget} = require('./session-budget.js');
+const {initBudget, readBudget, reserveBudget, settleBudget, cancelBudget} = require('./session-budget.js');
 
 const TASK_TYPES = ['deterministic', 'lookup', 'documentation', 'implementation', 'review', 'testing', 'architecture', 'research'];
 const DEFAULT_LIMITS = {timeoutMs: 300000, maxOutputBytes: 4 * 1024 * 1024, maxResultBytes: 4096, maxPromptBytes: 8192, toolOutputTokens: 2000};
@@ -510,7 +510,24 @@ async function run(options) {
     relativeUnits: capsule.route.relativeUnits});
   try { writeNew(path.join(attemptDir, 'launch.json'), {schema: 'vulpora.session-launch/v1',
     attemptId: capsule.attemptId, capsuleSha256, startedAt: new Date().toISOString()}); }
-  catch (error) { if (error.code === 'EEXIST') fail('ATTEMPT_ALREADY_STARTED'); throw error; }
+  catch (error) {
+    if (error.code === 'EEXIST') {
+      throw Object.assign(new Error('ATTEMPT_ALREADY_STARTED'), {code: 'ATTEMPT_ALREADY_STARTED', execution: 'UNKNOWN'});
+    }
+    try {
+      cancelBudget(capsule.budget.file, {budgetId: capsule.budget.id, attemptId: capsule.attemptId,
+        capsuleSha256, attemptDir});
+      error.budgetCancellation = {status: 'RELEASED', reason: 'PRELAUNCH_FAILURE'};
+    } catch (cancellationError) {
+      // Publication may already have succeeded before fsync/cleanup failed.
+      // Cancellation itself can publish its ledger before a later fsync fails.
+      // Preserve both causes without inferring accounting from an exception.
+      const reason = /^[A-Z_]+$/.test(cancellationError.code || '') ? cancellationError.code : 'BUDGET_CANCELLATION_FAILED';
+      error.budgetCancellation = {status: 'UNKNOWN', reason};
+      error.execution = 'UNKNOWN';
+    }
+    throw error;
+  }
   let runtime;
   try { runtime = await execute(capsule, attemptDir); }
   catch (error) { runtime = {reason: /^[A-Z_]+$/.test(error.code || '') ? error.code : 'RUNTIME_EXECUTION_FAILED',
@@ -585,7 +602,8 @@ async function main(args = process.argv.slice(2)) {
 function errorResult(error) {
   const reason = /^[A-Z_]+$/.test(error.code || '') ? error.code
     : /^[A-Z_]+$/.test(error.message || '') ? error.message : 'INVALID_OR_CHANGED_SESSION_INPUT';
-  return {schema: 'vulpora.session-error/v1', status: 'BLOCKED', reason, execution: error.execution || 'NOT_RUN'};
+  return {schema: 'vulpora.session-error/v1', status: 'BLOCKED', reason, execution: error.execution || 'NOT_RUN',
+    ...(error.budgetCancellation ? {budgetCancellation: error.budgetCancellation} : {})};
 }
 module.exports = {main, prepare, run, status, reconcile, validateTask, validateCandidate, promptFor,
   workerPromptFor, outputSchemaPathFor, applyEditProposal, classifyRuntimeFailure, errorResult};
