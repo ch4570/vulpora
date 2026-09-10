@@ -8,7 +8,7 @@ or select individual asset IDs. The installer resolves their declared dependenci
 
 | Start here | 한국어 | English |
 |---|---|---|
-| All 63 skills with invocation examples and prerequisites | [스킬 사용 가이드](skills.ko.md) | [Skill handbook](skills.en.md) |
+| All 64 skills with invocation examples and prerequisites | [스킬 사용 가이드](skills.ko.md) | [Skill handbook](skills.en.md) |
 | Folder structure, installation flow, and runtime architecture | [아키텍처 가이드](architecture.ko.md) | [Architecture guide](architecture.en.md) |
 
 The primary command is `vulpora`; `vulpora` remains a compatibility alias. Existing skill IDs,
@@ -84,6 +84,7 @@ uses stable IDs without implying the same invocation syntax in both runtimes.
 | [java-spring-review-workflow](../skills/java-spring-review-workflow/SKILL.md) | Java/Spring correctness, OOP, and design-pattern review lanes |
 | [kotlin-spring-review-workflow](../skills/kotlin-spring-review-workflow/SKILL.md) | Integrated Kotlin/Spring review |
 | [backend-code-review-workflow](../skills/backend-code-review-workflow/SKILL.md) | Backend correctness, design, refactoring, and security review |
+| [explore-dead-code](../skills/explore-dead-code/SKILL.md) | Fast read-only discovery of unreferenced code candidates with evidence, confidence, and unresolved indirect-use checks |
 | [security-scan-workflow](../skills/security-scan-workflow/SKILL.md) | Read-only credential, XSS, CSRF, SQL injection, and destructive shared DB/Redis review |
 | [architecture-review-workflow](../skills/architecture-review-workflow/SKILL.md) | Evidence-linked architecture review across specialist views |
 | [postgres-review-workflow](../skills/postgres-review-workflow/SKILL.md) | PostgreSQL query, schema, migration, and concurrency review |
@@ -96,7 +97,7 @@ uses stable IDs without implying the same invocation syntax in both runtimes.
 | [mssql-code-authoring](../skills/mssql-code-authoring/SKILL.md) | T-SQL and migration work grounded in the installed SQL Server version |
 | [git-flow](../skills/git-flow/SKILL.md) | Optional GitLab-oriented branch and publication workflow, only when requested and applicable |
 
-For all 63 skill IDs and invocation examples, see the [Korean](skills.ko.md) or
+For all 64 skill IDs and invocation examples, see the [Korean](skills.ko.md) or
 [English](skills.en.md) handbook. Use `./vulpora list` to inspect the source catalog.
 The catalog includes `codex-agent-runtime`, a disabled compatibility contract that returns
 `AGENT_RUNTIME_ERROR:project_execution_disabled`; it does not execute agents.

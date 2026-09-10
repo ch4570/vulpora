@@ -1,6 +1,6 @@
 {
   "name": "vulpora",
-  "description": "Vulpora — 전문 에이전트 28종과 스킬 63종을 Claude Code에 제공하는 catalog 플러그인",
+  "description": "Vulpora — 전문 에이전트 28종과 스킬 64종을 Claude Code에 제공하는 catalog 플러그인",
   "version": "1.0.1",
   "author": {
     "name": "Vulpora Contributors"

@@ -48,6 +48,7 @@ postgres-schema-design | PostgreSQL 스키마 설계 | 무결성, 제약조건, 
 product-requirements | 제품 요구사항 작성 | 제품 아이디어를 검증 가능한 PRD와 개발 handoff로 구체화합니다.
 product-ui-design | 제품 UI/UX 디자인 | 제품 맥락을 근거로 상투적인 AI 템플릿 느낌 없이 인터페이스를 설계·구현·검토합니다.
 refactoring-catalog | 리팩터링 기법 선택 | 코드 냄새에 맞는 안전한 리팩터링 절차와 검증 방법을 제시합니다.
+explore-dead-code | 미참조 코드 빠른 탐색 | 참조 없는 코드 후보를 빠르게 찾아 근거·확신도를 보고합니다.
 repository | Repository 생성 | Spring Data, JDBC와 QueryDSL 규칙에 맞는 데이터 접근 계층을 생성합니다.
 request | Request DTO 생성 | Bean Validation과 Kotlin 규칙에 맞는 REST 요청 DTO를 생성합니다.
 response | Response DTO 생성 | 변환 factory와 pagination 규칙을 포함한 REST 응답 DTO를 생성합니다.

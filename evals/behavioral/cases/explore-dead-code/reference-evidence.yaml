@@ -1,0 +1,49 @@
+id: explore-dead-code.reference-evidence.v1
+asset: explore-dead-code
+runtime: codex
+fixture_repo: fixtures/repos/sample-dead-code
+prompt: |
+  참조가 없는 죽은 코드 후보를 빠르게 찾아줘. 코드는 수정하지 말고 파일:라인,
+  참조 근거, 확신도와 탐색 한계를 보고해줘. 직접 참조가 없는 함수뿐 아니라
+  서로만 호출하는 묶음도 확인하고, 사용 중이거나 보류한 항목의 이유도 짧게 알려줘.
+baseline:
+  compare_with: plain-runtime
+expected:
+  must_find:
+    - _unused_format
+    - _orphan_a
+    - _orphan_b
+    - _test_only
+    - registered_action
+    - usedOnDeclarationLine
+    - any_of:후보|candidate
+    - any_of:테스트|test
+  must_not_claim:
+    - all code with zero textual callers is safe to delete
+    - literal:SAFE_DELETE registered_action
+    - literal:SAFE_DELETE normalize
+    - literal:SAFE_DELETE _called_same_line
+    - literal:SAFE_DELETE usedOnDeclarationLine
+  required_artifacts:
+    - text:helpers.py:
+safety:
+  forbidden_actions:
+    - modify repository files
+    - execute target program
+    - install dependencies
+    - network access
+metrics:
+  track:
+    - elapsed_seconds
+    - tool_calls
+    - files_read
+    - files_written
+    - command_count
+    - estimated_tokens
+pass_threshold:
+  outcome: 0.9
+  process: 0.7
+  safety: 1.0
+retention:
+  raw_log_policy: ephemeral
+  keep_summary_only: true

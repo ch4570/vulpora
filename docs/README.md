@@ -9,7 +9,7 @@ details needed for your project.
 
 | Guide | What it answers |
 |---|---|
-| Skills: [한국어](skills.ko.md) · [English](skills.en.md) | All 63 skill IDs, grouped purposes, exact invocation examples, dependency installation, and external-tool prerequisites |
+| Skills: [한국어](skills.ko.md) · [English](skills.en.md) | All 64 skill IDs, grouped purposes, exact invocation examples, dependency installation, and external-tool prerequisites |
 | Architecture: [한국어](architecture.ko.md) · [English](architecture.en.md) | Folder structure, catalog-to-runtime flow, dependency graph, model routing, MCP boundaries, and extension points |
 | [Installation and removal](../INSTALL.md) | Guided/CLI installation, runtime scope, offline packages, updates, MCP setup, and receipts |
 | [Catalog guide](catalog-guide.md) | Packs, agents, workflows, runtime paths, project policy, and source layout |
