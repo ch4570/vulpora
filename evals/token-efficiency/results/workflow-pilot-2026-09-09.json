@@ -1,0 +1,753 @@
+{
+  "schema": "vulpora.workflow-ab/v1",
+  "createdAt": "2026-09-09T07:09:34.995Z",
+  "runtime": "codex-cli 0.153.4",
+  "model": "gpt-5.6-terra",
+  "effort": "medium",
+  "sourceRevision": "492fa74b6a5e26e13fd037f91ea96f4551fee5f0",
+  "sourceSha256": "b8d77d3b17bc704397179159c78d25b30f4846690d794c6a9e7dee9411cea5a7",
+  "source": {
+    "run-workflow-ab.js": "5edc09d35c53c138339585dbe6fde13c7035a2ede60317f0c8e23a2b9548fb63",
+    "workflow-fixtures.cjs": "f959acc990fa225c81be474a4b0c079ff69a5793a0f14dbeb350da1943f4fded",
+    "workflow-accounting.cjs": "d82473ab37765fc17fc97647681bdc1a8e5e138e52f3532569ca03244f157a1d",
+    "WORKFLOW-EVAL.md": "0d0454e8ad6e2810956ca29e4d1d229579f42852c297066a6936ded88272e2f2",
+    "run-economic-ab.js": "1f222c14e7728e4fc41adf54d9b1b061c5856a4cf124420064a6fa1797a0f6de",
+    "economic-cost.cjs": "cb3c7d331c14b2de9992eda182688b7d40d9844f48ecba6d85085b89e252e115",
+    "../behavioral/adapters/provider-usage.cjs": "9bcaeaeb225b9af2f17d690ba70c10a6b3814c92f534b50eda8632075bb710db"
+  },
+  "protocol": "WORKFLOW-EVAL.md",
+  "route": {
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "medium"
+  },
+  "limits": {
+    "attemptsPerTask": 2,
+    "aggregateTokens": 600000,
+    "scenarioMaxUsd": 12,
+    "suiteMs": 1800000,
+    "attemptMs": 180000
+  },
+  "commonConfig": [
+    "-c",
+    "approval_policy=\"never\"",
+    "-c",
+    "web_search=\"disabled\"",
+    "-c",
+    "tool_output_token_limit=2000",
+    "--disable",
+    "multi_agent",
+    "--disable",
+    "multi_agent_v2"
+  ],
+  "plan": [
+    {
+      "order": 1,
+      "caseId": "workflow-catalog-repair",
+      "arm": "baseline",
+      "repeat": 1
+    },
+    {
+      "order": 2,
+      "caseId": "workflow-catalog-repair",
+      "arm": "concise",
+      "repeat": 1
+    },
+    {
+      "order": 3,
+      "caseId": "workflow-catalog-repair",
+      "arm": "installed",
+      "repeat": 1
+    },
+    {
+      "order": 4,
+      "caseId": "workflow-retry-tests",
+      "arm": "concise",
+      "repeat": 1
+    },
+    {
+      "order": 5,
+      "caseId": "workflow-retry-tests",
+      "arm": "installed",
+      "repeat": 1
+    },
+    {
+      "order": 6,
+      "caseId": "workflow-retry-tests",
+      "arm": "baseline",
+      "repeat": 1
+    },
+    {
+      "order": 7,
+      "caseId": "workflow-entry-review",
+      "arm": "installed",
+      "repeat": 1
+    },
+    {
+      "order": 8,
+      "caseId": "workflow-entry-review",
+      "arm": "baseline",
+      "repeat": 1
+    },
+    {
+      "order": 9,
+      "caseId": "workflow-entry-review",
+      "arm": "concise",
+      "repeat": 1
+    }
+  ],
+  "cases": [
+    {
+      "id": "workflow-catalog-repair",
+      "task": "Repair pagination and its catalog integration in src/page.js and src/catalog.js; add regression tests in test/catalog.test.js. page(items, {offset=0, limit=2}={}) must reject non-safe-integer, negative offsets and non-safe-integer, non-positive limits with RangeError. It returns {items: selectedItems, nextOffset}: nextOffset is offset + limit only when another item remains, otherwise null (including empty or out-of-range pages). Do not mutate the input array or clone its elements. listProducts(products, {category, offset, limit}={}) must filter by exact category when category is not undefined (the empty string is a category), then sort by ascending price and ascending ASCII id on ties, then paginate with the supplied options. Product inputs have unique ASCII ids, finite numeric prices and string categories. Preserve input order and object identities. Preserve findProduct(products,id), including undefined for missing ids. Only the two source files and test/catalog.test.js may change. Work directly in this one session: do not delegate or start another coding session. Do not commit, install dependencies, use the network or perform external writes. Run node --test, inspect your diff and finish with a concise summary and test result.",
+      "rubric": {
+        "kind": "bug-repair",
+        "mutationChecks": 3,
+        "sourceModules": 2
+      },
+      "allowedFiles": [
+        "src/page.js",
+        "src/catalog.js",
+        "test/catalog.test.js"
+      ],
+      "fixtureSha256": "2c1b95870662991617f056216007af21c0f7af23db4d9a63e9d6e02fab9f85d8"
+    },
+    {
+      "id": "workflow-retry-tests",
+      "task": "Add trustworthy regression tests in test/retry.test.js for the existing src/retry.js and src/loader.js. Production code is correct and immutable: only test/retry.test.js may change. The contract: retry(operation, options={}) defaults to 3 total attempts, shouldRetry=()=>true, wait=async()=>{}. attempts must be a positive safe integer, validated before operation runs. operation receives a one-based attempt number and may throw synchronously or reject asynchronously. Return the first success unchanged. On a final failure, rethrow the exact error without calling shouldRetry or wait. On an earlier failure, call shouldRetry(error,attempt); false stops with the exact error, otherwise await wait(attempt,error) before retrying. Predicate or wait errors stop execution and propagate unchanged. loadRecord(fetcher,id,options) calls fetcher(id) through retry and forwards every option. Cover validation, attempt limits, predicate decisions, awaited ordering, error/success identity and loader option forwarding. Use deterministic stubs, no real timers. Work directly in this one session: do not delegate or start another coding session. Do not commit, install dependencies, use the network or perform external writes. Run node --test, inspect your diff and finish with a concise summary and test result.",
+      "rubric": {
+        "kind": "test-authoring",
+        "mutationChecks": 5,
+        "immutableProduction": true
+      },
+      "allowedFiles": [
+        "test/retry.test.js"
+      ],
+      "fixtureSha256": "1b5194778989bccbc1e0e49eeb37a0ca7d54fdc371580f692a7ad8bfce015639"
+    },
+    {
+      "id": "workflow-entry-review",
+      "task": "Review src/format.js, src/list.js and src/order.js against this local data-shaping contract; do not fix code. formatLabel accepts any string, trims leading and trailing JavaScript whitespace and collapses every internal run of JavaScript whitespace (including tabs and newlines) into one ASCII space. Entries are valid objects with a string title and boolean enabled. listEnabled returns the first limit enabled entries in input order: disabled entries do not consume the page limit. limit is a positive integer. orderByTitle returns a new array ordered by title using localeCompare, preserving the original array and element identities. Create only findings.json; all supplied files are immutable. Use this exact JSON schema with no additional keys: {\"findings\":[{\"file\":\"src/example.js\",\"line\":1,\"defectClass\":\"filter-order\",\"severity\":\"medium\",\"explanation\":\"Concrete failure and why it violates the contract.\"}]}. One finding per independently actionable defect, anchored to the exact one-based faulty statement line. defectClass must be one of whitespace-normalization, filter-order, input-mutation, missing-validation, wrong-comparison, unhandled-error. severity is medium for wrong results or observable mutation, low for other demonstrated defects. explanation must be 20–1000 characters, concrete and source-backed. Do not report speculative hardening, invalid inputs excluded above, duplicate findings or stylistic preferences. Work directly in this one session: do not delegate or start another coding session. Do not commit, install dependencies, use the network or perform external writes. Run node --test, inspect your diff and finish with a concise summary and test result.",
+      "rubric": {
+        "kind": "review",
+        "expectedDefects": 3,
+        "mutationChecks": 0,
+        "reviewScoring": "Exact source anchor, defect class and severity; all findings required, no false positives. Explanation shape is checked, not semantic quality. The mutation gate is not applicable and mirrors the review oracle."
+      },
+      "allowedFiles": [
+        "findings.json"
+      ],
+      "fixtureSha256": "3d321a7b964e65625d783cc69ed08bff4cce01936205288f96316c692975167e"
+    }
+  ],
+  "coordinator": {
+    "kind": "deterministic-node",
+    "modelInvocations": 0,
+    "verificationModelInvocations": 0,
+    "childInvocationsAllowed": false
+  },
+  "artifactsDirectory": "workflow-pilot-2026-09-09-artifacts",
+  "improvementCost": {
+    "status": "unknown",
+    "tokens": null,
+    "actualUsd": null
+  },
+  "pricing": {
+    "kind": "frozen-2026-09-07-API-sensitivity-not-billing",
+    "actualUsd": null
+  },
+  "limitations": [
+    "Nine planned task runs, one repeat; representative synthetic fixtures, not production tasks or statistical equivalence.",
+    "All global host policies and discovered skill metadata retained in controls; not an instruction-free or skill-free baseline.",
+    "Treatment evidence is command/render observation, not protected attestation; missing evidence prevents comparison.",
+    "Known provider counters and per-attempt patches retained; raw runtime text, secrets and reasoning not retained.",
+    "Shared uncontrolled cache; identical requested model/effort does not attest served backend or tier.",
+    "Spending guards are checked between attempts and may overshoot by one time/output-bounded attempt; not provider hard caps.",
+    "Improvement/development and supervising conversation costs unknown, not zero; total investment payback remains unknown.",
+    "Deterministic offline accounting supports parent/child coverage, but live delegation is forbidden and not validated here."
+  ],
+  "runs": [
+    {
+      "order": 1,
+      "caseId": "workflow-catalog-repair",
+      "arm": "baseline",
+      "repeat": 1,
+      "discovery": {
+        "skillIds": [
+          "agent-eval",
+          "architecture-review-workflow",
+          "auto",
+          "backend-code-review-workflow",
+          "brownfield",
+          "browser:control-in-app-browser",
+          "cancel",
+          "code-authoring-router",
+          "code-diagram-extract",
+          "codex-agent-runtime",
+          "config",
+          "design-pattern-apply",
+          "diagram-design",
+          "diagram-design:diagram-design",
+          "diagram-styler",
+          "document-designer",
+          "e2e-report-renderer",
+          "e2e-runner",
+          "e2e-scenario-author",
+          "e2e-test-workflow",
+          "entity",
+          "enum",
+          "evaluate",
+          "evolve",
+          "extract-codebase-graph-rag",
+          "flyway",
+          "git-flow",
+          "harness-propose",
+          "help",
+          "imagegen",
+          "interview",
+          "java-spring-review-workflow",
+          "knowledge-audit",
+          "korean-dev-writer",
+          "kotlin-code-authoring",
+          "kotlin-spring-review",
+          "kotlin-spring-review-workflow",
+          "learn",
+          "mapper",
+          "markdown-publisher",
+          "mermaid-diagrams",
+          "mssql-code-authoring",
+          "nl-sql-query",
+          "notion-domain-context",
+          "oop-design-review",
+          "openai-docs",
+          "opensearch-code-authoring",
+          "opensearch-optimization",
+          "opensearch-query-review",
+          "opensearch-review-workflow",
+          "opensearch-schema-review",
+          "ouroboros:auto",
+          "ouroboros:brownfield",
+          "ouroboros:cancel",
+          "ouroboros:evaluate",
+          "ouroboros:evolve",
+          "ouroboros:interview",
+          "ouroboros:ooo",
+          "ouroboros:ouroboros-config",
+          "ouroboros:ouroboros-help",
+          "ouroboros:ouroboros-run",
+          "ouroboros:ouroboros-status",
+          "ouroboros:pm",
+          "ouroboros:publish",
+          "ouroboros:qa",
+          "ouroboros:ralph",
+          "ouroboros:resume-session",
+          "ouroboros:seed",
+          "ouroboros:setup",
+          "ouroboros:tutorial",
+          "ouroboros:unstuck",
+          "ouroboros:update",
+          "ouroboros:welcome",
+          "paseo",
+          "paseo-advisor",
+          "paseo-committee",
+          "paseo-handoff",
+          "paseo-help",
+          "paseo-plugin",
+          "pdf-qa",
+          "playwright-e2e",
+          "plugin-creator",
+          "pm",
+          "postgres-code-authoring",
+          "postgres-query-review",
+          "postgres-review-workflow",
+          "postgres-risk-check",
+          "postgres-schema-design",
+          "product-requirements",
+          "product-ui-design",
+          "publish",
+          "qa",
+          "ralph",
+          "refactoring-catalog",
+          "repository",
+          "request",
+          "response",
+          "resume-session",
+          "retro",
+          "run",
+          "schema-doc-extract",
+          "seed",
+          "service",
+          "setup",
+          "sites:sites-building",
+          "sites:sites-hosting",
+          "skill-creator",
+          "skill-installer",
+          "skill-updater",
+          "start-task",
+          "status",
+          "test-authoring",
+          "test-quality-refactoring-workflow",
+          "test-quality-review",
+          "test-refactoring",
+          "tutorial",
+          "unstuck",
+          "update",
+          "visual-artifact-router",
+          "vulpora-init",
+          "vulpora-installer",
+          "welcome"
+        ],
+        "startTaskEntryInjected": false,
+        "renderedInputBytes": 67795,
+        "renderedInputSha256": "62a61b201c9bc4ca888c921332f84bca2d8354eddbee7a57f347aed5d8f8f7e5",
+        "source": "codex debug prompt-input; no model turn",
+        "rawContextRetained": false,
+        "knownVulporaSkillIds": [
+          "agent-eval",
+          "architecture-review-workflow",
+          "backend-code-review-workflow",
+          "code-authoring-router",
+          "code-diagram-extract",
+          "codex-agent-runtime",
+          "design-pattern-apply",
+          "diagram-styler",
+          "document-designer",
+          "e2e-report-renderer",
+          "e2e-runner",
+          "e2e-scenario-author",
+          "e2e-test-workflow",
+          "entity",
+          "enum",
+          "flyway",
+          "git-flow",
+          "harness-propose",
+          "java-spring-review-workflow",
+          "knowledge-audit",
+          "korean-dev-writer",
+          "kotlin-code-authoring",
+          "kotlin-spring-review",
+          "kotlin-spring-review-workflow",
+          "learn",
+          "mapper",
+          "markdown-publisher",
+          "mermaid-diagrams",
+          "mssql-code-authoring",
+          "nl-sql-query",
+          "notion-domain-context",
+          "oop-design-review",
+          "opensearch-code-authoring",
+          "opensearch-optimization",
+          "opensearch-query-review",
+          "opensearch-review-workflow",
+          "opensearch-schema-review",
+          "pdf-qa",
+          "playwright-e2e",
+          "postgres-code-authoring",
+          "postgres-query-review",
+          "postgres-review-workflow",
+          "postgres-risk-check",
+          "postgres-schema-design",
+          "product-requirements",
+          "product-ui-design",
+          "refactoring-catalog",
+          "repository",
+          "request",
+          "response",
+          "retro",
+          "schema-doc-extract",
+          "service",
+          "skill-updater",
+          "start-task",
+          "test-authoring",
+          "test-quality-refactoring-workflow",
+          "test-quality-review",
+          "test-refactoring",
+          "visual-artifact-router",
+          "vulpora-init",
+          "vulpora-installer"
+        ]
+      },
+      "initialFilesSha256": "b4a97bddff0df6a55b599936311a70834d8d278454f39d5e1ae7f9b7b249e9e6",
+      "attempts": [
+        {
+          "number": 1,
+          "promptSha256": "2c725eee746293c2dd94fa0147bff567d352eb3d5190de973e15ad8e20d7cb20",
+          "runtime": {
+            "exitCode": 1,
+            "signal": null,
+            "reason": null,
+            "usage": {
+              "schema_version": 1,
+              "runtime": "codex",
+              "measurement_kind": "unknown",
+              "usage_status": "unknown",
+              "fallback_reason": "missing_final_usage",
+              "usage_scope": "unknown",
+              "source_event": null,
+              "aggregation": "none",
+              "input_tokens": null,
+              "uncached_input_tokens": null,
+              "cached_input_tokens": null,
+              "cache_creation_input_tokens": null,
+              "output_tokens": null,
+              "reasoning_tokens": null,
+              "reasoning_semantics": "unknown",
+              "input_output_tokens": null,
+              "billing_amount": null
+            },
+            "elapsedMs": 34,
+            "outputBytes": 0,
+            "stderrBytes": 168,
+            "telemetry": {
+              "schema": "vulpora.session-telemetry/v1",
+              "measurementKind": "runtime_event_counts_and_utf8_bytes",
+              "providerTokenAttribution": "unavailable",
+              "rawContentRetained": false,
+              "eventTypes": {
+                "error": 0,
+                "item.completed": 0,
+                "item.started": 0,
+                "item.updated": 0,
+                "other": 0,
+                "thread.started": 0,
+                "turn.completed": 0,
+                "turn.failed": 0,
+                "turn.started": 0
+              },
+              "itemCompleted": {
+                "commandExecutions": 0,
+                "fileChanges": 0,
+                "agentMessages": 0
+              },
+              "byteProxies": {
+                "command": 0,
+                "aggregatedOutput": 0,
+                "labels": {
+                  "command": "utf8_bytes",
+                  "aggregatedOutput": "utf8_bytes",
+                  "agentTextBytes": "utf8_bytes"
+                }
+              },
+              "repeatedCommands": [],
+              "caps": {
+                "fingerprints": 128
+              },
+              "saturation": false,
+              "fingerprintOverflow": false
+            },
+            "promptBytes": 1248,
+            "runtimeStreamSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "rawRuntimeRetained": false,
+            "streamTruncated": false,
+            "requestedModel": "gpt-5.6-terra",
+            "requestedEffort": "medium",
+            "dispatchEvidence": {
+              "source": "spawn-arguments",
+              "binary": "codex",
+              "commandSha256": "9a51c5087a9a3a8a2cf40d116cbca40d294ed06e802fca2d232cc0d9d4fe13ee",
+              "model": "gpt-5.6-terra",
+              "reasoning_effort": "medium",
+              "backendIdentity": "NOT_ATTESTED",
+              "primarySessions": 1,
+              "nestedOrchestrator": false
+            },
+            "commandEvidence": [],
+            "unexpectedChild": false,
+            "harnessEvidence": {
+              "entryRead": false,
+              "lightweightPathRead": false,
+              "selectorProfiles": [],
+              "selectorExecuted": false
+            }
+          },
+          "quality": {
+            "passed": false,
+            "checks": {
+              "testsPassed": true,
+              "oraclePassed": false,
+              "mutantChecksPassed": false,
+              "verifierCompleted": true,
+              "onlyAllowedFilesChanged": true,
+              "noSymlinksOrSpecialFiles": true,
+              "gitHeadUnchanged": true
+            },
+            "changedFiles": [],
+            "checksPassed": 5,
+            "checksTotal": 7
+          },
+          "accepted": false,
+          "failureKind": "runtime_or_environment",
+          "treatmentCompliant": true,
+          "artifact": {
+            "saved": true,
+            "path": "01-workflow-catalog-repair-baseline-attempt-1.patch",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bytes": 0
+          }
+        }
+      ],
+      "accepted": false,
+      "finished": true
+    }
+  ],
+  "assessment": {
+    "complete": false,
+    "comparable": false,
+    "totals": {
+      "baseline": {
+        "expectedInvocations": 1,
+        "observedInvocations": 1,
+        "duplicateSnapshots": 0,
+        "selectedInvocationIds": [],
+        "unknownInvocationIds": [],
+        "unknownUsageIds": [
+          "run-1-attempt-1"
+        ],
+        "unknownPricingIds": [],
+        "errors": [],
+        "perPurpose": {
+          "primary": {
+            "invocations": 1,
+            "unknownUsage": 1,
+            "selectedAccountingRecords": 0,
+            "accountedSubtotalTokens": 0,
+            "inclusiveAccountingRecords": 0
+          }
+        },
+        "completeUsage": false,
+        "completePricing": false,
+        "complete": false,
+        "observedSubtotalTokens": 0,
+        "totalTokens": null,
+        "billingAttested": false,
+        "standard": {
+          "observedSubtotalUsd": {
+            "minUsd": 0,
+            "maxUsd": 0
+          },
+          "totalUsd": null,
+          "costPerAcceptedTaskUsd": null
+        },
+        "fast": {
+          "observedSubtotalUsd": {
+            "minUsd": 0,
+            "maxUsd": 0
+          },
+          "totalUsd": null,
+          "costPerAcceptedTaskUsd": null
+        },
+        "runErrors": [],
+        "taskRuns": 1,
+        "unstartedRuns": 2,
+        "unfinishedRuns": 0,
+        "attemptCount": 1,
+        "repairAttempts": 0,
+        "firstPassAcceptedTasks": 0,
+        "acceptedTasks": 0,
+        "firstPassAcceptanceRate": 0,
+        "acceptanceRate": 0,
+        "tokensPerAcceptedTask": null,
+        "plannedRuns": 3,
+        "runtimeElapsedMs": 34
+      },
+      "concise": {
+        "expectedInvocations": 0,
+        "observedInvocations": 0,
+        "duplicateSnapshots": 0,
+        "selectedInvocationIds": [],
+        "unknownInvocationIds": [],
+        "unknownUsageIds": [],
+        "unknownPricingIds": [],
+        "errors": [],
+        "perPurpose": {},
+        "completeUsage": true,
+        "completePricing": true,
+        "complete": false,
+        "observedSubtotalTokens": 0,
+        "totalTokens": 0,
+        "billingAttested": false,
+        "standard": {
+          "observedSubtotalUsd": {
+            "minUsd": 0,
+            "maxUsd": 0
+          },
+          "totalUsd": {
+            "minUsd": 0,
+            "maxUsd": 0
+          },
+          "costPerAcceptedTaskUsd": null
+        },
+        "fast": {
+          "observedSubtotalUsd": {
+            "minUsd": 0,
+            "maxUsd": 0
+          },
+          "totalUsd": {
+            "minUsd": 0,
+            "maxUsd": 0
+          },
+          "costPerAcceptedTaskUsd": null
+        },
+        "runErrors": [],
+        "taskRuns": 0,
+        "unstartedRuns": 3,
+        "unfinishedRuns": 0,
+        "attemptCount": 0,
+        "repairAttempts": 0,
+        "firstPassAcceptedTasks": 0,
+        "acceptedTasks": 0,
+        "firstPassAcceptanceRate": null,
+        "acceptanceRate": null,
+        "tokensPerAcceptedTask": null,
+        "plannedRuns": 3,
+        "runtimeElapsedMs": 0
+      },
+      "installed": {
+        "expectedInvocations": 0,
+        "observedInvocations": 0,
+        "duplicateSnapshots": 0,
+        "selectedInvocationIds": [],
+        "unknownInvocationIds": [],
+        "unknownUsageIds": [],
+        "unknownPricingIds": [],
+        "errors": [],
+        "perPurpose": {},
+        "completeUsage": true,
+        "completePricing": true,
+        "complete": false,
+        "observedSubtotalTokens": 0,
+        "totalTokens": 0,
+        "billingAttested": false,
+        "standard": {
+          "observedSubtotalUsd": {
+            "minUsd": 0,
+            "maxUsd": 0
+          },
+          "totalUsd": {
+            "minUsd": 0,
+            "maxUsd": 0
+          },
+          "costPerAcceptedTaskUsd": null
+        },
+        "fast": {
+          "observedSubtotalUsd": {
+            "minUsd": 0,
+            "maxUsd": 0
+          },
+          "totalUsd": {
+            "minUsd": 0,
+            "maxUsd": 0
+          },
+          "costPerAcceptedTaskUsd": null
+        },
+        "runErrors": [],
+        "taskRuns": 0,
+        "unstartedRuns": 3,
+        "unfinishedRuns": 0,
+        "attemptCount": 0,
+        "repairAttempts": 0,
+        "firstPassAcceptedTasks": 0,
+        "acceptedTasks": 0,
+        "firstPassAcceptanceRate": null,
+        "acceptanceRate": null,
+        "tokensPerAcceptedTask": null,
+        "plannedRuns": 3,
+        "runtimeElapsedMs": 0
+      }
+    },
+    "comparisons": {
+      "conciseVsBaseline": {
+        "qualityPreserved": null,
+        "tokenReductionRatio": null,
+        "costRanges": {
+          "standard": {
+            "strictlyLower": null,
+            "savingsPerAcceptedTaskUsd": null
+          },
+          "fast": {
+            "strictlyLower": null,
+            "savingsPerAcceptedTaskUsd": null
+          }
+        },
+        "sampleCriteriaMet": false
+      },
+      "conciseVsInstalled": {
+        "qualityPreserved": null,
+        "tokenReductionRatio": null,
+        "costRanges": {
+          "standard": {
+            "strictlyLower": null,
+            "savingsPerAcceptedTaskUsd": null
+          },
+          "fast": {
+            "strictlyLower": null,
+            "savingsPerAcceptedTaskUsd": null
+          }
+        },
+        "sampleCriteriaMet": false
+      }
+    },
+    "status": "INCONCLUSIVE",
+    "globalDefaultChange": false,
+    "qualitySuperiority": "NOT_ESTABLISHED",
+    "actualBilledSavings": "NOT_MEASURED",
+    "improvementAndEvaluationPayback": "UNKNOWN_IMPROVEMENT_COST_AND_BILLING",
+    "scope": "All fresh primary and repair invocations; deterministic coordinator and oracle have zero model calls. Host policy retained; installed means explicit activation with a frozen project installation present, not attestation of which duplicate package body ran. No full development-conversation or production multi-agent claim."
+  },
+  "accounting": {
+    "expectedInvocations": 1,
+    "observedInvocations": 1,
+    "duplicateSnapshots": 0,
+    "selectedInvocationIds": [],
+    "unknownInvocationIds": [],
+    "unknownUsageIds": [
+      "run-1-attempt-1"
+    ],
+    "unknownPricingIds": [],
+    "errors": [],
+    "perPurpose": {
+      "primary": {
+        "invocations": 1,
+        "unknownUsage": 1,
+        "selectedAccountingRecords": 0,
+        "accountedSubtotalTokens": 0,
+        "inclusiveAccountingRecords": 0
+      }
+    },
+    "completeUsage": false,
+    "completePricing": false,
+    "complete": false,
+    "observedSubtotalTokens": 0,
+    "totalTokens": null,
+    "billingAttested": false,
+    "standard": {
+      "observedSubtotalUsd": {
+        "minUsd": 0,
+        "maxUsd": 0
+      },
+      "totalUsd": null,
+      "costPerAcceptedTaskUsd": null
+    },
+    "fast": {
+      "observedSubtotalUsd": {
+        "minUsd": 0,
+        "maxUsd": 0
+      },
+      "totalUsd": null,
+      "costPerAcceptedTaskUsd": null
+    },
+    "runErrors": [],
+    "taskRuns": 1,
+    "unstartedRuns": 0,
+    "unfinishedRuns": 0,
+    "attemptCount": 1,
+    "repairAttempts": 0,
+    "firstPassAcceptedTasks": 0,
+    "acceptedTasks": 0,
+    "firstPassAcceptanceRate": 0,
+    "acceptanceRate": 0,
+    "tokensPerAcceptedTask": null
+  },
+  "stopped": "USAGE_UNAVAILABLE",
+  "completedAt": "2026-09-09T07:09:35.436Z",
+  "elapsedMs": 375
+}

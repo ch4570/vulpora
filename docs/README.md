@@ -12,6 +12,7 @@ details needed for your project.
 | Skills: [한국어](skills.ko.md) · [English](skills.en.md) | All 64 skill IDs, grouped purposes, exact invocation examples, dependency installation, and external-tool prerequisites |
 | Architecture: [한국어](architecture.ko.md) · [English](architecture.en.md) | Folder structure, catalog-to-runtime flow, dependency graph, model routing, MCP boundaries, and extension points |
 | [Installation and removal](../INSTALL.md) | Guided/CLI installation, runtime scope, offline packages, updates, MCP setup, and receipts |
+| [Workflow economics (한국어)](workflow-economics.ko.md) | Existing path selection, copyable task brief, all-attempt costs and limits of savings claims |
 | [Catalog guide](catalog-guide.md) | Packs, agents, workflows, runtime paths, project policy, and source layout |
 | [Product pack](product-pack.md) | Planning, UX design, independent review, and example prompts |
 | [Model routing](review-workflow-model-routing.md) | Cost profiles, explicit runtime selection, escalation, and specialist lanes |
