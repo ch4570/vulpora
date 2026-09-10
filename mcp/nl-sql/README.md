@@ -206,7 +206,9 @@ NLSQL_ALLOWED_SCHEMAS=app
 | `host`/`port`/`database`/`user`/`password` | `PGHOST`/`PGPORT`/`PGDATABASE`/`PGUSER`/`PGPASSWORD` | dialect 기본 포트 | 개별 필드 |
 | `ssl` | `PGSSLMODE` | `prefer` | `require`=암호화, `verify-ca`/`verify-full`=**서버 인증서 검증 강제**(MITM 방지) |
 | `allowedSchemas` | `NLSQL_ALLOWED_SCHEMAS`(CSV) | **필수** | 조회 허용 스키마. 빈 목록은 시작 거부. mysql=DB명, mssql=dbo 등 |
-| `limits.maxRows` | `NLSQL_MAX_ROWS` | `100` | 반환 행 하드 캡 |
+| `limits.maxRows` | `NLSQL_MAX_ROWS` | `100` | 드라이버 수집 행 한도(1..10,000) |
+| `limits.maxResultBytes` | `NLSQL_MAX_RESULT_BYTES` | `1048576` | 드라이버 수집 결과 바이트 예산(1,024..67,108,864) |
+| `limits.maxInboundBytes` | `NLSQL_MAX_INBOUND_BYTES` | `4194304` | 논리 패킷·셀 파서에 전달할 수신 바이트 한도(1,024..33,554,432) |
 | `limits.statementTimeoutMs` | `NLSQL_STATEMENT_TIMEOUT_MS` | `5000` | 쿼리 타임아웃(ms) |
 | `limits.maxCellChars` | `NLSQL_MAX_CELL_CHARS` | `2000` | 셀 출력 최대 문자 |
 
@@ -218,7 +220,15 @@ NLSQL_ALLOWED_SCHEMAS=app
 ## 한계 (정직 고지)
 - **MSSQL 읽기 전용은 소프트**다(엔진 트랜잭션 읽기전용 모드 부재). 가드+ROLLBACK은 보조이고, **db_datareader 전용 로그인**이 실질 보장이다. 반드시 그렇게 접속하라.
 - allowlist를 정적으로 증명할 수 있도록 실행 SQL의 물리 테이블은 항상 `schema.table`로 써야 한다. 쉼표 조인은 명시적 `JOIN`으로 바꾸고, 테이블 반환 함수가 필요하면 별도의 좁은 도구로 노출하는 방식을 권장한다.
-- 행 캡: pg/mysql 은 외곽 제한이 없을 때 `LIMIT` 주입 + 결과 절단. CTE·서브쿼리 안의 제한은 외곽 제한으로 취급하지 않으며, PostgreSQL의 외곽 `FETCH FIRST/NEXT`도 인식한다. 사용자가 명시한 외곽 제한(큰 값이나 `LIMIT ALL` 포함)은 다시 쓰지 않는다. **mssql 은 `LIMIT` 미지원이라 결과 절단만** — 큰 결과는 쿼리에 `TOP (n)`/`OFFSET..FETCH` 를 직접 넣는 게 좋다. 명시한 제한이 크거나 없는 경우 드라이버가 큰 결과를 버퍼링한 뒤 절단할 수 있으므로 메모리에 주의(타임아웃이 먼저 끊을 수 있음).
+- 세 드라이버 모두 행 이벤트로 결과를 수집하며, `maxRows` 또는 `maxResultBytes`를 넘으면 연결을 종료하고 `NLSQL_RESULT_LIMIT_EXCEEDED`로 실패한다. 일부 행을 성공 결과로 반환하지 않으므로 스키마 조회와 `EXPLAIN`에도 같은 한도가 적용된다. 바이트 예산은 필드 이름·문자열의 UTF-8 크기, 바이너리 길이와 값별 고정 비용을 합산하며, 중첩 깊이 32·값 100,000개도 제한한다.
+- pg/mysql은 외곽 제한이 없을 때 `LIMIT`을 추가한다. CTE·서브쿼리의 제한은 외곽 제한으로 취급하지 않으며, 명시한 큰 `LIMIT`이나 `LIMIT ALL`도 다시 쓰지 않는다. 명시한 한도가 수집 예산을 넘으면 실행 중 실패한다. MSSQL은 필요한 `TOP (n)`/`OFFSET..FETCH`를 쿼리에 직접 넣는다.
+- `maxInboundBytes`는 디코딩 예산과 별개다. PostgreSQL/MySQL은 연결 획득 후 현재 스트림의 `data` 전달을, MSSQL은 트랜잭션 시작 후 복호화된 TDS 입력 스트림의 `write`를 검사한다. 누적 한도를 넘기는 청크 전체와 그 이후의 청크는 논리 패킷·셀 파서로 전달하지 않고 연결을 종료한다. PostgreSQL/MySQL의 설정 응답과 각 드라이버의 롤백 응답도 설치된 게이트의 예산에 포함된다. 인증·연결 협상 및 게이트 설치 전 MSSQL 트랜잭션 시작 응답은 제외된다.
+- **이 한도는 파서에 허용한 입력 바이트의 상한이며, 프로세스 RSS·OS 수신량·TLS 내부 버퍼의 절대 상한은 아니다.** 검사를 받는 현재 청크는 이미 OS/TLS/Node에서 할당되었고, 허용한 입력을 디코딩하면서 추가 메모리를 사용할 수 있다. `maxCellChars`도 출력 제한이다. 큰 열을 제외하거나 길이를 제한한 읽기 전용 뷰를 사용하고 실행 프로세스의 메모리 한도를 별도로 설정한다.
+- 수신 게이트의 내부 API는 `pg 8.23.0` + `pg-protocol 1.16.0`, `mysql2 3.24.3`, `mssql 12.7.0` + `tedious 20.0.0`에서 검증했다. 버전이나 스트림 구조가 다르면 `NLSQL_DRIVER_UNSUPPORTED`로 사용자 SQL 실행 전에 거부한다. 의존성 업그레이드 시 분할 패킷 회귀 검증과 호환 버전 표를 함께 갱신해야 한다. MySQL 압축은 URI 설정을 포함해 비활성화하고 실제 세션 설정도 검사한다.
+- MSSQL은 쿼리별 전용 풀을 닫아 롤백에 실패한 세션의 재사용을 막는다. 동시 실행은 최대 4개이며 초과 요청을 대기열 없이 거부한다. 연결 재사용이 없어 연결 지연이 늘어난다. 요청 종료와 정리에는 타임아웃이 있으며, FOR JSON/XML의 특수 청크 결과는 드라이버 내부 버퍼링을 피하도록 메타데이터 단계에서 거부한다.
+- 성공한 요청과 롤백이 끝난 연결만 수신 메서드를 원래 속성 상태로 복원한다. 실패하거나 중단된 연결은 복원·재사용하지 않는다. MSSQL의 `__proto__`/`constructor` 결과 별칭과 예상 밖 객체 프로토타입은 예산 우회 가능성 때문에 거부한다.
+- pg/mysql의 설정·실행·롤백에도 `statementTimeoutMs`를 클라이언트 종료 기한으로 적용하여 서버 응답이 끊겨도 연결을 폐기한다. MSSQL은 취소 후 최대 5초의 종료 유예와 최대 5초의 정리 기한을 두며, 연결 종료를 확인할 수 없으면 드라이버를 재시작하기 전까지 새 요청을 거부한다.
+- MySQL의 `MAX_EXECUTION_TIME` 설정에 실패하면 쿼리를 실행하지 않는다. 이 설정을 지원하지 않는 MariaDB 등과는 호환되지 않을 수 있다.
 - `explain_select` 는 pg/mysql만. SQL Server는 미지원(SSMS/`SET SHOWPLAN_XML` 사용).
-- fake 드라이버 단위 테스트로 가드·allowlist·인트로스펙션·오류 비노출을 검증한다. **실제 3개 엔진 연결 통합 테스트는 사용자 환경의 DB에서 수행**해야 한다.
+- 오프라인 테스트는 실제 라이브러리의 행 수집·분할 패킷·TDS/PLP 파서와 합성 전송 계층으로 실행한다. 실제 엔진 통합 검증은 실행별로 소유한 일회용 DB와 읽기 전용 계정에 한정한다. 공용·운영 DB에서 부하나 초과 응답을 재현하지 않는다.
 - NL→SQL 작성·실행·표시 워크플로는 `nl-sql-query` 스킬을 함께 쓴다. 정적 스키마 문서(ERD/명세)는 `schema-cartographer` 에이전트 + `schema-doc-extract` 스킬.

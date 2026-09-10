@@ -4,6 +4,8 @@
 import type { AppConfig } from './config.js';
 import type { Dialect } from './dialect.js';
 import type { Driver } from './drivers/types.js';
+import { ResultLimitError } from './drivers/result-budget.js';
+import { DriverCompatibilityError } from './drivers/inbound-budget.js';
 import { capRows, rowsToMarkdown } from './format.js';
 import { applyLimit, assertReadOnlySelect, SqlGuardError } from './guard.js';
 import type { Introspector } from './introspect.js';
@@ -17,6 +19,8 @@ export type StableErrorCode =
   | 'NLSQL_DB_INTROSPECTION_FAILED'
   | 'NLSQL_DB_QUERY_FAILED'
   | 'NLSQL_DB_EXPLAIN_FAILED'
+  | 'NLSQL_RESULT_LIMIT_EXCEEDED'
+  | 'NLSQL_DRIVER_UNSUPPORTED'
   | 'NLSQL_INTERNAL_ERROR';
 
 export type ErrorSink = (code: StableErrorCode) => void;
@@ -35,6 +39,8 @@ const PUBLIC_MESSAGES: Record<StableErrorCode, string> = {
   NLSQL_DB_INTROSPECTION_FAILED: '스키마 정보를 조회하지 못했습니다.',
   NLSQL_DB_QUERY_FAILED: '쿼리를 실행하지 못했습니다.',
   NLSQL_DB_EXPLAIN_FAILED: '실행 계획을 조회하지 못했습니다.',
+  NLSQL_RESULT_LIMIT_EXCEEDED: '결과가 행 수 또는 바이트 한도를 초과했습니다. 조회 범위를 줄여 주세요.',
+  NLSQL_DRIVER_UNSUPPORTED: '검증된 드라이버 버전 또는 수신 경로를 확인할 수 없습니다.',
   NLSQL_INTERNAL_ERROR: '요청을 처리하지 못했습니다.',
 };
 
@@ -77,6 +83,14 @@ export class ToolService {
   }
 
   private policyFailure(error: unknown): TextResult | null {
+    if (error instanceof DriverCompatibilityError) {
+      this.emit('NLSQL_DRIVER_UNSUPPORTED');
+      return failure('NLSQL_DRIVER_UNSUPPORTED');
+    }
+    if (error instanceof ResultLimitError) {
+      this.emit('NLSQL_RESULT_LIMIT_EXCEEDED');
+      return failure('NLSQL_RESULT_LIMIT_EXCEEDED');
+    }
     if (error instanceof SchemaPolicyError) {
       this.emit(error.code);
       return failure(error.code);
@@ -160,7 +174,9 @@ export class ToolService {
         notes.push(`최대 ${this.config.maxRows}행으로 절단됨`);
       }
       return textResult(`${table}\n\n_${notes.join(' · ')}_`);
-    } catch {
+    } catch (error) {
+      const policy = this.policyFailure(error);
+      if (policy) return policy;
       this.emit('NLSQL_DB_QUERY_FAILED');
       return failure('NLSQL_DB_QUERY_FAILED');
     }
@@ -188,7 +204,9 @@ export class ToolService {
       const first = res.rows[0] ?? {};
       const planVal = first['QUERY PLAN'] ?? first['EXPLAIN'] ?? first;
       return textResult('```json\n' + JSON.stringify(planVal, null, 2) + '\n```');
-    } catch {
+    } catch (error) {
+      const policy = this.policyFailure(error);
+      if (policy) return policy;
       this.emit('NLSQL_DB_EXPLAIN_FAILED');
       return failure('NLSQL_DB_EXPLAIN_FAILED');
     }
