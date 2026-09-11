@@ -57,7 +57,8 @@ receipt contract; the independent-session transport does not forge native child 
 
 ## Operational evaluation boundary
 
-Issue #25 remains operationally incomplete until an operator provides and verifies isolated runners with actual
+[Public issue #1](https://github.com/ch4570/vulpora/issues/1), migrated from private issue #25, remains
+operationally incomplete until an operator provides and verifies isolated runners with actual
 filesystem/network/process probes, distinct trusted signing identities, protected policy delivery, immutable
 original evidence, provider-enforced budgets, and repeated live security trials that pass the defined criteria.
 An environment flag or synthetic signed receipt is insufficient. Promotion remains blocked; see
