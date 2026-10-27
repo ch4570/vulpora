@@ -72,6 +72,7 @@ skill | enum | skills/enum | - | kotlin-code-authoring | -
 skill | flyway | skills/flyway | - | entity postgres-risk-check | -
 skill | git-flow | skills/git-flow | - | - | -
 skill | harness-propose | skills/harness-propose | - | - | -
+skill | harness-refine | skills/harness-refine | - | - | -
 skill | knowledge-audit | skills/knowledge-audit | - | - | -
 skill | java-spring-review-workflow | skills/java-spring-review-workflow | - | agent:java-reviewer oop-design-review design-pattern-apply | -
 skill | korean-dev-writer | skills/korean-dev-writer | - | - | -

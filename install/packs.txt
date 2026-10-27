@@ -19,5 +19,5 @@ jvm-quality | JVM code quality | Architecture, Kotlin/Spring backend review, sec
 qa-e2e | QA and E2E | Scenario design, isolated E2E execution, browser testing, and reports | agent:qa-test-designer skill:e2e-test-workflow
 visual | Product and visual docs | Runtime-neutral UI design, diagrams, documents, rendering, and visual QA | skill:product-ui-design skill:visual-artifact-router
 product-discovery-ko | Korean product discovery | Korean requirements dialogue and structured product requirement artifacts | skill:product-requirements
-knowledge | Knowledge lifecycle | Evaluate, audit, learn from, and safely update reusable agent knowledge | skill:agent-eval skill:knowledge-audit skill:learn skill:skill-updater
+knowledge | Knowledge lifecycle | Evaluate, audit, learn from, refine by execution contrast, and safely update reusable agent knowledge | skill:agent-eval skill:knowledge-audit skill:learn skill:skill-updater skill:harness-refine
 notion | Notion context | Read-only, provenance-aware Notion domain research; MCP setup remains explicit | skill:notion-domain-context

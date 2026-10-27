@@ -18,7 +18,8 @@
 예산은 초기 2026-09-09 측정값에 5%를 더하고 100토큰 단위로 올림한 상한을 유지했다.
 2026-09-10 공개 소스의 독립 세션 참조는 실행 전 예약 회수 설명으로 192토큰 늘었지만
 기존 7,900토큰 상한 안에 있다. 소스 증가를 검토하게 하는 기준이며 provider 사용량 상한이 아니다.
-64개 스킬의 discovery metadata는 4,342토큰으로, 별도 4,500토큰 상한을 유지한다.
+64개 스킬의 discovery metadata는 4,342토큰이었고, 2026-10-27 `harness-refine` 추가 뒤 65개 스킬은
+4,421토큰으로 별도 4,500토큰 상한 안에 있다.
 
 감사 준비 경로는 명확한 읽기·결정적 작업, native clarification/planning, inline 실행, 성공한 검증을
 가정한다. 진입 파일과 requirement-dialogue·task-splitter·task-orchestrator의 정의, SOUL,

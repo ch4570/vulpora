@@ -2,7 +2,7 @@
 
 한국어 · [English](skills.en.md) · [README](../README.ko.md)
 
-설치 매니페스트에 등록된 **64개 스킬**의 용도와 호출 예제를 정리합니다. 이 중
+설치 매니페스트에 등록된 **65개 스킬**의 용도와 호출 예제를 정리합니다. 이 중
 `codex-agent-runtime`은 실행 기능이 비활성화된 호환성 항목입니다. 각 스킬 이름을 누르면 실제
 `SKILL.md`의 입력, 절차, 출력 계약을 확인할 수 있습니다.
 
@@ -202,7 +202,7 @@ SQL·mapping 작성과 리뷰는 제공된 코드·스키마·실행 계획을 �
 | [visual-artifact-router](../skills/visual-artifact-router/SKILL.md) | 문서·다이어그램 요청을 필요한 설계·렌더·QA 스킬로 연결 | `$visual-artifact-router "아키텍처 설명을 편집 가능한 원본과 공유용 HTML로 만들어줘"` |
 | [korean-dev-writer](../skills/korean-dev-writer/SKILL.md) | 사실을 유지하며 한국어 기술 문서·PR·리뷰·주석 작성·교정 | `$korean-dev-writer "README의 번역투를 줄이고 기술 설명을 명확하게 다듬어줘"` |
 
-### 평가·지식·회고·협업 · 8개
+### 평가·지식·회고·협업 · 9개
 
 | 스킬 | 용도 | 대화창 호출 예제 |
 |---|---|---|
@@ -212,6 +212,7 @@ SQL·mapping 작성과 리뷰는 제공된 코드·스키마·실행 계획을 �
 | [retro](../skills/retro/SKILL.md) | 완료한 작업을 Keep·Problem·Try로 회고하고 개선안 도출 | `$retro "방금 완료한 검색 개선 작업을 회고해줘"` |
 | [knowledge-audit](../skills/knowledge-audit/SKILL.md) | 자동 수집 지식을 현재 코드와 대조해 승격·폐기·보류 | `$knowledge-audit ".claude/knowledge/auto의 후보를 검증하고 정리해줘"` |
 | [harness-propose](../skills/harness-propose/SKILL.md) | 최신 자료와 현재 하네스를 비교해 HTML 개선 제안 작성 | `$harness-propose "현재 하네스에서 다음에 개선할 항목을 조사해줘"` |
+| [harness-refine](../skills/harness-refine/SKILL.md) | 원본·후보 하네스를 같은 과제로 실행·비교해 근거 있는 수정만 채택 | `$harness-refine "skills/postgres-query-review를 이 behavioral case로 실행 비교해 다듬어줘"` |
 | [git-flow](../skills/git-flow/SKILL.md) | 작업 branch 준비 또는 커밋·push·GitLab MR 생성 | `$git-flow "현재 기능 변경을 검토해 커밋하고 develop 대상 GitLab MR을 만들어줘"` |
 | [notion-domain-context](../skills/notion-domain-context/SKILL.md) | 연결된 사내 Notion의 읽기 전용 출처 기반 조사 | `$notion-domain-context "Notion에서 주문 취소 정책과 담당 조직의 근거를 찾아줘"` |
 
@@ -232,7 +233,7 @@ SQL·mapping 작성과 리뷰는 제공된 코드·스키마·실행 계획을 �
 | `markdown-publisher`, `pdf-qa` | HTML은 Node.js, PDF 생성은 로컬 Chromium 계열 브라우저, PDF 검수는 Python 3·Poppler·이미지 확인 도구 | `pdfinfo`와 `pdftocairo` 또는 `pdftoppm`이 필요합니다. 렌더 성공 후에도 모든 페이지의 시각 검수가 필요합니다. |
 | `agent-eval` | 스킬의 wrapper가 고정한 SkillEvaluator CLI. 보안·상위 tier에는 해당 scanner·provider·dataset·sandbox 추가 | 기본 Tier 1은 keyless 정적 평가입니다. 설치 또는 정적 통과가 실제 모델 성능을 증명하지는 않습니다. |
 | `git-flow` | GitLab remote와 인증된 전송 수단, 적절한 작업 branch 및 대상 branch | 기본 target은 `develop`입니다. GitHub PR 생성 스킬로 설명하지 않습니다. |
-| `learn`, `retro`, `knowledge-audit`, `harness-propose` | 스킬이 사용하는 `.claude/knowledge/`, `.claude/retro/` 등 프로젝트 지식 구조 | 설치만으로 자동 학습 hook이 켜지지 않습니다. `learn`·회고 개선 반영·하네스 반영은 해당 스킬의 승인 계약을 따릅니다. |
+| `learn`, `retro`, `knowledge-audit`, `harness-propose`, `harness-refine` | 스킬이 사용하는 `.claude/knowledge/`, `.claude/retro/` 등 프로젝트 지식 구조 | 설치만으로 자동 학습 hook이 켜지지 않습니다. `learn`·회고 개선 반영·하네스 반영은 해당 스킬의 승인 계약을 따릅니다. |
 
 ### 자연어 SQL의 별도 MCP 설치
 
