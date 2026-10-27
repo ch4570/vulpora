@@ -19,6 +19,7 @@ enum | 프로토콜 Enum 생성 | 알 수 없는 값 fallback을 포함한 공�
 flyway | Flyway 마이그레이션 | PostgreSQL 규칙과 파일명 계약에 맞는 Flyway SQL을 생성합니다.
 git-flow | Git 커밋·MR 흐름 | 변경 검토부터 커밋, push, GitLab MR 생성까지 대화형으로 진행합니다.
 harness-propose | 하네스 개선 제안 | 최신 하네스 기법을 조사해 현재 저장소에 맞는 개선안을 작성합니다.
+harness-refine | 하네스 실행 대비 정제 | 원본과 후보 하네스를 같은 과제로 실행해 비교하고 근거 있는 수정만 고릅니다.
 knowledge-audit | 지식 품질 감사 | 자동 수집된 지식을 코드로 검증해 승격·폐기하고 오래된 지식을 정리합니다.
 java-spring-review-workflow | Java·Spring 통합 리뷰 | Java·Spring·OOP·디자인 패턴을 저비용 모델 3개로 병렬 검토합니다.
 korean-dev-writer | 한국어 개발 문체 | 개발 문서를 사실을 보존하며 자연스러운 한국어로 작성합니다.
