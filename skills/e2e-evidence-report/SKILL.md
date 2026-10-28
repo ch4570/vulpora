@@ -1,6 +1,6 @@
 ---
 name: e2e-evidence-report
-description: Plan E2E test cases, run them through e2e-test-workflow with video and screenshots recorded for every browser case, verify each case's resulting data with read-only queries against the run-owned database, and publish one HTML evidence report in a temporary directory. Use when the user wants E2E results proven with recordings, captures, and DB evidence rather than a pass count; do not use for a plain run-only or render-only request.
+description: Plan E2E test cases, run them via e2e-test-workflow recording every browser case, verify result data with read-only queries on the run-owned DB, and publish an HTML evidence report in a temp directory. Use when E2E results must be proven with recordings and DB evidence.
 ---
 
 # E2E evidence report
