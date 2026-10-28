@@ -17,9 +17,9 @@ export class DriverCompatibilityError extends Error {
 // These private transport locations were inspected and exercised with the
 // installed lockfile. An upgrade requires rerunning the fragmented-parser tests.
 const COMPATIBLE: Record<DialectName, Record<string, string>> = {
-  postgres: { pg: '8.23.0', 'pg-protocol': '1.16.0' },
-  mysql: { mysql2: '3.24.3' },
-  mssql: { mssql: '12.7.0', tedious: '20.0.0' },
+  postgres: { pg: '8.23.1', 'pg-protocol': '1.16.1' },
+  mysql: { mysql2: '3.24.6' },
+  mssql: { mssql: '12.7.11', tedious: '20.0.0' },
 };
 
 export function assertCompatibleVersions(dialect: DialectName, versions: Record<string, string>): void {
