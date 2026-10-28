@@ -6,6 +6,7 @@
 |---|---|---|
 | 단일·중첩 람다, `it`, 람다 파라미터 이름 | [lambda-parameters](lambda-parameters.md) | 람다 scope에 따른 파라미터 표기 |
 | Spring bean, DI, `@Transactional`, application/service 경계 | [spring-construction](spring-construction.md) | constructor injection과 transaction-boundary 작성 판단 |
+| 엔티티 상태 전이 명령 추가·변경, 새 상태값, 멱등성·중복 요청, 동시 요청 | [state-transition-commands](state-transition-commands.md) | 상태×명령×타이밍 매트릭스, 근거 수준 표기, 새 상태값의 영속성 영향 |
 
 ## KB 한 줄 요약
 
@@ -13,6 +14,7 @@
 |---|---|
 | [lambda-parameters](lambda-parameters.md) | 비중첩 단일 파라미터에는 `it`, 중첩으로 모호할 때만 내부 이름을 사용한다 |
 | [spring-construction](spring-construction.md) | 필수 의존성은 constructor injection으로 받고, transaction은 기존 application/service 경계를 따른다 |
+| [state-transition-commands](state-transition-commands.md) | 멱등성·동시성 요구는 겹친 타이밍 칸까지 확인하고, 각 주장에 tested/mapped only/reasoned를 붙인다 |
 
 ## 원칙 문서와의 관계
 

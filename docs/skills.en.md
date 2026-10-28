@@ -2,7 +2,7 @@
 
 [한국어](skills.ko.md) · English · [README](../README.md)
 
-This handbook covers the purpose and invocation of all **65 skills** in the installation manifest.
+This handbook covers the purpose and invocation of all **66 skills** in the installation manifest.
 One entry, `codex-agent-runtime`, is a disabled compatibility contract. Each skill name links to its
 actual `SKILL.md`, which defines the inputs, procedure, and expected output.
 
@@ -180,7 +180,7 @@ live query results through `nl-sql-query` requires the separate MCP setup below.
 | [opensearch-review-workflow](../skills/opensearch-review-workflow/SKILL.md) | Consolidate query, schema, and optimization reviews | `$opensearch-review-workflow "Review the product DSL, mapping, and index settings together"` |
 | [nl-sql-query](../skills/nl-sql-query/SKILL.md) | Query a connected PostgreSQL/MySQL/SQL Server database in natural language, read-only | `$nl-sql-query "Show order counts by status for the last 7 days and include the SQL used"` |
 
-### QA and E2E · 5
+### QA and E2E · 6
 
 | Skill | Purpose | Conversation example |
 |---|---|---|
@@ -189,6 +189,7 @@ live query results through `nl-sql-query` requires the separate MCP setup below.
 | [playwright-e2e](../skills/playwright-e2e/SKILL.md) | Execute QA browser scenarios with owned data, cleanup, and evidence | `$playwright-e2e "Execute TC-CHECKOUT-001 from the attached QA handoff"` |
 | [e2e-report-renderer](../skills/e2e-report-renderer/SKILL.md) | Render completed runner JSON as single-run, trend, or comparison HTML | `$e2e-report-renderer "Create comparison HTML for two completed runs in test-report/e2e"` |
 | [e2e-test-workflow](../skills/e2e-test-workflow/SKILL.md) | Coordinate catalog, API, browser, and HTML stages under one environment owner | `$e2e-test-workflow "Refresh order scenarios, run the API cases and QA browser handoff, and save an HTML report"` |
+| [e2e-evidence-report](../skills/e2e-evidence-report/SKILL.md) | Plan TCs, run them with video and screenshots, verify result rows with read-only DB queries, and publish an HTML evidence report in a temporary directory | `$e2e-evidence-report "Plan and run the order-cancel TCs, then report recordings and DB results as HTML"` |
 
 ### Documents, diagrams, and visual artifacts · 9
 
