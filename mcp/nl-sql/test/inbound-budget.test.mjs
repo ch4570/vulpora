@@ -37,8 +37,8 @@ test('clean restoration preserves the exact original own property descriptor', (
 });
 
 test('unsupported versions and transport shapes fail closed', () => {
-  assert.throws(() => assertCompatibleVersions('postgres', { pg: '8.0.0', 'pg-protocol': '1.16.0' }), /unsupported/i);
-  assert.doesNotThrow(() => assertCompatibleVersions('postgres', { pg: '8.23.0', 'pg-protocol': '1.16.0' }));
+  assert.throws(() => assertCompatibleVersions('postgres', { pg: '8.0.0', 'pg-protocol': '1.16.1' }), /unsupported/i);
+  assert.doesNotThrow(() => assertCompatibleVersions('postgres', { pg: '8.23.1', 'pg-protocol': '1.16.1' }));
   assert.throws(() => installInboundGate({}, 'emit', 8, () => {}), /unsupported/i);
   const stream = new PassThrough();
   stream.setEncoding('utf8');
