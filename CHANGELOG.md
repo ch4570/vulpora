@@ -11,6 +11,9 @@ Vulpora의 사용자 관점 변경 사항을 기록합니다.
   호출하지 않고 스냅숏·후보 검증·fixture 사본·탐침 예산·익명 풀·기록만 관리합니다.
   실행기 격리는 검증하지 않으며 대상 자산 적용은 사용자 승인 뒤에만 합니다.
 - `knowledge` pack에 `harness-refine`을 포함했으며, 현재 스킬 카탈로그는 65개입니다.
+- NL-to-SQL MCP의 의존성 보안 권고 10건을 해소했습니다. `@modelcontextprotocol/sdk`와 `zod` 하한을
+  패치 버전으로 올렸습니다. 상위 `@azure/identity`가 아직 허용하지 않는 `@azure/msal-node` 패치는
+  override로 7.1.2 이상에 고정했습니다. `mssql`·`tedious` 버전과 SQL 인증 경로는 바뀌지 않습니다.
 
 ## [1.1.0] - 2026-09-11
 
