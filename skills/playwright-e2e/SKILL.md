@@ -85,6 +85,12 @@ bounded expectation timeout from the repository configuration.
 Mask or omit sensitive values before writing reports. Never save authenticated storage state, secrets, or raw PII in
 the report directory.
 
+**PW-7.1 (Evidence mode) — MUST when `e2e-evidence-report` requests it.** Record video and a screenshot for every
+case, not only failures, by running with the run-owned overlay that skill generates outside the repository
+(`--config <overlay>`). The overlay imports the repository config unchanged; do not edit the repository config to get
+recordings. PW-5, PW-6 and the masking rules above still apply, and evidence-mode artifacts stay in that run's
+temporary evidence directory.
+
 ## 6. Report and terminal result
 
 Write only under `test-report/browser-e2e/{run-id}/`:

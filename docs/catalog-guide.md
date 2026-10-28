@@ -8,7 +8,7 @@ or select individual asset IDs. The installer resolves their declared dependenci
 
 | Start here | 한국어 | English |
 |---|---|---|
-| All 65 skills with invocation examples and prerequisites | [스킬 사용 가이드](skills.ko.md) | [Skill handbook](skills.en.md) |
+| All 66 skills with invocation examples and prerequisites | [스킬 사용 가이드](skills.ko.md) | [Skill handbook](skills.en.md) |
 | Folder structure, installation flow, and runtime architecture | [아키텍처 가이드](architecture.ko.md) | [Architecture guide](architecture.en.md) |
 
 The primary command is `vulpora`; `vulpora` remains a compatibility alias. Existing skill IDs,
@@ -21,13 +21,13 @@ configuration filenames, environment variables, and MCP names retain their `vulp
 | `core` | Repository discovery and evidence-based implementation routing |
 | `product` | Product planning, UX specification, and independent design review |
 | `orchestration` | Requirement clarification, task decomposition, and bounded execution |
-| `jvm-spring` | Kotlin/Java/Spring authoring, review, and test guidance |
+| `jvm-spring` | Kotlin authoring and test guidance; Kotlin and Java review |
 | `jvm-spring-postgres-opinionated` | Optional JPA, layered Spring, and PostgreSQL Flyway house patterns |
 | `postgres` | PostgreSQL queries, schemas, migrations, and operational review |
 | `mssql` | Version-aware T-SQL and SQL Server migration authoring |
 | `opensearch` | Queries, mappings, performance, migrations, and review |
 | `jvm-quality` | JVM architecture, backend/security review, and test-only refactoring |
-| `qa-e2e` | Scenario design, API/async and browser E2E workflows |
+| `qa-e2e` | Scenario design, API/async and browser E2E workflows, evidence reports, and load testing |
 | `visual` | Product UI, diagrams, document formatting, rendering, and visual QA |
 | `product-discovery-ko` | Korean requirements dialogue and product requirement artifacts |
 | `knowledge` | Evaluation, knowledge audit, learning candidates, reviewed skill updates, and execution-contrast harness refinement |
@@ -63,7 +63,7 @@ definition-to-bundle mapping is in the manifest; bundle names need not equal age
 | Application and domain architecture | [architecture-reviewer](../agents/architecture-reviewer.md), [application-architect](../agents/application-architect.md), [domain-driven-design-reviewer](../agents/domain-driven-design-reviewer.md), [data-modeling-reviewer](../agents/data-modeling-reviewer.md) |
 | Code and security review | [java-reviewer](../agents/java-reviewer.md), [kotlin-spring-reviewer](../agents/kotlin-spring-reviewer.md), [code-refactor-agent](../agents/code-refactor-agent.md), [security-auditor](../agents/security-auditor.md) |
 | Database and search | [postgres-dba](../agents/postgres-dba.md), [opensearch-expert](../agents/opensearch-expert.md), [search-relevance-evaluator](../agents/search-relevance-evaluator.md), [index-migration-architect](../agents/index-migration-architect.md), [nl-sql-guardian](../agents/nl-sql-guardian.md) |
-| Tests and QA | [qa-test-designer](../agents/qa-test-designer.md), [e2e-test-runner](../agents/e2e-test-runner.md), [test-runner](../agents/test-runner.md), [backend-test-author](../agents/backend-test-author.md) |
+| Tests and QA | [qa-test-designer](../agents/qa-test-designer.md), [e2e-test-runner](../agents/e2e-test-runner.md), [load-test-engineer](../agents/load-test-engineer.md), [test-runner](../agents/test-runner.md), [backend-test-author](../agents/backend-test-author.md) |
 | Documentation and context | [code-cartographer](../agents/code-cartographer.md), [schema-cartographer](../agents/schema-cartographer.md), [documentation-comment-author](../agents/documentation-comment-author.md), [notion-domain-researcher](../agents/notion-domain-researcher.md) |
 | Agent evaluation | [agent-evaluator](../agents/agent-evaluator.md) |
 
@@ -91,13 +91,14 @@ uses stable IDs without implying the same invocation syntax in both runtimes.
 | [opensearch-review-workflow](../skills/opensearch-review-workflow/SKILL.md) | Query, mapping, performance, and operational review |
 | [test-quality-refactoring-workflow](../skills/test-quality-refactoring-workflow/SKILL.md) | Audit tests, select findings, and make scoped test-only improvements |
 | [e2e-test-workflow](../skills/e2e-test-workflow/SKILL.md) | Catalog, API/async, browser, cleanup, and optional report lifecycle |
+| [e2e-evidence-report](../skills/e2e-evidence-report/SKILL.md) | TC plan, recordings, DB verification, and an HTML evidence report in a temporary directory |
 | [product-ui-design](../skills/product-ui-design/SKILL.md) | Product-context design, implementation, review, and rendered-quality checks |
 | [visual-artifact-router](../skills/visual-artifact-router/SKILL.md) | Route document, diagram, and rendering work while preserving editable sources |
 | [notion-domain-context](../skills/notion-domain-context/SKILL.md) | Read-only context with source provenance from an explicitly configured Notion MCP |
 | [mssql-code-authoring](../skills/mssql-code-authoring/SKILL.md) | T-SQL and migration work grounded in the installed SQL Server version |
 | [git-flow](../skills/git-flow/SKILL.md) | Optional GitLab-oriented branch and publication workflow, only when requested and applicable |
 
-For all 65 skill IDs and invocation examples, see the [Korean](skills.ko.md) or
+For all 66 skill IDs and invocation examples, see the [Korean](skills.ko.md) or
 [English](skills.en.md) handbook. Use `./vulpora list` to inspect the source catalog.
 The catalog includes `codex-agent-runtime`, a disabled compatibility contract that returns
 `AGENT_RUNTIME_ERROR:project_execution_disabled`; it does not execute agents.

@@ -2,7 +2,7 @@
 
 한국어 · [English](skills.en.md) · [README](../README.ko.md)
 
-설치 매니페스트에 등록된 **65개 스킬**의 용도와 호출 예제를 정리합니다. 이 중
+설치 매니페스트에 등록된 **66개 스킬**의 용도와 호출 예제를 정리합니다. 이 중
 `codex-agent-runtime`은 실행 기능이 비활성화된 호환성 항목입니다. 각 스킬 이름을 누르면 실제
 `SKILL.md`의 입력, 절차, 출력 계약을 확인할 수 있습니다.
 
@@ -178,7 +178,7 @@ SQL·mapping 작성과 리뷰는 제공된 코드·스키마·실행 계획을 �
 | [opensearch-review-workflow](../skills/opensearch-review-workflow/SKILL.md) | 쿼리·스키마·최적화 관점의 통합 검색 리뷰 | `$opensearch-review-workflow "상품 검색의 DSL, mapping, index 설정을 함께 리뷰해줘"` |
 | [nl-sql-query](../skills/nl-sql-query/SKILL.md) | 연결된 PostgreSQL/MySQL/SQL Server에 읽기 전용 자연어 SQL 조회 | `$nl-sql-query "지난 7일 주문 수를 상태별로 조회하고 사용한 SQL도 보여줘"` |
 
-### QA·E2E · 5개
+### QA·E2E · 6개
 
 | 스킬 | 용도 | 대화창 호출 예제 |
 |---|---|---|
@@ -187,6 +187,7 @@ SQL·mapping 작성과 리뷰는 제공된 코드·스키마·실행 계획을 �
 | [playwright-e2e](../skills/playwright-e2e/SKILL.md) | QA 시나리오에 따라 브라우저 실행·데이터 정리·증거 기록 | `$playwright-e2e "첨부한 QA handoff의 TC-CHECKOUT-001을 실행해줘"` |
 | [e2e-report-renderer](../skills/e2e-report-renderer/SKILL.md) | 완료된 runner JSON을 단일 실행·추세·비교 HTML로 변환 | `$e2e-report-renderer "완료된 test-report/e2e 실행 두 건을 비교하는 HTML을 만들어줘"` |
 | [e2e-test-workflow](../skills/e2e-test-workflow/SKILL.md) | 카탈로그·API·브라우저·HTML 단계를 하나의 환경에서 조정 | `$e2e-test-workflow "주문 시나리오를 갱신하고 API와 QA handoff의 브라우저 케이스를 실행한 뒤 HTML 보고서를 저장해줘"` |
+| [e2e-evidence-report](../skills/e2e-evidence-report/SKILL.md) | TC 수립·실행 후 녹화·캡처·읽기 전용 DB 조회 결과를 임시 디렉터리의 HTML 보고서로 제공 | `$e2e-evidence-report "주문 취소 TC를 세워 실행하고 영상·스크린샷·DB 조회 결과를 HTML로 보고해줘"` |
 
 ### 문서·다이어그램·시각 산출물 · 9개
 

@@ -82,8 +82,8 @@ tarball="$WORK/$tarball_name"
 expected_agents="$(manifest_count agent)"
 expected_skills="$(manifest_count skill)"
 
-record 'release manifest fixes the package inventory at 28 agents and 65 skills' \
-  "[ '$expected_agents' = 28 ] && [ '$expected_skills' = 65 ]"
+record 'release manifest fixes the package inventory at 29 agents and 66 skills' \
+  "[ '$expected_agents' = 29 ] && [ '$expected_skills' = 66 ]"
 record 'npm pack creates the Vulpora tarball' \
   "[ '$pack_rc' = 0 ] && [ -f '$tarball' ] && [ ! -L '$tarball' ]"
 record 'npm package has no environment-mutating install lifecycle' \

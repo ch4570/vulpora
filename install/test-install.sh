@@ -102,7 +102,7 @@ record "all-skills resolves $expected_skills skills and only their typed agent d
    && printf '%s\n' \"\$output\" | grep -Fq 'vulpora-installer' \
    && actual_agents=\$(printf '%s\n' \"\$output\" | sed -n 's/^해소된 에이전트: //p') \
    && [ \"\$(normalize_ids \"\$actual_agents\")\" = \"\$(normalize_ids \
-        'architecture-reviewer application-architect domain-driven-design-reviewer code-cartographer java-reviewer security-auditor opensearch-expert postgres-dba data-modeling-reviewer requirement-dialogue task-splitter task-orchestrator test-runner')\" ] \
+        'architecture-reviewer application-architect domain-driven-design-reviewer code-cartographer java-reviewer security-auditor opensearch-expert postgres-dba data-modeling-reviewer requirement-dialogue task-splitter task-orchestrator test-runner qa-test-designer')\" ] \
    && [ ! -e '$WORK/dry/.codex' ] && [ ! -e '$WORK/dry/.agents' ]"
 record 'architecture workflow resolves its complete typed agent and skill closure' \
   "assert_resolution architecture-review-workflow \

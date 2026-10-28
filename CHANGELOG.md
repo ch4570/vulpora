@@ -11,6 +11,21 @@ Vulpora의 사용자 관점 변경 사항을 기록합니다.
   호출하지 않고 스냅숏·후보 검증·fixture 사본·탐침 예산·익명 풀·기록만 관리합니다.
   실행기 격리는 검증하지 않으며 대상 자산 적용은 사용자 승인 뒤에만 합니다.
 - `knowledge` pack에 `harness-refine`을 포함했으며, 현재 스킬 카탈로그는 65개입니다.
+- `kotlin-code-authoring`을 `harness-refine` 두 회차(주문 취소, 회원 주문 목록)의 블라인드 선택
+  결과로 보강했습니다. 상태 전이·중복·동시 요청이 걸린 변경은 새 `state-transition-commands` KB를
+  먼저 읽고, 넘기기 전에 요청 조항별 코드·테스트를 대조하며 새 공개 계약을 밝힙니다. 빌드를
+  실행할 수 없으면 검증 명령을 build 파일과 대조해 막힌 항목을 알립니다.
+- `e2e-evidence-report`를 추가했습니다. TC 계획을 세우고 `e2e-test-workflow`로 실행하며, 브라우저 케이스는
+  저장소 설정을 바꾸지 않는 run 전용 Playwright overlay로 모두 녹화·캡처합니다. 각 케이스의 결과 데이터를
+  run-owned DB에서 읽기 전용 조회로 확인하고, 임시 디렉터리에 오프라인 HTML 증거 보고서를 만듭니다.
+  `playwright-e2e`에 이를 위한 PW-7.1 evidence mode를 더했습니다.
+- `load-test-engineer` 에이전트를 추가했습니다. 허가된 대상에만 k6로 부하를 걸고, 원시 결과와 서버 지표에서
+  응답 성공률·처리량·p50/p95/p99·지연 구간 분해·포화 지점·지표 상관을 계산해 근거 있는 병목 가설을 HTML
+  보고서로 냅니다. 운영·제3자 대상은 거부합니다. 두 자산은 `qa-e2e` pack에 포함되며 카탈로그는 에이전트 29개,
+  스킬 66개입니다.
+- `code-authoring-router`의 Java 경로가 설치된 `java-reviewer` 지식 번들을 작성 제약으로 읽고
+  Java 테스트는 `backend-test-author`로 보내도록 했습니다. `jvm-spring` pack 설명을 실제 구성
+  (Kotlin 작성·테스트, Kotlin·Java 리뷰)에 맞췄습니다.
 - NL-to-SQL MCP의 의존성 보안 권고 10건을 해소했습니다. `@modelcontextprotocol/sdk`와 `zod` 하한을
   패치 버전으로 올렸습니다. 상위 `@azure/identity`가 아직 허용하지 않는 `@azure/msal-node` 패치는
   override로 7.1.2 이상에 고정했습니다. `mssql`·`tedious` 버전과 SQL 인증 경로는 바뀌지 않습니다.

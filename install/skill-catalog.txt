@@ -14,6 +14,7 @@ e2e-report-renderer | E2E HTML 보고서 | E2E 실행 JSON을 외부 의존성 �
 e2e-runner | E2E 테스트 실행 | 프로젝트 E2E 시나리오를 실행하고 JSON·Markdown 결과를 생성합니다.
 e2e-scenario-author | E2E 시나리오 작성 | API와 이벤트 진입점을 분석해 E2E 시나리오 카탈로그를 생성합니다.
 e2e-test-workflow | E2E 통합 테스트 워크플로 | 카탈로그·API·브라우저·HTML 단계를 단일 격리 환경에서 조정합니다.
+e2e-evidence-report | E2E 증거 보고서 | TC를 세우고 실행한 뒤 녹화·캡처·DB 조회 결과를 임시 디렉터리의 HTML 보고서로 냅니다.
 entity | JPA 엔티티 생성 | 프로젝트 규칙에 맞는 Kotlin JPA 엔티티와 식별자 구조를 생성합니다.
 enum | 프로토콜 Enum 생성 | 알 수 없는 값 fallback을 포함한 공유 Kotlin enum을 생성합니다.
 flyway | Flyway 마이그레이션 | PostgreSQL 규칙과 파일명 계약에 맞는 Flyway SQL을 생성합니다.

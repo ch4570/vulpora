@@ -11,7 +11,7 @@
 Vulpora는 **Codex와 Claude Code**에 전문 역할, 작업 스킬, 참고 지식을 설치하는 도구입니다.
 프로젝트에 필요한 능력만 선택하고, 기존 코딩 런타임에서 구현·리뷰·검증까지 이어갑니다.
 
-**14개 pack · 28개 에이전트 · 65개 스킬 항목 · macOS / Linux · Apache-2.0**
+**14개 pack · 29개 에이전트 · 66개 스킬 항목 · macOS / Linux · Apache-2.0**
 
 여러 꼬리가 하나의 몸으로 움직이는 여우에 서로 다른 전문성의 협업을 담았습니다.
 npm 패키지·명령어·프로젝트 네임스페이스는 **`vulpora`**입니다. [이름과 이미지](docs/naming.md).
@@ -196,13 +196,13 @@ Claude Code 모두를 대상으로 합니다. 비대화형 `setup`은 실제 적
 | `core` | 프로젝트 초기화, 구현 지침 라우팅 |
 | `product` | 제품 기획, UX 설계, 디자인 리뷰, UI workflow |
 | `orchestration` | 작업 명확화·분해·조율·완료 |
-| `jvm-spring` | Kotlin/Java/Spring 작성·리뷰·테스트 |
+| `jvm-spring` | Kotlin 작성·테스트, Kotlin·Java 리뷰 |
 | `jvm-spring-postgres-opinionated` | 선택형 JPA·계층형 Spring·Flyway 관례 |
 | `postgres` | PostgreSQL 작성과 통합 리뷰 |
 | `mssql` | 버전별 T-SQL, SQL Server 마이그레이션 |
 | `opensearch` | Query DSL·mapping·최적화·리뷰 |
 | `jvm-quality` | 아키텍처·백엔드 리뷰, 테스트 품질 리팩터링 |
-| `qa-e2e` | QA 시나리오와 API·브라우저 E2E workflow |
+| `qa-e2e` | QA 시나리오, API·브라우저 E2E workflow, 증거 보고서, 부하 테스트 |
 | `visual` | 제품 UI·다이어그램·문서 출판·시각 QA |
 | `product-discovery-ko` | 한국어 요구사항 대화와 제품 산출물 |
 | `knowledge` | 평가·지식 감사·학습·스킬 유지보수·실행 대비 하네스 정제 |
@@ -210,16 +210,16 @@ Claude Code 모두를 대상으로 합니다. 비대화형 `setup`은 실제 적
 
 `./vulpora setup --runtime codex --scope project --target /absolute/project pack:core pack:postgres`처럼 함께 설치합니다.
 정확한 구성과 의존성은 [pack registry](install/packs.txt)와 [manifest](install/manifest.txt)에 있습니다.
-[에이전트 카탈로그](docs/catalog-guide.md#agent-catalog)에서 28개 전문 역할도 확인할 수 있습니다.
+[에이전트 카탈로그](docs/catalog-guide.md#agent-catalog)에서 29개 전문 역할도 확인할 수 있습니다.
 
 ## 스킬 카탈로그
 
-Manifest에는 **65개 스킬 항목**이 등록돼 있습니다. `codex-agent-runtime`은 비활성 호환 항목이며,
+Manifest에는 **66개 스킬 항목**이 등록돼 있습니다. `codex-agent-runtime`은 비활성 호환 항목이며,
 실행할 수 있는 스킬처럼 안내하지 않고 가이드에 별도 표시했습니다.
 
 <!-- SKILL_SUMMARY_START -->
 <details>
-<summary>분야별 전체 65개 스킬 펼쳐보기</summary>
+<summary>분야별 전체 66개 스킬 펼쳐보기</summary>
 
 | 분야 | 스킬 |
 |---|---|
@@ -229,7 +229,7 @@ Manifest에는 **65개 스킬 항목**이 등록돼 있습니다. `codex-agent-r
 | Kotlin·Spring 작성 · 10개 | [kotlin-code-authoring](skills/kotlin-code-authoring/SKILL.md), [entity](skills/entity/SKILL.md), [enum](skills/enum/SKILL.md), [mapper](skills/mapper/SKILL.md), [repository](skills/repository/SKILL.md), [request](skills/request/SKILL.md), [response](skills/response/SKILL.md), [service](skills/service/SKILL.md), [flyway](skills/flyway/SKILL.md), [test-authoring](skills/test-authoring/SKILL.md) |
 | 코드·설계·테스트 품질 리뷰 · 12개 | [architecture-review-workflow](skills/architecture-review-workflow/SKILL.md), [backend-code-review-workflow](skills/backend-code-review-workflow/SKILL.md), [java-spring-review-workflow](skills/java-spring-review-workflow/SKILL.md), [kotlin-spring-review-workflow](skills/kotlin-spring-review-workflow/SKILL.md), [kotlin-spring-review](skills/kotlin-spring-review/SKILL.md), [oop-design-review](skills/oop-design-review/SKILL.md), [design-pattern-apply](skills/design-pattern-apply/SKILL.md), [refactoring-catalog](skills/refactoring-catalog/SKILL.md), [explore-dead-code](skills/explore-dead-code/SKILL.md), [test-quality-review](skills/test-quality-review/SKILL.md), [test-refactoring](skills/test-refactoring/SKILL.md), [test-quality-refactoring-workflow](skills/test-quality-refactoring-workflow/SKILL.md) |
 | 데이터베이스·검색 · 12개 | [postgres-code-authoring](skills/postgres-code-authoring/SKILL.md), [postgres-query-review](skills/postgres-query-review/SKILL.md), [postgres-schema-design](skills/postgres-schema-design/SKILL.md), [postgres-risk-check](skills/postgres-risk-check/SKILL.md), [postgres-review-workflow](skills/postgres-review-workflow/SKILL.md), [mssql-code-authoring](skills/mssql-code-authoring/SKILL.md), [opensearch-code-authoring](skills/opensearch-code-authoring/SKILL.md), [opensearch-query-review](skills/opensearch-query-review/SKILL.md), [opensearch-schema-review](skills/opensearch-schema-review/SKILL.md), [opensearch-optimization](skills/opensearch-optimization/SKILL.md), [opensearch-review-workflow](skills/opensearch-review-workflow/SKILL.md), [nl-sql-query](skills/nl-sql-query/SKILL.md) |
-| QA·E2E · 5개 | [e2e-scenario-author](skills/e2e-scenario-author/SKILL.md), [e2e-runner](skills/e2e-runner/SKILL.md), [playwright-e2e](skills/playwright-e2e/SKILL.md), [e2e-report-renderer](skills/e2e-report-renderer/SKILL.md), [e2e-test-workflow](skills/e2e-test-workflow/SKILL.md) |
+| QA·E2E · 6개 | [e2e-scenario-author](skills/e2e-scenario-author/SKILL.md), [e2e-runner](skills/e2e-runner/SKILL.md), [playwright-e2e](skills/playwright-e2e/SKILL.md), [e2e-report-renderer](skills/e2e-report-renderer/SKILL.md), [e2e-test-workflow](skills/e2e-test-workflow/SKILL.md), [e2e-evidence-report](skills/e2e-evidence-report/SKILL.md) |
 | 문서·다이어그램·시각 산출물 · 9개 | [code-diagram-extract](skills/code-diagram-extract/SKILL.md), [schema-doc-extract](skills/schema-doc-extract/SKILL.md), [mermaid-diagrams](skills/mermaid-diagrams/SKILL.md), [diagram-styler](skills/diagram-styler/SKILL.md), [document-designer](skills/document-designer/SKILL.md), [markdown-publisher](skills/markdown-publisher/SKILL.md), [pdf-qa](skills/pdf-qa/SKILL.md), [visual-artifact-router](skills/visual-artifact-router/SKILL.md), [korean-dev-writer](skills/korean-dev-writer/SKILL.md) |
 | 평가·지식·회고·협업 · 9개 | [agent-eval](skills/agent-eval/SKILL.md), [skill-updater](skills/skill-updater/SKILL.md), [learn](skills/learn/SKILL.md), [retro](skills/retro/SKILL.md), [knowledge-audit](skills/knowledge-audit/SKILL.md), [harness-propose](skills/harness-propose/SKILL.md), [harness-refine](skills/harness-refine/SKILL.md), [git-flow](skills/git-flow/SKILL.md), [notion-domain-context](skills/notion-domain-context/SKILL.md) |
 
@@ -263,8 +263,8 @@ flowchart LR
 ```text
 vulpora/                  # 현재 GitHub 저장소 경로
 ├── vulpora                 # 새 공개 CLI 진입점
-├── agents/                 # 28개 역할 정의, adapter, 지식 bundle
-├── skills/                 # 65개 SKILL.md 항목, 스크립트, 참고 자료
+├── agents/                 # 29개 역할 정의, adapter, 지식 bundle
+├── skills/                 # 66개 SKILL.md 항목, 스크립트, 참고 자료
 ├── install/                # Manifest, pack, 설치기, receipt, 검사
 ├── .claude-plugin/         # Claude Code marketplace 호환
 ├── mcp/nl-sql/             # 별도로 빌드하는 DB MCP 서버

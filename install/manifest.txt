@@ -51,6 +51,7 @@ agent | task-splitter | agents/task-splitter.md | agents/task-splitter | - | -
 agent | product-planner | agents/product-planner.md | agents/product-planner | - | -
 agent | ux-designer | agents/ux-designer.md | agents/ux-designer | skill:product-ui-design | -
 agent | design-reviewer | agents/design-reviewer.md | agents/design-reviewer | - | -
+agent | load-test-engineer | agents/load-test-engineer.md | agents/load-test | - | -
 
 # --- skills ---
 skill | agent-eval | skills/agent-eval | - | - | -
@@ -67,6 +68,7 @@ skill | e2e-report-renderer | skills/e2e-report-renderer | - | e2e-scenario-auth
 skill | e2e-runner | skills/e2e-runner | - | e2e-scenario-author | -
 skill | e2e-scenario-author | skills/e2e-scenario-author | - | - | -
 skill | e2e-test-workflow | skills/e2e-test-workflow | - | e2e-scenario-author e2e-runner playwright-e2e e2e-report-renderer | -
+skill | e2e-evidence-report | skills/e2e-evidence-report | - | e2e-test-workflow agent:qa-test-designer | -
 skill | entity | skills/entity | - | repository mapper kotlin-code-authoring | -
 skill | enum | skills/enum | - | kotlin-code-authoring | -
 skill | flyway | skills/flyway | - | entity postgres-risk-check | -
