@@ -274,7 +274,9 @@ function balancedBody(content, openIndex, open, close) {
   for (let index = openIndex; index < content.length; index += 1) {
     const character = content[index];
     if (quote) {
-      if (character === quote && content[index - 1] !== '\\') quote = null;
+      // Skip the escaped character as a pair: in "\\" the closing quote follows an escaped backslash.
+      if (character === '\\') index += 1;
+      else if (character === quote) quote = null;
       continue;
     }
     if (character === '"' || character === "'") { quote = character; continue; }
@@ -583,7 +585,9 @@ function discoverKafka(content, sourceRef, module, surfaces, resolver) {
   }
 }
 
-function discoverOutbox(content, sourceRef, module, surfaces) {
+function discoverOutbox(source, sourceRef, module, surfaces) {
+  // Comments are prose: an apostrophe there is not a char literal. Masking keeps offsets for line numbers.
+  const content = maskSourceTrivia(source);
   for (const match of content.matchAll(/\bclass\s+([A-Za-z_][A-Za-z0-9_]*)/g)) {
     const tail = content.slice(match.index, match.index + 600);
     const braceOffset = tail.indexOf('{');

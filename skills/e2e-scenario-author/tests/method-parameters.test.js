@@ -65,6 +65,28 @@ for (const language of ['java', 'kotlin']) {
     });
   }
 
+  test(`${language} closes string and char literals that end with an escaped backslash`, t => {
+    // "\\" and '\\' end with a backslash that is itself escaped; the closing quote must still end the literal.
+    const java = language === 'java';
+    const helper = java
+      ? 'final class Escapes { static String escape(String s) { return s.replace("\\\\", "\\\\\\\\").replace(\'\\\\\', \'/\'); } }\n'
+      : 'class Escapes { fun escape(s: String) = s.replace("\\\\", "\\\\\\\\").replace(\'\\\\\', \'/\') }\n';
+    const parameters = java ? '@Valid @RequestBody CreateRequest request' : '@Valid @RequestBody request: CreateRequest';
+    const content = source(language, endpoint(language, parameters), helper + dto(language));
+    assert.deepEqual(inventory(run(t, language, content))[0].required_behaviors, ['HAPPY', 'VALIDATION-FAIL-TITLE-NOT-BLANK']);
+  });
+
+  test(`${language} ignores apostrophes in comments while scanning outbox owners`, t => {
+    // An apostrophe in prose ("spring-kafka's") is not a char literal and must not unbalance the class body.
+    const java = language === 'java';
+    const publisher = java
+      ? '/** Mirrors spring-kafka\'s listener setup. */\nclass Publisher { // it\'s here\n  private final OutboxEventPublisher publisher = null;\n}\n'
+      : '/** Mirrors spring-kafka\'s listener setup. */\nclass Publisher { // it\'s here\n  private val publisher: OutboxEventPublisher? = null\n}\n';
+    const surfaces = inventory(run(t, language, source(language, endpoint(language), publisher)));
+    assert.deepEqual(surfaces.filter(surface => surface.type === 'outbox').map(surface => [surface.owner, surface.required_behaviors]),
+      [['Publisher', ['PUBLISH']]]);
+  });
+
   test(`${language} balances annotation arguments, literals and comments before parsing parameters`, t => {
     const java = language === 'java';
     const annotations = java
