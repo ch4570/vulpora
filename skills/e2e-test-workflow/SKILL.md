@@ -45,6 +45,30 @@ Apply these defaults:
 Do not create containers, start applications, mutate test data, or write report directories until the lane selection
 and catalog state are known.
 
+## Fast path (default for run-only requests)
+
+A run-only request ("just run the E2E", "돌려 봐") with an existing catalog and only `api-integration` selected uses
+this path; the full workflow below applies only when authoring, browser, report, or a stale-catalog decision is needed.
+
+1. `detect-test-profile.js`: stop `BLOCKED` on `blocked-docker-runtime`; keep `infrastructure.dockerEnvironment`.
+2. Regenerate the inventory read-only and run `validate-catalog.js <catalog> <contract> <inventory>`. Deviations in
+   `known-deviations.json` proceed without asking; only an unregistered mismatch is stale.
+3. `export-catalog-plan.js`, `audit-orphans.js snapshot`, run the repository harness (or `e2e-runner`) once with
+   `dockerEnvironment`, then `audit-orphans.js audit --baseline`.
+4. `assemble-run-result.js … --orphan-audit`, `validate-run-result.js --require-done`, `evaluate-run-verdict.js`.
+5. Report the evaluator's four `humanSummary` lines (passed, failed, excluded, not verified), the verdict, and the
+   known deviations. Nothing else is required for a run-only answer.
+
+## Repository harness adapter
+
+When a repository catalog harness (for example a `CatalogE2EHarnessTest`) starts and stops its own containers, it is
+the single environment owner: do not create a second environment or a separate `environment.json`. It follows
+`e2e-runner`'s repository catalog harness path (plan → observations → assembled result). Its observations supply
+`environment` (runtime proof, images, endpoints) and `lifecycle` (case cleanup such as `runSeedCleanup`, its own
+`stop()` as teardown, absence probes); the orphan audit always comes from `audit-orphans.js`, never the harness's
+claim. A harness result that fails `validate-run-result.js` is not evidence, and a missing lifecycle field is
+`NOT_RUN`, never an implied `PASS`.
+
 ## Workflow
 
 ### 1. Check the component inventory
@@ -71,7 +95,10 @@ Apply the environment-planning and proof rules from `e2e-runner` exactly once. O
 
 `network -> infrastructure -> initialization -> application -> API client -> browser client -> teardown`
 
-Create one run journal and one `environment.json` before the first resource is created. Bind every Spring Boot or
+Before the first resource, run `e2e-runner`'s `detect-test-profile.js`, stop `BLOCKED` on
+`blocked-docker-runtime`, and pass its `infrastructure.dockerEnvironment` to every process that starts
+Testcontainers. Create one run journal and one `environment.json` before the first resource is created, unless a
+repository harness owns the environment under the adapter above. Bind every Spring Boot or
 NestJS application, stateful dependency, external stub, API client, and Playwright `baseURL` to run-owned mapped
 endpoints. Treat Compose and existing processes as evidence only; never adopt or mutate them.
 
@@ -92,7 +119,9 @@ Run `browser` next only when selected and all of these are proven:
 - the same run-owned `environment.json` and a local ephemeral `baseURL`
 
 An explicitly requested browser lane without this evidence is `BLOCKED`; do not invent UI behavior, selectors,
-credentials, seed helpers, or broad cleanup. Execute each browser case once with retries disabled.
+credentials, seed helpers, or broad cleanup. When the browser lane is `NOT_APPLICABLE` or `BLOCKED` for a repository
+with a UI, list the missing pieces (Playwright config, locator convention, QA cases for named screens) as a
+coverage gap so the next run can enable the lane. Execute each browser case once with retries disabled.
 
 Continue independent requested cases after an ordinary product assertion failure when the environment remains
 trustworthy. Stop further mutation after an infrastructure, cleanup, absence-probe, ownership, or integrity failure,
@@ -102,7 +131,8 @@ then enter teardown immediately.
 
 Clean case-scoped data before the next case and verify absence. After all runnable lanes finish or an integrity
 failure stops execution, terminate the application, containers, and network in reverse order. Audit the run labels
-for zero orphaned processes and containers.
+for zero orphaned processes and containers with `audit-orphans.js` against the pre-run snapshot; its grace window
+absorbs Ryuk's asynchronous reaping, so do not judge orphans from one immediate `docker ps`.
 
 Never let API and browser components each claim separate teardown success for the same run. The workflow records one
 combined cleanup, teardown, absence-probe, and orphan-audit result. Missing or failed lifecycle evidence prevents
@@ -149,7 +179,9 @@ Return one concise workflow handoff containing:
 1. repository, frozen revision, requested scope, and selected lanes
 2. exact component inventory and per-phase status (`PASS`, `NON_PASS`, `BLOCKED`, or `NOT_APPLICABLE`)
 3. catalog fingerprint and whether generated files changed
-4. API/integration and browser case counts with original component artifact paths
+4. API/integration and browser case counts with original component artifact paths, plus the catalog total, the
+   unselected count grouped by reason (`notSelected`), and discovery `excluded_sources`; never report only the
+   executed count
 5. combined environment owner, runtime proof, cleanup, absence-probe, teardown, and orphan-audit evidence
 6. `test_verdict` and `workflow_status` with reason codes
 7. persisted JSON, Markdown, browser artifacts, and HTML paths only when they actually exist

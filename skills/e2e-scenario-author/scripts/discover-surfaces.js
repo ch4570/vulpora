@@ -249,13 +249,43 @@ function behaviorToken(value) {
   return value.replace(/([a-z0-9])([A-Z])/g, '$1-$2').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').toUpperCase();
 }
 
+function eraseTypeArgumentAnnotations(text) {
+  // Type-use annotations such as List<@Valid @NotNull T> validate elements, not the
+  // declared component. Blank them (offset-preserving) so they neither become the
+  // component's floor nor shift onto the next component.
+  let result = '';
+  let cursor = 0;
+  for (let open = text.indexOf('<'); open >= 0; open = text.indexOf('<', open + 1)) {
+    if (open < cursor || !/[A-Za-z0-9_$]\s*$/.test(text.slice(Math.max(0, open - 64), open))) continue;
+    let depth = 0;
+    let close = -1;
+    for (let index = open; index < text.length; index += 1) {
+      if (/[;{}]/.test(text[index])) break; // Comparison, not a type argument list.
+      if (text[index] === '<') depth += 1;
+      if (text[index] === '>' && --depth === 0) { close = index; break; }
+    }
+    if (close < 0) continue;
+    const span = text.slice(open, close).replace(/@[A-Za-z_$][A-Za-z0-9_$.:]*(?:\s*\([^)]*\))?/g,
+      (annotation) => annotation.replace(/[^\n]/g, ' '));
+    result += text.slice(cursor, open) + span;
+    cursor = close;
+  }
+  return result + text.slice(cursor);
+}
+
 function validationBehaviors(window) {
   const found = new Set();
-  const kotlin = /@(?:field:)?(NotBlank|NotNull|Min|Max|Size|Pattern|Positive|Negative)(?:\([^)]*\))?\s+(?:(?:@\w+(?:\([^)]*\))?\s+)*)(?:val\s+|var\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*:/g;
-  const java = /@(?:field:)?(NotBlank|NotNull|Min|Max|Size|Pattern|Positive|Negative)(?:\([^)]*\))?\s+(?:(?:@\w+(?:\([^)]*\))?\s+)*)(?:[A-Za-z_$][A-Za-z0-9_$<>?,.\[\]]*\s+)+([A-Za-z_][A-Za-z0-9_]*)\s*[,);]/g;
+  window = eraseTypeArgumentAnnotations(window);
+  // Capture the whole leading annotation run: @NotNull @Size(...) both bind the declaration.
+  // Java type tokens are lazy so a comma-bearing token cannot reach the next component's name.
+  const annotations = '((?:@(?:field:)?[A-Za-z_][A-Za-z0-9_]*(?:\\([^)]*\\))?\\s+)+)';
+  const kotlin = new RegExp(`${annotations}(?:val\\s+|var\\s+)?([A-Za-z_][A-Za-z0-9_]*)\\s*:`, 'g');
+  const java = new RegExp(`${annotations}(?:[A-Za-z_$][A-Za-z0-9_$<>?,.\\[\\]]*\\s+)+?([A-Za-z_][A-Za-z0-9_]*)\\s*[,);]`, 'g');
   for (const pattern of [kotlin, java]) {
     for (const match of window.matchAll(pattern)) {
-      found.add(`VALIDATION-FAIL-${behaviorToken(match[2])}-${CONSTRAINTS.get(match[1])}`);
+      for (const annotation of match[1].matchAll(/@(?:field:)?(NotBlank|NotNull|Min|Max|Size|Pattern|Positive|Negative)\b/g)) {
+        found.add(`VALIDATION-FAIL-${behaviorToken(match[2])}-${CONSTRAINTS.get(annotation[1])}`);
+      }
     }
   }
   const typescriptProperty = /((?:\s*@[A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?\s*)+)([A-Za-z_][A-Za-z0-9_]*)[!?]?\s*:/g;
@@ -296,6 +326,7 @@ function maskSourceTrivia(content, strings = false) {
 function collectTypeConstraints(sourceFiles, root, profile) {
   const types = new Map();
   const sources = new Map();
+  const enums = new Map();
   for (const file of sourceFiles) {
     const content = maskSourceTrivia(fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n'));
     const source = relative(root, file);
@@ -303,6 +334,13 @@ function collectTypeConstraints(sourceFiles, root, profile) {
     const packageName = syntax.match(/^\s*package\s+([A-Za-z_][A-Za-z0-9_.]*)/m)?.[1] || '';
     const module = profile === 'spring-jvm' ? springModuleName(root, file) : nearestPackage(root, file).directory;
     sources.set(source, {content, syntax, packageName, module});
+    for (const match of syntax.matchAll(/\benum\s+(?:class\s+)?([A-Z][A-Za-z0-9_]*)[^{;]*\{([^}]*)/g)) {
+      const constants = match[2].split(';')[0].replace(/\([^)]*\)/g, '').split(',')
+        .map((value) => value.trim()).filter((value) => /^[A-Za-z_][A-Za-z0-9_]*$/.test(value));
+      // Same-named enums with different constants cannot constrain a body value.
+      const known = enums.get(match[1]);
+      enums.set(match[1], known === undefined || JSON.stringify(known) === JSON.stringify(constants) ? constants : null);
+    }
     let scanned = 0;
     let depth = 0;
     for (const match of syntax.matchAll(/\b(?:(?:data\s+)?class|record)\s+([A-Za-z_][A-Za-z0-9_]*)/g)) {
@@ -334,18 +372,79 @@ function collectTypeConstraints(sourceFiles, root, profile) {
           validationBody += classBody;
         }
         unsupported = (open === '(' && /^\s*(?::|extends\b|implements\b)/.test(after))
-          || /\b(?:class|record|interface)\s|@Valid\b|@ValidateNested\b/.test(maskSourceTrivia(validationBody, true));
+          || /\b(?:class|record|interface)\s|@Valid\b|@ValidateNested\b/.test(
+            eraseTypeArgumentAnnotations(maskSourceTrivia(validationBody, true)));
       }
       const behaviors = validationBehaviors(maskSourceTrivia(validationBody, true));
       const entries = types.get(match[1]) || [];
-      entries.push({behaviors, source, module, unsupported,
+      entries.push({behaviors, source, module, unsupported, components: declaredComponents(validationBody),
         qualifiedName: packageName ? `${packageName}.${match[1]}` : match[1],
         exported: /\bexport\s+(?:abstract\s+)?$/.test(content.slice(0, match.index)),
       });
       types.set(match[1], entries);
     }
   }
-  return {types, sources};
+  return {types, sources, enums};
+}
+
+function declaredComponents(body) {
+  // Simple-typed components only; JSON names follow the declared name (no @JsonProperty resolution).
+  const text = eraseTypeArgumentAnnotations(maskSourceTrivia(body, true));
+  const components = [];
+  for (const match of text.matchAll(/\b(?:val|var)\s+([a-z][A-Za-z0-9_]*)\s*:\s*([A-Z][A-Za-z0-9_]*)\??\s*[,)=]/g)) {
+    components.push({name: match[1], type: match[2]});
+  }
+  for (const match of text.matchAll(/(?:^|[(,;{]|\s)([A-Z][A-Za-z0-9_]*)\s+([a-z][A-Za-z0-9_]*)\s*[,;)=]/g)) {
+    components.push({name: match[2], type: match[1]});
+  }
+  return components;
+}
+
+function enumComponents(entry, typeConstraints) {
+  const result = {};
+  for (const {name, type} of entry.components) {
+    const constants = typeConstraints.enums.get(type);
+    if (constants && constants.length > 0) result[name] = constants;
+  }
+  return result;
+}
+
+function springParameterFacts(parameters) {
+  // Split the proven parameter list at top-level commas and record where each
+  // path/query/header value lives, whether Spring requires it, and its constraints.
+  const syntax = maskSourceTrivia(parameters, true);
+  const inner = syntax.slice(1, -1);
+  const pieces = [];
+  let depth = 0;
+  let start = 0;
+  for (let index = 0; index <= inner.length; index += 1) {
+    const character = inner[index];
+    if (index === inner.length || (character === ',' && depth === 0)) {
+      pieces.push({text: inner.slice(start, index), raw: parameters.slice(1 + start, 1 + index)});
+      start = index + 1;
+    } else if ('(<[{'.includes(character)) depth += 1;
+    else if (')>]}'.includes(character)) depth -= 1;
+  }
+  const facts = [];
+  for (const {text, raw} of pieces) {
+    const binding = text.match(/@(PathVariable|RequestParam|RequestHeader)\b(?:\s*\(([^)]*)\))?/);
+    if (!binding) continue;
+    const args = binding[2] ? raw.slice(text.indexOf('(', binding.index) + 1, text.indexOf(')', binding.index)) : '';
+    const declared = eraseTypeArgumentAnnotations(text).replace(/@[A-Za-z_$][A-Za-z0-9_$.:]*(?:\s*\([^)]*\))?/g, ' ').trim();
+    const kotlin = declared.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.+)$/);
+    const name = (args.match(/(?:^|\b(?:value|name)\s*=\s*)"([^"]+)"/) || [])[1]
+      || (kotlin ? kotlin[1] : declared.split(/\s+/).at(-1));
+    const type = kotlin ? kotlin[2].trim() : declared.split(/\s+/).slice(0, -1).join(' ');
+    const optional = /\brequired\s*=\s*false\b|\bdefaultValue\s*=/.test(args)
+      || /^Optional\s*</.test(type) || /\?\s*(?:=.*)?$/.test(type);
+    const constraints = [...text.matchAll(/@(?:field:)?(NotBlank|NotNull|Min|Max|Size|Pattern|Positive|Negative)\b/g)]
+      .map((constraint) => CONSTRAINTS.get(constraint[1]));
+    facts.push({
+      name, in: {PathVariable: 'path', RequestParam: 'query', RequestHeader: 'header'}[binding[1]],
+      required: binding[1] === 'PathVariable' || !optional, constraints: [...new Set(constraints)].sort(),
+    });
+  }
+  return facts.sort((left, right) => compareCodeUnits(left.name, right.name));
 }
 
 function resolvedRequestBehaviors(typeName, typeConstraints, sourceRef, sourceLine, nest = false) {
@@ -399,12 +498,12 @@ function resolvedRequestBehaviors(typeName, typeConstraints, sourceRef, sourceLi
   }
   if (candidates.length !== 1) reject(`resolves to ${candidates.length} declarations`);
   if (candidates[0].unsupported) reject('inherited, generic, or nested validation requires unsupported type resolution');
-  return candidates[0].behaviors;
+  return candidates[0];
 }
 
 function validatedRequestBehaviors(window, typeConstraints, sourceRef, sourceLine) {
   window = maskSourceTrivia(window, true);
-  if (!/@Valid\b/.test(window)) return [];
+  if (!/@Valid\b/.test(window)) return {behaviors: [], enums: {}};
   const typeNames = [];
   for (const match of window.matchAll(/@Valid\b(?:\s+@\w+(?:\([^)]*\))?)*\s+[A-Za-z_][A-Za-z0-9_]*\s*:\s*([^\s,)]+)/g)) {
     typeNames.push(match[1]);
@@ -414,10 +513,13 @@ function validatedRequestBehaviors(window, typeConstraints, sourceRef, sourceLin
   }
   if (typeNames.length !== [...window.matchAll(/@Valid\b/g)].length) fail('SCA-5.2', `${sourceRef}:${sourceLine}: unresolved @Valid request type`);
   const result = new Set();
+  const enums = {};
   for (const typeName of typeNames) {
-    for (const behavior of resolvedRequestBehaviors(typeName, typeConstraints, sourceRef, sourceLine)) result.add(behavior);
+    const entry = resolvedRequestBehaviors(typeName, typeConstraints, sourceRef, sourceLine);
+    for (const behavior of entry.behaviors) result.add(behavior);
+    Object.assign(enums, enumComponents(entry, typeConstraints));
   }
-  return [...result].sort();
+  return {behaviors: [...result].sort(), enums};
 }
 
 function validatedNestRequestBehaviors(window, typeConstraints, sourceRef, sourceLine, validationEnabled) {
@@ -430,7 +532,7 @@ function validatedNestRequestBehaviors(window, typeConstraints, sourceRef, sourc
   if (typeNames.length !== [...window.matchAll(/@Body\b/g)].length) fail('SCA-5.2', `${sourceRef}:${sourceLine}: unresolved @Body request type`);
   const result = new Set();
   for (const typeName of typeNames) {
-    for (const behavior of resolvedRequestBehaviors(typeName, typeConstraints, sourceRef, sourceLine, true)) result.add(behavior);
+    for (const behavior of resolvedRequestBehaviors(typeName, typeConstraints, sourceRef, sourceLine, true).behaviors) result.add(behavior);
   }
   return [...result].sort();
 }
@@ -512,6 +614,12 @@ function discoverHttp(content, sourceRef, module, surfaces, typeConstraints, res
   if (controllerCount !== 1) fail('SCA-5.2', `${sourceRef}: multiple controllers in one source file`);
   const classIndex = content.search(/\b(?:class|interface)\s+[A-Za-z_][A-Za-z0-9_]*/);
   const classPrefix = classIndex >= 0 ? content.slice(0, classIndex) : '';
+  // Spring Boot error controllers serve the container's error dispatch for every method
+  // (method-less @RequestMapping on server.error.path); they are not client-invokable surfaces.
+  const supertypes = classIndex >= 0
+    ? maskSourceTrivia(content.slice(classIndex, content.indexOf('{', classIndex)), true)
+      .replace(/^\s*(?:class|interface)\s+[A-Za-z_][A-Za-z0-9_]*/, '') : '';
+  if (/\b(?:Abstract|Basic)?ErrorController\b/.test(supertypes)) return;
   const classMappings = [...classPrefix.matchAll(/@RequestMapping(?:\s*\(([^)]*)\))?/g)];
   const basePaths = classMappings.length
     ? annotationLiterals(classMappings.at(-1)[1], `${sourceRef}:${lineOf(content, classMappings.at(-1).index)}`, ['value', 'path'], true, resolver)
@@ -551,7 +659,9 @@ function discoverHttp(content, sourceRef, module, surfaces, typeConstraints, res
     const methodAnnotations = precedingAnnotationBlock(content, match.index);
     const directValidation = validationBehaviors(maskSourceTrivia(parameters, true));
     const requestValidation = validatedRequestBehaviors(parameters, typeConstraints, sourceRef, sourceLine);
-    const behaviors = new Set(['HAPPY', ...directValidation, ...requestValidation]);
+    const behaviors = new Set(['HAPPY', ...directValidation, ...requestValidation.behaviors]);
+    // Request facts let the catalog validator reject requests a correct server would refuse.
+    const request = {parameters: springParameterFacts(parameters), body_enums: requestValidation.enums};
     if (classAuth || hasLocalAuth(methodAnnotations, authAnnotations)) behaviors.add('AUTH-FAIL');
     for (const base of basePaths) for (const leaf of leafPaths) {
       const route = joinRoute(base, leaf);
@@ -560,6 +670,7 @@ function discoverHttp(content, sourceRef, module, surfaces, typeConstraints, res
         key: `http:${method}:${route}:${module}`,
         type: 'http', target, module, method, path: route,
         required_behaviors: [...behaviors].sort(), source: `${sourceRef}:${sourceLine}`,
+        ...(request.parameters.length || Object.keys(request.body_enums).length ? {request} : {}),
       });
     }
   }
@@ -693,6 +804,45 @@ function discoverNestHttp(content, sourceRef, module, surfaces, typeConstraints,
   }
 }
 
+const DEVIATIONS_PATH = 'docs/e2e-scenarios/known-deviations.json';
+
+function readDiscoveryExclusions(root, sources) {
+  // Reviewed, expiring deviations (CONTRACT.md §8). Discovery honors only
+  // `discovery-exclusion` entries: those files stay fingerprinted, but their surface
+  // discovery is skipped. Scenario exclusions are validated by the catalog validator.
+  const file = path.join(root, DEVIATIONS_PATH);
+  let stat;
+  try { stat = fs.lstatSync(file); } catch { return null; }
+  const reject = (detail) => fail('SCA-5.3', `${DEVIATIONS_PATH}: ${detail}`);
+  if (!stat.isFile() || stat.isSymbolicLink()) reject('must be a regular file');
+  let registry;
+  try { registry = JSON.parse(fs.readFileSync(file, 'utf8')); } catch { reject('invalid JSON'); }
+  if (registry?.schema !== 'vulpora.e2e-known-deviations/v1' || !Array.isArray(registry.deviations)
+    || registry.deviations.length === 0) reject('requires schema vulpora.e2e-known-deviations/v1 and non-empty deviations');
+  const today = new Date().toISOString().slice(0, 10);
+  const paths = new Set();
+  const entries = [];
+  for (const entry of registry.deviations) {
+    const {kind, reason, approvedBy, expires} = entry || {};
+    const subject = entry?.path ?? entry?.scenario;
+    if (typeof reason !== 'string' || reason.trim().length === 0) reject(`${subject}: reason is required`);
+    if (typeof approvedBy !== 'string' || approvedBy.trim().length === 0) reject(`${subject}: approvedBy is required`);
+    if (typeof expires !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(expires)
+      || Number.isNaN(Date.parse(`${expires}T00:00:00Z`))) reject(`${subject}: expires must be YYYY-MM-DD`);
+    if (expires < today) reject(`${subject}: deviation expired on ${expires}`);
+    if (kind === 'scenario-exclusion') continue;
+    if (kind !== 'discovery-exclusion') reject(`${subject}: kind must be discovery-exclusion or scenario-exclusion`);
+    if (typeof entry.path !== 'string' || !sources.has(entry.path)) reject(`${entry.path}: not a discovered source file`);
+    if (paths.has(entry.path)) reject(`${entry.path}: duplicate exclusion`);
+    paths.add(entry.path);
+    entries.push({approvedBy: approvedBy.trim(), expires, path: entry.path, reason: reason.trim()});
+  }
+  if (entries.length === 0) return null;
+  entries.sort((left, right) => compareCodeUnits(left.path, right.path));
+  // Only discovery entries bind the source fingerprint; scenario exclusions can change without staleness.
+  return {content: canonicalJson(entries), entries, paths};
+}
+
 const [rootArg, contractArg] = process.argv.slice(2);
 if (!rootArg || !contractArg || process.argv.length !== 4) fail('USAGE', 'discover-surfaces.js ROOT CONTRACT');
 let root;
@@ -750,18 +900,25 @@ const nestSettings = profile === 'node-nestjs' ? collectNestSettings(sourceFiles
 const nestAuthDecorators = profile === 'node-nestjs' ? collectNestAuthDecorators(sourceFiles) : new Set();
 const inputs = [...new Set([...buildFiles, ...sourceFiles, ...configFiles])]
   .sort((left, right) => compareCodeUnits(relative(root, left), relative(root, right)));
+const exclusions = readDiscoveryExclusions(root, new Set(sourceFiles.map((file) => relative(root, file))));
 const fingerprint = crypto.createHash('sha256');
 fingerprint.update(`${profile}\0`);
 fingerprint.update('docs/e2e-scenarios/CONTRACT.md\0');
 fingerprint.update(contract);
 fingerprint.update('\0');
+if (exclusions) {
+  // Only an existing registry joins the digest, so catalogs without one keep their fingerprint.
+  fingerprint.update(`${DEVIATIONS_PATH}\0`);
+  fingerprint.update(exclusions.content);
+  fingerprint.update('\0');
+}
 const surfaces = [];
 for (const file of inputs) {
   const rel = relative(root, file);
   const content = fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
   fingerprint.update(rel); fingerprint.update('\0'); fingerprint.update(content); fingerprint.update('\0');
   const isSource = profile === 'spring-jvm' ? SPRING_SOURCE_PATTERN.test(`/${rel}`) : isNodeSource(file);
-  if (!isSource) continue;
+  if (!isSource || exclusions?.paths.has(rel)) continue;
   const module = profile === 'spring-jvm' ? springModuleName(root, file) : nearestPackage(root, file).module;
   if (profile === 'spring-jvm') {
     discoverHttp(content, rel, module, surfaces, typeConstraints, resolver, composedMappings, authAnnotations);
@@ -784,5 +941,6 @@ const result = {
   source_fingerprint: fingerprint.digest('hex'),
   inputs: inputs.map((file) => relative(root, file)),
   surfaces,
+  ...(exclusions ? {excluded_sources: exclusions.entries} : {}),
 };
 process.stdout.write(`${canonicalJson(result)}\n`);

@@ -4,6 +4,43 @@ Vulpora의 사용자 관점 변경 사항을 기록합니다.
 
 ## [Unreleased]
 
+- `e2e-scenario-author`의 Spring 요청 DTO 검증 수집을 고쳤습니다. `List<@Valid @NotNull Item>`처럼
+  타입 인자 안에 있는 원소 검증 애노테이션 때문에 record 전체를 `SCA-5.2`로 거부하던 문제와, 그
+  애노테이션이 다음 컴포넌트의 제약으로 붙던 문제입니다. `@NotNull @Size(...)`처럼 연속된 제약도 이제
+  모두 집계합니다. Spring Boot `ErrorController` 구현체는 HTTP 표면에서 제외합니다. 컴포넌트 수준
+  중첩 `@Valid`와 메서드 지정 없는 일반 `@RequestMapping`은 기존처럼 fail-closed로 거부합니다.
+- E2E 결과의 PASS가 실제로 무엇을 비교했는지 남기게 했습니다. 실행된 결과마다 `assertions[]`(상태 코드와 본문
+  단언)를 기록하고, `evaluate-run-verdict.js`는 비교가 없는 PASS(`NO_ASSERTION`)와 비교와 모순되는 PASS
+  (`PASS_CONTRADICTS_ASSERTION`)를 `INCONCLUSIVE`로 판정합니다. 백틱 때문에 상태 비교가 빠진 하네스 결과는 이제
+  통과로 집계되지 않습니다.
+- 카탈로그 `Expected`에 기계가 검사하는 본문 단언(`assert $.path <연산자> [값]`, `[*]` 투영과 배열 리터럴 포함)을
+  추가했습니다. 사람이 쓰는 단언과 우선순위는 `docs/e2e-scenarios/scenario-overrides.json`에 두며, 카탈로그를 다시
+  생성해도 사라지지 않습니다. 없어진 시나리오를 가리키는 override는 `SCA-15.ORPHAN-OVERRIDE`로 드러납니다.
+- 수집기가 HTTP 표면의 요청 정보(경로·쿼리 파라미터의 위치와 필수 여부, 제약, 본문 enum 상수)를 인벤토리에 남기고,
+  `validate-catalog.js`가 정상 서버가 거부할 요청을 막습니다: 필수 파라미터 누락, 채우지 않은 경로 변수, 경로 변수
+  제약을 쿼리로 위반, 소스에 없는 enum 값, 선행 시나리오가 캡처하지 않는 `{{prev.X}}`. 확신할 수 없는 시나리오는
+  `Notes`의 `hold: <이유>`로 보류하며, 실행되지 않고 이유와 함께 보고됩니다.
+- 알려진 편차를 `docs/e2e-scenarios/known-deviations.json`에 사유·승인자·만료일과 함께 등록합니다. 수집 제외
+  (`discovery-exclusion`)와 시나리오 실행 제외(`scenario-exclusion`)를 지원하고, 등록된 편차만 있으면 승인 질문 없이
+  진행하며 보고서에 표시합니다. 만료되거나 잘못된 항목은 `SCA-5.3`으로 막습니다.
+- 저장소 하네스를 정식 실행 수단으로 받아들입니다. `export-catalog-plan.js`가 실행 순서·지연 teardown·override·
+  우선순위·제외 사유를 담은 계획을 만들고, 하네스는 관찰만 기록합니다. `assemble-run-result.js`가 단언·가림·판정
+  입력·`.done`을 처리하고, `validate-run-result.js`가 CONTRACT §5 형식·비교 기록·가림·판정 입력·`.done`을 검사합니다.
+  최소 Java 예제 `reference/examples/CatalogPlanRunner.java`를 함께 제공합니다.
+- 의존 시나리오가 있는 선행 시나리오의 teardown은 마지막 의존 시나리오가 끝난 뒤 실행합니다. 실패한 선행 시나리오
+  뒤에 실행된 의존 시나리오는 `FAILED-DEPENDENCY`로 집계합니다.
+- `check-output-root.js`로 보고서 출력 경로가 저장소 추적 파일과 겹치면 시작 전에 멈춥니다.
+- `e2e-report-renderer` 템플릿이 고정 열 배치로 목적 칸이 찌그러지지 않게 하고, 생성 시각·전체 소요 시간을
+  CONTRACT 필드로 채우며, 첫 화면에 확인한 비교 수와 제외·편차 목록을 보여 줍니다.
+- `evaluate-run-verdict.js`가 선택되지 않은 케이스마다 `unselectedReason`을 요구하고, 결과에
+  `selection.unselected`와 이유별 `notSelected`를 냅니다. 실행한 개수만 보고하는 결과를 막습니다.
+- `detect-test-profile.js`가 `infrastructure.dockerEnvironment`를 내고, runner·workflow는 카탈로그 하네스를
+  포함한 모든 Testcontainers 프로세스에 이를 적용합니다(Rancher Desktop·Colima 소켓 대응).
+- 새 `audit-orphans.js`는 실행 전 스냅숏과 비교하고 Ryuk의 비동기 정리를 유예 시간(기본 30초) 동안
+  기다린 뒤 잔여 컨테이너를 판정합니다. Docker 오류는 `PASS`가 되지 않습니다.
+- `e2e-test-workflow`는 run-only 요청에 빠른 경로를 기본으로 쓰고 결과를 통과·실패·제외·확인하지 못한 것 네 줄로
+  보고합니다. 저장소 카탈로그 하네스를 단일 환경 소유자로 받아들이는 어댑터 규약을 추가했고, 브라우저 lane을
+  쓸 수 없으면 필요한 구성을 커버리지 공백으로 남깁니다.
 - `e2e-scenario-author`의 surface 탐지가 정상 Java·Kotlin 소스를 `SCA-5.2`로 거부하던 두 경우를
   고쳤습니다. `"\\"`처럼 이스케이프된 백슬래시로 끝나는 문자열·문자 리터럴을 닫히지 않은 것으로
   보던 문제와, outbox 소유 클래스를 찾을 때 주석 속 아포스트로피(`spring-kafka's`)를 문자 리터럴로
