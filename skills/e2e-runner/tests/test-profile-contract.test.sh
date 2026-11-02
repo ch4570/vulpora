@@ -260,5 +260,6 @@ if node "$RESULT_SUMMARIZER" "$WORK/results-link" >/dev/null 2>&1; then
 fi
 
 node "$VERDICT_CONTRACT"
+node --test "$ROOT/tests/runner-helpers.test.js" "$ROOT/tests/harness-pipeline.test.js" >/dev/null
 
 echo 'e2e test profile contract: PASS'

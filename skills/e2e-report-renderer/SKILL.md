@@ -90,9 +90,10 @@ Color alone MUST NOT carry information (accessibility). Contrast targets WCAG AA
 
 **REN-12 (Layout) — MUST.** The single-run report contains, in order:
 1. Header — `runId`, `mode`, `git.sha`, `git.branch`, catalog SHA, stale flag, working-tree-dirty flag, wall time.
-2. Summary cards — exactly five numbers (`pass`, `fail`, `skipped`, `failedDependency`, `probeError`) plus `total`. `total` is rendered as a literal copy of `summary.total` (validated for math under `REN-5`), not recomputed in JS.
+2. Summary cards — `pass`, `fail`, `skipped`, `failedDependency`, `total` (a literal copy of `summary.total`, validated for math under `REN-5`), and **checked comparisons / scenarios with comparisons** from `results[*].assertions`. A run whose PASS rows record no comparison shows it on the first screen. Header time uses `generatedAt`, else `finishedAt`; wall time uses `wallTimeMs`, else `finishedAt - startedAt`.
+2.1. Exclusions and known deviations — every `notSelected` group and every `catalog.knownDeviations` / `catalog.excludedSources` entry, or "없음".
 3. Filters — area dropdown, status dropdown (with `PROBE-ERROR` as a distinct option), text search.
-4. Results table — `ID / Purpose / Dataset / Expected / Actual / Status / Latency`, expandable per row to show embedded raw body / log tail.
+4. Results table — `ID / Purpose / Dataset / Expected / Actual / Status / Latency` with a fixed column layout (long `actual` values are clipped and shown in full in the row detail), expandable per row to show each comparison, embedded raw body, and log tail.
 5. Failures detail — every `FAIL` row expanded by default.
 6. Remaining risks — bulleted list from `remainingRisks`.
 

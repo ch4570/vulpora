@@ -70,6 +70,11 @@ fingerprints when continuing with an explicitly accepted stale catalog. When fin
 `validate-catalog.js <catalog> <contract> <inventory>` and require source-target/behavior coverage before any
 scenario executes. On mismatch, run structural validation without the inventory first, then follow only the explicit
 stale-catalog path; do not misreport `SCA-19.FINGERPRINT-MISMATCH` as malformed Markdown.
+Deviations registered in the project's reviewed `docs/e2e-scenarios/known-deviations.json` (`CONTRACT.md §9`) never
+require a confirmation: a discovery exclusion keeps the fingerprint binding (record `catalog.excludedSources`), and a
+scenario exclusion leaves that scenario unselected with its reason. Report every deviation. The runner never writes
+that registry; an expired or invalid entry fails and follows the validation-failure path. Only an unregistered
+mismatch is a stale catalog.
 
 **RUN-6 (Parsing) — MUST.** Parse scenarios by the literal keys from [`CONTRACT.md §1`](../../../../docs/e2e-scenarios/CONTRACT.md), exactly one primary executor fence (`http` / `sql` / `shell`), and the optional following `shell` teardown fence. A non-`—` `Mutates` requires teardown; a read-only scenario forbids it. If the format does not match, stop with a precise line-number error. MUST NOT attempt format recovery.
 
@@ -159,7 +164,12 @@ Allowed topologies are:
 - **Browser run:** `playwright-e2e` owns Node Testcontainers plus the test application for the full Playwright run.
 
 **RUN-7.1 (Runtime and endpoint proof) — MUST.** Docker CLI reachability is not Testcontainers reachability.
-Resolve the active local Docker context endpoint and pass it to the selected test process when needed. Remote
+Resolve the active local Docker context endpoint and pass it to the selected test process when needed. Before any
+resource is created, read `infrastructure.dockerEnvironment` from the `RUN-6.3` profile and pass it to every
+Testcontainers process, including a repository catalog harness; Rancher Desktop and Colima contexts expose a
+non-default socket that the JVM client does not find alone. When `recommendedExecution` is
+`blocked-docker-runtime`, stop `BLOCKED` with `docker context ls` and `docker context use <local-context>` as the
+remediation instead of attempting a run. Remote
 `tcp://`/`ssh://` daemons are blocked unless an explicit test-only ownership contract proves isolation. Before PASS,
 prove every stateful application property resolves to a run-owned mapped endpoint and every third-party sink resolves
 to a run-owned stub (WireMock/MockServer/LocalStack or repository equivalent). A non-local browser `baseURL`, reused
@@ -178,7 +188,11 @@ never part of test setup.
 
 **RUN-7.3 (Two-level cleanup) — MUST.** Containers are run-scoped; data is case-scoped. Register cleanup before
 mutation and record DB schema/row IDs, Redis key namespace, OpenSearch index/alias, Kafka topic/group, and object-store
-keys in a resource ledger. Verify case cleanup/absence before the next case. A broad reset such as `flushDb` is allowed
+keys in a resource ledger. Verify case cleanup/absence before the next case. Before the first container starts, run
+`node scripts/audit-orphans.js snapshot --label <run-label>` (for an unlabeled harness, `org.testcontainers=true`);
+after teardown run `node scripts/audit-orphans.js audit --label <run-label> --baseline <snapshot>`. Its bounded
+grace window (default 30 s) absorbs Ryuk's asynchronous reaping, so an immediate leftover is not an orphan until the
+window expires; record its attempts as orphan-audit evidence. A broad reset such as `flushDb` is allowed
 only after the exact Redis container ID is proven run-owned. Finally stop application then containers/network in
 reverse order and audit run labels for zero orphans. Cleanup, teardown, or orphan-audit failure records failed
 lifecycle evidence and forces the overall verdict to `INCONCLUSIVE` under `RUN-18.1`; it never permits `PASS`.
@@ -250,6 +264,13 @@ This avoids false-positive `FAILED-DEPENDENCY` cascades when an unrelated precon
 
 **RUN-13 (Evidence capture cap) — MUST.** For each scenario, capture: HTTP status, latency, response headers, response body. The body is split into a 4 KB head and a 4 KB tail (when total > 8 KB, the middle is replaced with `... <N bytes omitted> ...`); the full body goes to a sibling file under `raw/`. On failure only, also attach the last 5 seconds of container logs. On success, MUST NOT attach logs (keeps report compact).
 
+**RUN-13.2 (Expected assertions) — MUST.** For every HTTP scenario, evaluate the observed status and masked body
+with `node scripts/evaluate-expected.js <expected> <status> <body-file> [--vars <captures.json>]`, where the vars
+object is keyed `prev.TOKEN` / `seed.TOKEN` with the resolved values. Its exit code is
+normative: `0` permits PASS, `1` is `FAIL` or `NO_ASSERTION`, and `64` (malformed clause or `missing-capture`) follows
+`RUN-11.1`. Record its `assertions[]` on the result and the verdict test case. A free-text clause is never a
+substitute for a failed `assert`, and a PASS that compared nothing is `INCONCLUSIVE` under `RUN-18.1`.
+
 **RUN-13.1 (Log-unavailable evidence) — MUST.** When `RUN-13` cannot collect logs (the container is down, the run is in `testcontainers` mode and the container was already torn down, the user is not in the docker group), the runner MUST record `evidence.logUnavailableReason` (one of: `container-not-running`, `container-disposed`, `docker-permission-denied`, `unknown`) and proceed. The failure is still `FAIL`, not `SKIPPED` — logs are evidence, not a precondition.
 
 ---
@@ -282,6 +303,10 @@ test-report/e2e/{YYYY-MM-DD}-{shortSHA}-{seq}/
 └── logs/<scenario-id>.log                # only for failed scenarios (masked)
 ```
 
+Before creating the root, run `node scripts/check-output-root.js <repo> <output-root>`; when it overlaps tracked files
+(for example a Gradle module named `test-report`), stop and ask for another root such as `build/e2e-report` instead
+of writing or cleaning there.
+
 `{seq}` is the next zero-padded integer in that directory for the same `{date}-{sha}`. The Markdown summary follows [`fixtures/report-template.md`](../../fixtures/report-template.md). The JSON schema is fixed by [`CONTRACT.md §5`](../../../../docs/e2e-scenarios/CONTRACT.md). The `.done` marker is written **last** so the renderer (`REN-17`) can wait for a settled run.
 
 **RUN-16 (JSON schema) — MUST.** The run JSON conforms to [`CONTRACT.md §5`](../../../../docs/e2e-scenarios/CONTRACT.md). Every field listed there is required, even when empty. `schemaVersion` and `contractVersion` are both required and both equal `1` at the time of this writing.
@@ -307,10 +332,13 @@ teardown result, and orphan audit. A run cannot report `PASS` if any evidence is
 **RUN-16.7 (Verdict input) — MUST.** Before reporting a terminal result, materialize the verdict
 input with `selection.collectedCount`, `execution.supportedStack`, documented `execution.slowTestExclusions`, and
 one `testCases` entry per collected case. Each case records its stable ID, priority, selection/execution booleans,
-observed status, and a non-empty `detail` for a selected non-P0 non-PASS result. Executed cases use only `PASS` or
+observed status, and a non-empty `detail` for a selected non-P0 non-PASS result. Every unselected case carries a
+non-empty `unselectedReason` (for example `outside requested area` or `requires OpenSearch fixture`); the evaluator
+rejects a missing reason and reports `selection.unselected` with reasons grouped under `notSelected`. Executed cases use only `PASS` or
 `FAIL`; selected unexecuted cases use only `SKIPPED`, `FAILED-DEPENDENCY`, or `PROBE-ERROR`; unselected cases have
 no status. Under `lifecycle`, record cleanup,
-teardown, and orphan-audit status plus at least one named absence probe. Evaluate this input with
+teardown, and orphan-audit status plus at least one named absence probe. Each executed case records `assertions[]` (or `assertionSource: "framework"` for a
+repository-suite test). Evaluate this input with
 `node scripts/evaluate-run-verdict.js <run-result.json>`; the evaluator's verdict, exit code, and stderr are
 normative. Malformed or internally inconsistent verdict input is a process error, never a run verdict.
 
@@ -380,6 +408,21 @@ For full runs, `scope.requested = ["*"]` and `scope.autoIncluded = []`.
 
 ---
 
+## I.1 Repository catalog harness
+
+A repository test (for example a JUnit + Testcontainers class) may own the environment and execute the catalog. It
+follows a plan instead of parsing Markdown and records observations instead of verdicts:
+
+1. `node scripts/export-catalog-plan.js docs/e2e-scenarios/catalog.md [--only <ids>]` — order, deferred teardowns,
+   overrides, priorities, and unselected reasons.
+2. The harness executes selected scenarios (see [`reference/examples/CatalogPlanRunner.java`](../examples/CatalogPlanRunner.java)),
+   stops its own containers, and writes `vulpora.e2e-harness-observations/v1` with environment and lifecycle evidence.
+3. `node scripts/assemble-run-result.js <plan> <observations> <out-dir> --orphan-audit <audit.json>` — assertions,
+   masking, verdict input, summary, and `.done` last.
+4. `node scripts/validate-run-result.js <run.json> --require-done`, then `evaluate-run-verdict.js`.
+
+A harness that writes its own result instead must pass `validate-run-result.js`; otherwise its result is not evidence.
+
 ## J. Cross-skill discipline
 
 **RUN-20 (Contract reference is normative) — MUST.** The runner treats [`CONTRACT.md`](../../../../docs/e2e-scenarios/CONTRACT.md) as a normative input. A `contractVersion` bump is a coordinated three-skill PR; the runner alone cannot raise the version. If the contract version on disk is newer than the version the runner recognizes, the runner stops with `RUN-20: contract version N > runner-supported N-1`.
@@ -390,7 +433,9 @@ referencing the declared resource or captured identifier. `last-in-area` is not 
 the run with `RUN-21: scenario <id>: mutating scenario without teardown`; this missing lifecycle evidence is
 `INCONCLUSIVE` under `RUN-18.1`.
 
-Execute teardown in a `finally` path after primary PASS, FAIL, or timeout. Record primary and cleanup outcomes
+Execute teardown in a `finally` path after primary PASS, FAIL, or timeout. When the scenario has selected
+descendants, defer its teardown until the last of them finishes (`export-catalog-plan.js` computes
+`runTeardownsAfter`); otherwise a parent's cleanup deletes the row its dependents still need. Record primary and cleanup outcomes
 separately. A cleanup failure makes the scenario `FAIL` even when the primary passed; a primary failure remains
 `FAIL` even when cleanup succeeds. This is the runtime guarantee that rerunning the suite does not accumulate state.
 

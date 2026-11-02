@@ -758,7 +758,7 @@ grep -Fq '`node-nestjs`' "$SKILL"
 grep -Fq 'Spring Boot or NestJS modules' "$RUNNER"
 grep -Fq 'pnpm --filter <package> run start' "$REPO_ROOT/skills/e2e-runner/reference/kb/ci-integration.md"
 
-if ! node --test "$ROOT/tests/dto-resolution.test.js" "$ROOT/tests/method-parameters.test.js" > "$WORK/dto-resolution.log" 2>&1; then
+if ! node --test "$ROOT/tests/dto-resolution.test.js" "$ROOT/tests/method-parameters.test.js" "$ROOT/tests/type-use-validation.test.js" "$ROOT/tests/catalog-extensions.test.js" "$ROOT/tests/content-validation.test.js" > "$WORK/dto-resolution.log" 2>&1; then
   cat "$WORK/dto-resolution.log" >&2
   exit 1
 fi
