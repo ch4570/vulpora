@@ -18,8 +18,20 @@ CANONICAL_FIXTURE="$ROOT/evals/behavioral/fixtures/repos/sample-start-task-live"
 runtime=""; task=""; output=""; run_id=""; instance_id=""; deadline=900; resume_id=""; preflight_only=0; interrupt_at=""; force_failure_at=""; config_drift_at=""
 offline_fault_mode=0; offline_fault_metadata=""
 
-usage() { echo "usage: run-start-task-native.sh --runtime codex|claude-code --task TEXT --output DIR --run-id ID --runtime-instance-id ID [--deadline-seconds N]" >&2; }
+reject() { printf '{"outcome":"failed","reason":"%s","child_dispatch_count":0,"mutation_count":0,"cleanup_completed":true}\n' "$1"; exit 2; }
+usage() {
+  echo "usage: run-start-task-native.sh --runtime codex|claude-code --task TEXT --output DIR --run-id ID --runtime-instance-id ID [--deadline-seconds N]" >&2
+  echo "Use --option=VALUE for literal values starting with -- or equal to -h." >&2
+}
 while [ "$#" -gt 0 ]; do
+  # Guard every space-form value before shift 2. Preserve empty-string semantic
+  # checks below, but never consume the next option (especially preflight-only).
+  case "$1" in
+    --runtime|--task|--output|--run-id|--runtime-instance-id|--deadline-seconds|--resume-run-id|--test-interrupt-at|--test-force-failure-at|--test-config-drift-at)
+      [ "$#" -ge 2 ] || reject missing_option_value
+      case "$2" in --*|-h) reject missing_option_value ;; esac
+      ;;
+  esac
   case "$1" in
     --runtime) runtime="${2-}"; shift 2 ;; --runtime=*) runtime="${1#*=}"; shift ;;
     --task) task="${2-}"; shift 2 ;; --task=*) task="${1#*=}"; shift ;;
@@ -36,7 +48,6 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-reject() { printf '{"outcome":"failed","reason":"%s","child_dispatch_count":0,"mutation_count":0,"cleanup_completed":true}\n' "$1"; exit 2; }
 case "$runtime" in codex|claude-code) ;; *) reject unsupported_runtime_selector ;; esac
 [ -z "$resume_id" ] || reject interrupted_runs_are_non_resumable
 printf '%s' "$task" | grep -q '[^[:space:]]' || reject empty_task
@@ -221,8 +232,8 @@ function walk(dir){for(const name of fs.readdirSync(dir).sort()){if(name==='.vul
 NODE
 
 entrypoint='$start-task'; [ "$runtime" = claude-code ] && entrypoint='/start-task'
-task_literal="$(node -e 'process.stdout.write(JSON.stringify(process.argv[1]))' "$task")" || reject task_string_serialization_failed
-task_sha256="$(node -e 'process.stdout.write(require("node:crypto").createHash("sha256").update(process.argv[1]).digest("hex"))' "$task")" || reject task_digest_failed
+task_literal="$(node -e 'process.stdout.write(JSON.stringify(process.argv[1]))' -- "$task")" || reject task_string_serialization_failed
+task_sha256="$(node -e 'process.stdout.write(require("node:crypto").createHash("sha256").update(process.argv[1]).digest("hex"))' -- "$task")" || reject task_digest_failed
 report_reserve_seconds=120
 if [ "$deadline" -le 180 ]; then
   report_reserve_seconds=$((deadline / 3))
@@ -408,8 +419,8 @@ then
 fi
 
 ledger_path="$fixture/.vulpora/tasks/$run_id/execution-ledger.jsonl"
-ledger_head="$(node -e 'const r=JSON.parse(require("fs").readFileSync(process.argv[1]));process.stdout.write(r.execution_ledger?.head_sha256||"")' "$report")"
-ledger_count="$(node -e 'const r=JSON.parse(require("fs").readFileSync(process.argv[1]));process.stdout.write(String(r.execution_ledger?.record_count||""))' "$report")"
+ledger_head="$(node -e 'const r=JSON.parse(require("fs").readFileSync(process.argv[1]));process.stdout.write(r.execution_ledger?.head_sha256||"")' -- "$report")"
+ledger_count="$(node -e 'const r=JSON.parse(require("fs").readFileSync(process.argv[1]));process.stdout.write(String(r.execution_ledger?.record_count||""))' -- "$report")"
 if ! node "$ledger_validator" "$ledger_path" "$run_id" "$ledger_head" "$ledger_count" complete "$report" "$fixture" >"$output/ledger-validation.log" 2>&1; then
   printf '{"outcome":"failed","reason":"execution_ledger_missing_or_invalid"}\n'; exit 1
 fi
@@ -451,7 +462,7 @@ node - "$work/before.json" "$work/after.json" "$output/fixture-diff.json" <<'NOD
 const fs=require('node:fs'); const [a,b,out]=process.argv.slice(2),before=JSON.parse(fs.readFileSync(a)),after=JSON.parse(fs.readFileSync(b)),bm=new Map(before.map(x=>[x.path,x])),am=new Map(after.map(x=>[x.path,x])),changed=[];
 for(const p of [...new Set([...bm.keys(),...am.keys()])].sort())if(JSON.stringify(bm.get(p))!==JSON.stringify(am.get(p)))changed.push(p);fs.writeFileSync(out,JSON.stringify({changed_files:changed}));
 NODE
-changed="$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1])).changed_files.join("\n"))' "$output/fixture-diff.json")"
+changed="$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1])).changed_files.join("\n"))' -- "$output/fixture-diff.json")"
 [ -n "$changed" ] || { printf '{"outcome":"failed","reason":"fixture_not_mutated"}\n'; exit 1; }
 while IFS= read -r path; do case "$path" in src/numbers.js|test/numbers.test.js) ;; *) printf '{"outcome":"failed","reason":"fixture_scope_violation"}\n'; exit 1 ;; esac; done <<EOF
 $changed
@@ -489,7 +500,7 @@ NODE
 
 if ! node "$VALIDATOR" "$SCHEMA" "$report" "$run_id" "$instance_id" "$runtime_configuration_id" \
   "$fixture/.vulpora/tasks/$run_id/task-dag.yaml" >"$output/report-validation.log" 2>&1; then
-  validation_detail="$(node -e 'const fs=require("fs");process.stdout.write(JSON.stringify(fs.readFileSync(process.argv[1],"utf8").trim().slice(0,240)))' "$output/report-validation.log")"
+  validation_detail="$(node -e 'const fs=require("fs");process.stdout.write(JSON.stringify(fs.readFileSync(process.argv[1],"utf8").trim().slice(0,240)))' -- "$output/report-validation.log")"
   printf '{"outcome":"failed","reason":"report_invalid","detail":%s}\n' "$validation_detail"
   exit 1
 fi
@@ -506,7 +517,7 @@ printf '{"schema_version":"vulpora.start-task-evidence/v1","workflow_contract":"
   "$run_id" "$instance_id" "$runtime_configuration_id" "$runtime" "$entrypoint" "$configuration_initialized" "$configuration_before_discovery" "$configuration_terminal" "$active_config_before" "$active_config_after" "$active_auth_before" "$active_auth_after" "$entrypoint" "$canonical_hash" > "$output/independent-evidence.json"
 if ! node "$EVIDENCE_VALIDATOR" "$report" "$output/independent-evidence.json" "$output/fixture-diff.json" \
   "$output/native-child-evidence.json" "$run_id" "$instance_id" "$runtime" >"$output/evidence-validation.log" 2>&1; then
-  evidence_detail="$(node -e 'const fs=require("fs");process.stdout.write(JSON.stringify(fs.readFileSync(process.argv[1],"utf8").trim().slice(0,240)))' "$output/evidence-validation.log")"
+  evidence_detail="$(node -e 'const fs=require("fs");process.stdout.write(JSON.stringify(fs.readFileSync(process.argv[1],"utf8").trim().slice(0,240)))' -- "$output/evidence-validation.log")"
   printf '{"outcome":"failed","reason":"independent_evidence_invalid","detail":%s}\n' "$evidence_detail"
   exit 1
 fi

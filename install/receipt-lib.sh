@@ -2,6 +2,9 @@
 # Shared receipt helpers for Vulpora setup/uninstall. Bash 3.2 compatible.
 
 unset _VULPORA_RECEIPT_ANCHOR_PREPARED_TARGET
+unset _VULPORA_RECEIPT_ANCHOR_CACHE_TARGET \
+  _VULPORA_RECEIPT_ANCHOR_CACHE_STATE_HOME \
+  _VULPORA_RECEIPT_ANCHOR_CACHE_ROOT
 
 receipt_relative_path_is_safe() { # relative-path
   local rel="$1" old_ifs segment
@@ -130,14 +133,29 @@ receipt_replace_relative() { # target relative-path source expected-old-or-dash
     fi
     had_old=1
     if ! receipt_paths_equal "$transaction/old" "$transaction/expected"; then
-      mv "$transaction/old" "./$leaf" 2>/dev/null || true
+      if ! mv "$transaction/old" "./$leaf" 2>/dev/null; then
+        # Preserve the displaced original even if its recovery record fails.
+        printf '%s\n' "$parent_real/$leaf" > "$transaction/original.path" || true
+        printf 'receipt_rollback_failed: recovery_path=%q original_path=%q\n' \
+          "$parent_real/$transaction/old" "$parent_real/$leaf" >&2
+        cd "$original_dir" || true
+        return 1
+      fi
       rm -rf -- "$transaction"
       cd "$original_dir" || true
       return 1
     fi
   fi
   if ! mv "$transaction/new" "./$leaf"; then
-    [ "$had_old" = 0 ] || mv "$transaction/old" "./$leaf" 2>/dev/null || true
+    if [ "$had_old" = 1 ] && ! mv "$transaction/old" "./$leaf" 2>/dev/null; then
+      # With no previous destination, only a copy of source needs cleanup.
+      # Otherwise a failed restore must keep the previous destination here.
+      printf '%s\n' "$parent_real/$leaf" > "$transaction/original.path" || true
+      printf 'receipt_rollback_failed: recovery_path=%q original_path=%q\n' \
+        "$parent_real/$transaction/old" "$parent_real/$leaf" >&2
+      cd "$original_dir" || true
+      return 1
+    fi
     rm -rf -- "$transaction"
     cd "$original_dir" || true
     return 1
@@ -151,8 +169,13 @@ receipt_remove_relative() { # trusted-base relative-path expected-current
   local parent_rel leaf base_real parent_real expected_parent transaction
   receipt_relative_path_is_safe "$rel" || return 1
   [ -d "$base" ] && [ ! -L "$base" ] || return 1
-  parent_rel="$(dirname "$rel")"
-  leaf="$(basename "$rel")"
+  # The validator excludes empty, absolute, dot-segment and trailing-slash paths.
+  # Keep legacy utility behavior for option-like inputs; split all others locally.
+  case "$rel" in
+    -*) parent_rel="$(dirname "$rel")"; leaf="$(basename "$rel")" ;;
+    */*) parent_rel="${rel%/*}"; leaf="${rel##*/}" ;;
+    *) parent_rel=.; leaf="$rel" ;;
+  esac
   base_real="$(cd "$base" && pwd -P)" || return 1
   (
     cd "$base/$parent_rel" || exit 1
@@ -169,7 +192,15 @@ receipt_remove_relative() { # trusted-base relative-path expected-current
       exit 1
     fi
     if ! receipt_paths_equal "$transaction/candidate" "$transaction/expected"; then
-      mv "$transaction/candidate" "./$leaf" 2>/dev/null || true
+      if ! mv "$transaction/candidate" "./$leaf" 2>/dev/null; then
+        # A failed rollback leaves the only current copy here. Keep this private
+        # transaction even if the best-effort recovery record cannot be written;
+        # callers may release ownership of the now-absent original path.
+        printf '%s\n' "$parent_real/$leaf" > "$transaction/original.path" || true
+        printf 'receipt_rollback_failed: recovery_path=%q original_path=%q\n' \
+          "$parent_real/$transaction/candidate" "$parent_real/$leaf" >&2
+        exit 1
+      fi
       rm -rf -- "$transaction"
       exit 1
     fi
@@ -227,6 +258,12 @@ receipt_target_key() { # canonical-target
 receipt_anchor_root_for() { # canonical-target
   local state_home key
   state_home="$(receipt_state_home)" || return 1
+  if [ "${_VULPORA_RECEIPT_ANCHOR_CACHE_TARGET:-}" = "$1" ] \
+    && [ "${_VULPORA_RECEIPT_ANCHOR_CACHE_STATE_HOME:-}" = "$state_home" ] \
+    && [ -n "${_VULPORA_RECEIPT_ANCHOR_CACHE_ROOT:-}" ]; then
+    printf '%s\n' "$_VULPORA_RECEIPT_ANCHOR_CACHE_ROOT"
+    return 0
+  fi
   key="$(receipt_target_key "$1")" || return 1
   printf '%s/receipts/v1/targets/%s\n' "$state_home" "$key"
 }
@@ -256,7 +293,7 @@ receipt_anchor_snapshot_for() { # canonical-target runtime relative-path
 }
 
 receipt_anchor_location_is_safe() { # canonical-target; state home must exist
-  local target="$1" state_home state_real target_real home_real
+  local target="$1" state_home state_real target_real home_real derived_root
   state_home="$(receipt_state_home)" || return 1
   case "$state_home" in /*) ;; *) return 1 ;; esac
   [ -d "$state_home" ] && [ ! -L "$state_home" ] || return 1
@@ -272,6 +309,16 @@ receipt_anchor_location_is_safe() { # canonical-target; state home must exist
       [ "$target_real" = "$home_real" ] || return 1
       ;;
   esac
+  # Cache only the pure path derivation, never a filesystem safety result.
+  # This function still checks the current state/target paths on every call.
+  # Populate in the caller's shell so later command substitutions inherit it.
+  if [ "${_VULPORA_RECEIPT_ANCHOR_CACHE_TARGET:-}" != "$target" ] \
+    || [ "${_VULPORA_RECEIPT_ANCHOR_CACHE_STATE_HOME:-}" != "$state_home" ]; then
+    derived_root="$(receipt_anchor_root_for "$target")" || return 1
+    _VULPORA_RECEIPT_ANCHOR_CACHE_TARGET="$target"
+    _VULPORA_RECEIPT_ANCHOR_CACHE_STATE_HOME="$state_home"
+    _VULPORA_RECEIPT_ANCHOR_CACHE_ROOT="$derived_root"
+  fi
   return 0
 }
 

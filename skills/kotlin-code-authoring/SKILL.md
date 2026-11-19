@@ -17,7 +17,7 @@ Apply the same Kotlin/Spring principles used by `kotlin-spring-review` before wr
 - Validate and translate errors at the repository's existing boundary. Do not swallow broad exceptions or invent error contracts.
 - When behavior changes, create or update a focused test using the detected test stack. Use `test-authoring` for test-specific guidance.
 
-Read [Spring construction](reference/kb/spring-construction.md) for dependency injection and transactional-boundary decisions.
+Read [Spring construction](reference/kb/spring-construction.md) for dependency injection and transactional-boundary decisions. When the change adds or alters an entity state transition, or the request mentions repeated or concurrent requests, read [state-transition commands](reference/kb/state-transition-commands.md) before coding.
 
 ## Lambda parameters
 
@@ -36,4 +36,14 @@ Use [Kotlin lambda conventions](reference/kb/lambda-parameters.md) when deciding
 
 ## Verify
 
+Before writing the handover, trace the request clause by clause. For each clause name the changed code and the test that exercises it, or mark it unverified with the reason. When a clause says to match something existing ("same format as the existing API"), cite the file you matched; if no precedent exists, say so and state the shape you chose as an assumption. List every public contract you added (endpoint, response field, error code) and justify each new error code against the existing ones, or reuse them. Add a test for any clause still left without one if the test stack can run it.
+
 Run the affected Kotlin module's formatter, lint, and compile/test task when the repository provides them. Do not introduce a formatter or a dependency solely for this rule.
+
+If the build cannot run (no wrapper, no network, tool missing), do not stop at "not run". Before handing over commands, check each one against the build files and stop when every command and new import is accounted for:
+
+- dependency resolution: a `repositories` block in the build or settings file;
+- each task you name: what it needs, e.g. `build`/`bootJar` needs a main class;
+- each import in new code and tests: a declared dependency provides it.
+
+Give only commands that pass this check; name each failed check as a blocker. Label unrun claims as unverified.

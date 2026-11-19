@@ -5,7 +5,13 @@ WORK="$(mktemp -d "${TMPDIR:-/tmp}/vulpora-codex-adapter.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT HUP INT TERM
 mkdir -p "$WORK/bin" "$WORK/fixture"
 printf '%s\n' '#!/usr/bin/env bash' \
-  'capture_dir="$(cd "$(dirname "$0")/.." && pwd -P)"' 'if [ "${1:-}" = --version ]; then echo "codex-cli 0.153.2"; exit 0; fi' 'printf "%s\n" "$@" > "$capture_dir/args.txt"' 'out=""' 'while [ "$#" -gt 0 ]; do' \
+  'capture_dir="$(cd "$(dirname "$0")/.." && pwd -P)"' 'if [ "${1:-}" = --version ]; then echo "codex-cli 0.153.2"; exit 0; fi' \
+  'if [ "${1:-}" = sandbox ]; then' \
+  '  printf "%s\n" "$@" > "$capture_dir/sandbox-args.txt"' \
+  '  printf modified > "${!#}"' \
+  '  printf "%s\n" '\''{"outside_read":"denied","outside_write":"denied","fixture_read":"allowed","fixture_write":"allowed"}'\''' \
+  '  exit 0' 'fi' \
+  'printf "%s\n" "$@" > "$capture_dir/args.txt"' 'out=""' 'while [ "$#" -gt 0 ]; do' \
   '  if [ "$1" = --output-last-message ]; then out="$2"; shift 2; continue; fi' \
   '  shift' 'done' \
   'printf "%s\n" "$HOME" "${CODEX_HOME:-}" "${VULPORA_HOST_SECRET_SENTINEL:-unset}" > "$capture_dir/env.txt"' \

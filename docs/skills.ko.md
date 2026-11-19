@@ -2,7 +2,7 @@
 
 한국어 · [English](skills.en.md) · [README](../README.ko.md)
 
-설치 매니페스트에 등록된 **63개 스킬**의 용도와 호출 예제를 정리합니다. 이 중
+설치 매니페스트에 등록된 **67개 스킬**의 용도와 호출 예제를 정리합니다. 이 중
 `codex-agent-runtime`은 실행 기능이 비활성화된 호환성 항목입니다. 각 스킬 이름을 누르면 실제
 `SKILL.md`의 입력, 절차, 출력 계약을 확인할 수 있습니다.
 
@@ -78,7 +78,8 @@ $start-task --audit "운영 데이터 마이그레이션 계획과 검증 근거
 | 저장소 초기화 후 구현하기 | `vulpora-init` → `start-task` | `pack:core pack:orchestration` |
 | 아이디어를 요구사항과 화면으로 구체화하기 | `product-requirements` → `product-ui-design` | `pack:product-discovery-ko pack:visual` |
 | Kotlin/Java·Spring 코드 작성과 리뷰 | `kotlin-code-authoring`, 해당 언어의 통합 리뷰 | `pack:jvm-spring` |
-| 아키텍처·보안·테스트 품질 검토 | 해당 `*-workflow` | `pack:jvm-quality` |
+| 아키텍처·테스트 품질 검토 | 해당 `*-workflow` | `pack:jvm-quality` |
+| 보안·공용 리소스 위험 분석과 수정 | `security-scan-workflow` | `security-scan-workflow` |
 | PostgreSQL·SQL Server·OpenSearch 작업 | 해당 `*-code-authoring`, `*-review-workflow` | `pack:postgres`, `pack:mssql`, `pack:opensearch` |
 | API와 브라우저를 함께 검증하기 | `e2e-test-workflow` | `pack:qa-e2e` |
 | 다이어그램·HTML·PDF 문서 만들기 | `visual-artifact-router` | `pack:visual` |
@@ -124,7 +125,19 @@ $start-task --audit "운영 데이터 마이그레이션 계획과 검증 근거
 | [flyway](../skills/flyway/SKILL.md) | 엔티티 변경과 함께 PostgreSQL Flyway migration 작성 | `$flyway "Order 엔티티 변경에 맞는 migration SQL을 작성해줘"` |
 | [test-authoring](../skills/test-authoring/SKILL.md) | 계약·결정성·격리를 검증하는 Kotlin 단위·좁은 통합 테스트 작성 | `$test-authoring "OrderService의 취소 경계 조건을 테스트해줘"` |
 
-### 코드·설계·테스트 품질 리뷰 · 11개
+### 보안·공유 데이터 안전성 · 1개
+
+설치 시 필수 읽기 전용 `security-auditor`가 포함됩니다. 검토 요청은 읽기 전용으로 처리하고,
+수정 요청은 소스 수정, 안전성을 확인한 오프라인 회귀 테스트와 독립 재검토까지 수행합니다.
+인가·테넌트, 주입, SSRF, 파일, 설정·의존성, 자원 고갈과 DB·캐시·검색·큐·객체 저장소의
+공유 영향 경로를 분석합니다. 취약점을 증명하려고 공유 서비스에 접속하지 않으며,
+확인하지 못한 범위는 별도로 표시합니다.
+
+| 스킬 | 용도 | 대화창 호출 예제 |
+|---|---|---|
+| [security-scan-workflow](../skills/security-scan-workflow/SKILL.md) | 다양한 취약점과 공용 리소스 영향 분석, 요청 시 수정·검증 | `$security-scan-workflow "다양한 보안 취약점을 분석하고 공용 리소스 위험 코드를 수정·검증해줘"` |
+
+### 코드·설계·테스트 품질 리뷰 · 12개
 
 통합 리뷰에는 대상 파일·모듈 또는 diff 범위와 비교 기준을 전달합니다. 리뷰만 요청하면
 코드를 수정하지 않습니다. 전문 에이전트를 실행하는 workflow는 런타임에서 해당 에이전트와
@@ -140,6 +153,7 @@ $start-task --audit "운영 데이터 마이그레이션 계획과 검증 근거
 | [oop-design-review](../skills/oop-design-review/SKILL.md) | SOLID·GRASP·응집도·캡슐화 검토 | `$oop-design-review "결제 정책 클래스들의 책임 분배를 검토해줘"` |
 | [design-pattern-apply](../skills/design-pattern-apply/SKILL.md) | 실제 변경 축에 맞는 패턴의 필요성과 적용 방법 판단 | `$design-pattern-apply "배송 정책 분기에 Strategy가 필요한지 판단해줘"` |
 | [refactoring-catalog](../skills/refactoring-catalog/SKILL.md) | 코드 냄새에 맞는 리팩터링 기법·순서·검증 제안 | `$refactoring-catalog "OrderService의 중복 분기를 줄일 절차를 제안해줘"` |
+| [explore-dead-code](../skills/explore-dead-code/SKILL.md) | 미참조 코드 후보를 묶음 검색해 근거·신뢰도로 보고하며 간접 등록·외부 API는 추가 확인 대상으로 유지, 삭제 없음 | `$explore-dead-code "src에서 참조가 없는 코드 후보를 빠르게 찾고 삭제 없이 근거와 신뢰도를 보고해줘"` |
 | [test-quality-review](../skills/test-quality-review/SKILL.md) | 기존 테스트의 oracle·경계·격리·결함 탐지력 감사 | `$test-quality-review "OrderServiceTest의 실제 결함 탐지력을 리뷰해줘"` |
 | [test-refactoring](../skills/test-refactoring/SKILL.md) | 검증된 finding에 한해 Kotlin/JVM 테스트·fixture 개선 | `$test-refactoring "첨부한 품질 finding을 OrderServiceTest와 fixture 범위에서 수정해줘"` |
 | [test-quality-refactoring-workflow](../skills/test-quality-refactoring-workflow/SKILL.md) | 품질 감사부터 테스트 개선·결함 탐지·실행 근거 재검증까지 조정 | `$test-quality-refactoring-workflow "주문 모듈의 Kotlin 테스트 품질을 검토하고 test와 fixture 범위에서 개선해줘"` |
@@ -164,7 +178,7 @@ SQL·mapping 작성과 리뷰는 제공된 코드·스키마·실행 계획을 �
 | [opensearch-review-workflow](../skills/opensearch-review-workflow/SKILL.md) | 쿼리·스키마·최적화 관점의 통합 검색 리뷰 | `$opensearch-review-workflow "상품 검색의 DSL, mapping, index 설정을 함께 리뷰해줘"` |
 | [nl-sql-query](../skills/nl-sql-query/SKILL.md) | 연결된 PostgreSQL/MySQL/SQL Server에 읽기 전용 자연어 SQL 조회 | `$nl-sql-query "지난 7일 주문 수를 상태별로 조회하고 사용한 SQL도 보여줘"` |
 
-### QA·E2E · 5개
+### QA·E2E · 6개
 
 | 스킬 | 용도 | 대화창 호출 예제 |
 |---|---|---|
@@ -173,6 +187,7 @@ SQL·mapping 작성과 리뷰는 제공된 코드·스키마·실행 계획을 �
 | [playwright-e2e](../skills/playwright-e2e/SKILL.md) | QA 시나리오에 따라 브라우저 실행·데이터 정리·증거 기록 | `$playwright-e2e "첨부한 QA handoff의 TC-CHECKOUT-001을 실행해줘"` |
 | [e2e-report-renderer](../skills/e2e-report-renderer/SKILL.md) | 완료된 runner JSON을 단일 실행·추세·비교 HTML로 변환 | `$e2e-report-renderer "완료된 test-report/e2e 실행 두 건을 비교하는 HTML을 만들어줘"` |
 | [e2e-test-workflow](../skills/e2e-test-workflow/SKILL.md) | 카탈로그·API·브라우저·HTML 단계를 하나의 환경에서 조정 | `$e2e-test-workflow "주문 시나리오를 갱신하고 API와 QA handoff의 브라우저 케이스를 실행한 뒤 HTML 보고서를 저장해줘"` |
+| [e2e-evidence-report](../skills/e2e-evidence-report/SKILL.md) | TC 수립·실행 후 녹화·캡처·읽기 전용 DB 조회 결과를 임시 디렉터리의 HTML 보고서로 제공 | `$e2e-evidence-report "주문 취소 TC를 세워 실행하고 영상·스크린샷·DB 조회 결과를 HTML로 보고해줘"` |
 
 ### 문서·다이어그램·시각 산출물 · 9개
 
@@ -188,7 +203,7 @@ SQL·mapping 작성과 리뷰는 제공된 코드·스키마·실행 계획을 �
 | [visual-artifact-router](../skills/visual-artifact-router/SKILL.md) | 문서·다이어그램 요청을 필요한 설계·렌더·QA 스킬로 연결 | `$visual-artifact-router "아키텍처 설명을 편집 가능한 원본과 공유용 HTML로 만들어줘"` |
 | [korean-dev-writer](../skills/korean-dev-writer/SKILL.md) | 사실을 유지하며 한국어 기술 문서·PR·리뷰·주석 작성·교정 | `$korean-dev-writer "README의 번역투를 줄이고 기술 설명을 명확하게 다듬어줘"` |
 
-### 평가·지식·회고·협업 · 8개
+### 평가·지식·회고·협업 · 9개
 
 | 스킬 | 용도 | 대화창 호출 예제 |
 |---|---|---|
@@ -198,6 +213,7 @@ SQL·mapping 작성과 리뷰는 제공된 코드·스키마·실행 계획을 �
 | [retro](../skills/retro/SKILL.md) | 완료한 작업을 Keep·Problem·Try로 회고하고 개선안 도출 | `$retro "방금 완료한 검색 개선 작업을 회고해줘"` |
 | [knowledge-audit](../skills/knowledge-audit/SKILL.md) | 자동 수집 지식을 현재 코드와 대조해 승격·폐기·보류 | `$knowledge-audit ".claude/knowledge/auto의 후보를 검증하고 정리해줘"` |
 | [harness-propose](../skills/harness-propose/SKILL.md) | 최신 자료와 현재 하네스를 비교해 HTML 개선 제안 작성 | `$harness-propose "현재 하네스에서 다음에 개선할 항목을 조사해줘"` |
+| [harness-refine](../skills/harness-refine/SKILL.md) | 원본·후보 하네스를 같은 과제로 실행·비교해 근거 있는 수정만 채택 | `$harness-refine "skills/postgres-query-review를 이 behavioral case로 실행 비교해 다듬어줘"` |
 | [git-flow](../skills/git-flow/SKILL.md) | 작업 branch 준비 또는 커밋·push·GitLab MR 생성 | `$git-flow "현재 기능 변경을 검토해 커밋하고 develop 대상 GitLab MR을 만들어줘"` |
 | [notion-domain-context](../skills/notion-domain-context/SKILL.md) | 연결된 사내 Notion의 읽기 전용 출처 기반 조사 | `$notion-domain-context "Notion에서 주문 취소 정책과 담당 조직의 근거를 찾아줘"` |
 
@@ -225,7 +241,7 @@ SQL·mapping 작성과 리뷰는 제공된 코드·스키마·실행 계획을 �
 | `markdown-publisher`, `pdf-qa` | HTML은 Node.js, PDF 생성은 로컬 Chromium 계열 브라우저, PDF 검수는 Python 3·Poppler·이미지 확인 도구 | `pdfinfo`와 `pdftocairo` 또는 `pdftoppm`이 필요합니다. 렌더 성공 후에도 모든 페이지의 시각 검수가 필요합니다. |
 | `agent-eval` | 스킬의 wrapper가 고정한 SkillEvaluator CLI. 보안·상위 tier에는 해당 scanner·provider·dataset·sandbox 추가 | 기본 Tier 1은 keyless 정적 평가입니다. 설치 또는 정적 통과가 실제 모델 성능을 증명하지는 않습니다. |
 | `git-flow` | GitLab remote와 인증된 전송 수단, 적절한 작업 branch 및 대상 branch | 기본 target은 `develop`입니다. GitHub PR 생성 스킬로 설명하지 않습니다. |
-| `learn`, `retro`, `knowledge-audit`, `harness-propose` | 스킬이 사용하는 `.claude/knowledge/`, `.claude/retro/` 등 프로젝트 지식 구조 | 설치만으로 자동 학습 hook이 켜지지 않습니다. `learn`·회고 개선 반영·하네스 반영은 해당 스킬의 승인 계약을 따릅니다. |
+| `learn`, `retro`, `knowledge-audit`, `harness-propose`, `harness-refine` | 스킬이 사용하는 `.claude/knowledge/`, `.claude/retro/` 등 프로젝트 지식 구조 | 설치만으로 자동 학습 hook이 켜지지 않습니다. `learn`·회고 개선 반영·하네스 반영은 해당 스킬의 승인 계약을 따릅니다. |
 
 ### 자연어 SQL의 별도 MCP 설치
 

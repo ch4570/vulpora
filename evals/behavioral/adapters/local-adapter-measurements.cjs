@@ -57,8 +57,8 @@ function projectMeasurements(value) {
   const context = {
     schema_version: 1, asset: id(c.asset), source_kind: enumeration(c.source_kind, [null, 'agent', 'skill']),
     baseline: enumeration(c.baseline, ['plain-runtime', 'agent-only', 'agent-memory']),
-    context_mode: enumeration(c.context_mode, ['none', 'complete_entry_injection']),
-    references_available: enumeration(c.references_available, ['only_inlined_files_and_fixture']),
+    context_mode: enumeration(c.context_mode, ['none', 'complete_entry_injection', 'staged_security_workflow']),
+    references_available: enumeration(c.references_available, ['only_inlined_files_and_fixture', 'staged_bundle_not_runtime_granted']),
     runtime_discovery_measured: false,
     loaded_files: c.loaded_files.map(file => {
       if (typeof file.path !== 'string' || !/^(skills|agents|memory)\/[A-Za-z0-9_./-]+$/.test(file.path)
@@ -68,6 +68,21 @@ function projectMeasurements(value) {
         bytes: file.bytes, sha256: file.sha256, complete: true };
     }),
   };
+  if (context.context_mode === 'staged_security_workflow') {
+    if (context.asset !== 'security-scan-workflow' || context.source_kind !== 'skill'
+        || context.baseline !== 'agent-only' || context.loaded_files.length
+        || context.references_available !== 'staged_bundle_not_runtime_granted'
+        || !Array.isArray(c.available_files) || !c.available_files.length || c.available_files.length > 256) throw new Error('invalid');
+    context.native_auditor_status = enumeration(c.native_auditor_status, ['not_run_registration_unverified']);
+    context.available_files = c.available_files.map(file => {
+      if (typeof file.path !== 'string' || !/^(skills\/security-scan-workflow\/|agents\/security-auditor(?:\/|\.md$))[A-Za-z0-9_./-]*$/.test(file.path)
+          || file.path.split('/').some(part => !part || part === '.' || part === '..')
+          || !integer(file.bytes) || file.bytes === 0 || !/^[a-f0-9]{64}$/.test(file.sha256) || file.complete !== true) throw new Error('invalid');
+      return { path: file.path, role: enumeration(file.role, ['skill_reference', 'agent_definition', 'agent_reference']),
+        bytes: file.bytes, sha256: file.sha256, complete: true };
+    });
+    if (new Set(context.available_files.map(file => file.path)).size !== context.available_files.length) throw new Error('invalid');
+  } else if (context.references_available !== 'only_inlined_files_and_fixture') throw new Error('invalid');
   if (value.schema !== 'vulpora.adapter-measurements' || value.schema_version !== 1) throw new Error('invalid');
   return { schema: value.schema, schema_version: 1, usage, prompt_proxy, context };
 }

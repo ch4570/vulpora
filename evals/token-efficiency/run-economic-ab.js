@@ -418,7 +418,7 @@ async function main(args=process.argv.slice(2)) {
 }
 
 module.exports={parseArgs,validateCases,qualityCheck,feedback,sequence,buildCodexArgs,evidenceFromEvents,
-  compliant,sumUsage,aggregate,stopReason,LIMITS,main,command,snapshot,preflight,execute,COMMON_CONFIG};
+  compliant,sumUsage,aggregate,stopReason,LIMITS,main,command,snapshot,preflight,execute,COMMON_CONFIG,freezeSource};
 if(require.main===module)main().catch(error=>{
   process.stderr.write((/^[A-Z][A-Z0-9_:.-]*$/.test(error.message)?error.message:'ECONOMIC_RUNNER_FAILED')+'\n');
   process.exitCode=2;

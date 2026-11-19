@@ -102,7 +102,7 @@ record "all-skills resolves $expected_skills skills and only their typed agent d
    && printf '%s\n' \"\$output\" | grep -Fq 'vulpora-installer' \
    && actual_agents=\$(printf '%s\n' \"\$output\" | sed -n 's/^해소된 에이전트: //p') \
    && [ \"\$(normalize_ids \"\$actual_agents\")\" = \"\$(normalize_ids \
-        'architecture-reviewer application-architect domain-driven-design-reviewer code-cartographer java-reviewer security-auditor opensearch-expert postgres-dba data-modeling-reviewer requirement-dialogue task-splitter task-orchestrator test-runner grafana-monitor')\" ] \
+        'architecture-reviewer application-architect domain-driven-design-reviewer code-cartographer java-reviewer security-auditor opensearch-expert postgres-dba data-modeling-reviewer requirement-dialogue task-splitter task-orchestrator test-runner qa-test-designer grafana-monitor')\" ] \
    && [ ! -e '$WORK/dry/.codex' ] && [ ! -e '$WORK/dry/.agents' ]"
 record 'architecture workflow resolves its complete typed agent and skill closure' \
   "assert_resolution architecture-review-workflow \
@@ -112,6 +112,10 @@ record 'backend review workflow resolves its complete typed agent and skill clos
   "assert_resolution backend-code-review-workflow \
      'security-auditor' \
      'backend-code-review-workflow kotlin-spring-review refactoring-catalog design-pattern-apply oop-design-review'"
+record 'security scan workflow installs only its required security auditor and skill' \
+  "assert_resolution security-scan-workflow \
+     'security-auditor' \
+     'security-scan-workflow'"
 record 'E2E test workflow resolves its exact author, runner, browser, and renderer closure' \
   "assert_resolution e2e-test-workflow \
      '' \
@@ -120,6 +124,12 @@ record 'code authoring router remains a runtime-neutral minimal router' \
   "assert_resolution code-authoring-router \
      '' \
      'code-authoring-router'"
+record 'dead code exploration installs its self-contained skill without extra agents' \
+  "assert_resolution explore-dead-code \
+     '' \
+     'explore-dead-code' \
+   && diff -r '$SCRIPT_DIR/../skills/explore-dead-code' \
+      '$WORK/resolution-explore-dead-code/.agents/skills/explore-dead-code'"
 record 'Kotlin Spring review workflow resolves its complete skill suite without unrelated agents' \
   "assert_resolution kotlin-spring-review-workflow \
      '' \

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
+import { PassThrough } from 'node:stream';
 import test from 'node:test';
 
 import sql from 'mssql';
@@ -33,11 +34,18 @@ test('mysql keeps parameter values separate from SQL text and rolls back', async
       commands.push(command);
       return [[], []];
     },
-    async execute(command) {
-      assert.equal(command.sql, statement);
-      assert.deepEqual(command.values, params);
-      commands.push('bound SELECT');
-      return [[{ value: params[0] }], [{ name: 'value' }]];
+    connection: { config: { compress: false }, stream: new PassThrough(), execute(command) {
+      const query = new EventEmitter();
+      queueMicrotask(() => {
+        assert.equal(command.sql, statement);
+        assert.deepEqual(command.values, params);
+        commands.push('bound SELECT');
+        query.emit('fields', [{ name: 'value' }]);
+        query.emit('result', { value: params[0] });
+        query.emit('end');
+      });
+      return query;
+    },
     },
     release() { released = true; },
   };
@@ -71,13 +79,14 @@ test('mysql connection strings retain configured TLS verification and pool limit
   });
   const driver = new MysqlDriver({
     ...config,
-    connectionString: 'mysql://readonly_user:example@localhost:3307/app',
+    connectionString: 'mysql://readonly_user:example@localhost:3307/app?compress=true',
   });
   t.after(() => driver.close());
 
   assert.equal(pool.pool.config.connectionConfig.port, 3307);
   assert.equal(pool.pool.config.connectionConfig.ssl.rejectUnauthorized, true);
   assert.equal(pool.pool.config.connectionLimit, 4);
+  assert.equal(pool.pool.config.connectionConfig.compress, false);
 });
 
 test('mysql preserves URI certificate options while enforcing configured verification', async (t) => {
@@ -132,11 +141,6 @@ test('mysql require mode preserves verification enabled by URI TLS options', asy
 });
 
 test('mssql parses connection strings and applies the configured statement timeout', async (t) => {
-  let poolConfig;
-  t.mock.method(sql.ConnectionPool.prototype, 'connect', async function () {
-    poolConfig = this.config;
-    return this;
-  });
   const driver = new MssqlDriver({
     ...config,
     dialect: 'mssql',
@@ -144,6 +148,7 @@ test('mssql parses connection strings and applies the configured statement timeo
     connectionString: 'Server=localhost,1434;Database=app;User Id=readonly_user;Password=example;Encrypt=true;TrustServerCertificate=false',
   });
   t.after(() => driver.close());
+  const poolConfig = driver.poolConfig;
 
   assert.equal(poolConfig.server, 'localhost');
   assert.equal(poolConfig.port, 1434);
@@ -152,5 +157,5 @@ test('mssql parses connection strings and applies the configured statement timeo
   assert.equal(poolConfig.options.encrypt, true);
   assert.equal(poolConfig.options.trustServerCertificate, false);
   assert.equal(poolConfig.requestTimeout, 1234);
-  assert.equal(poolConfig.pool.max, 4);
+  assert.equal(poolConfig.pool.max, 1);
 });

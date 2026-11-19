@@ -11,7 +11,104 @@ Vulpora의 사용자 관점 변경 사항을 기록합니다.
   보고하지 않습니다. 주기 실행은 `/loop`, Desktop·cloud 예약 작업, headless cron 안내를 따릅니다.
 - Grafana MCP는 사용자 URL과 service account token이 필요한 local stdio server라 MCP pack에 넣지 않았습니다.
   `--disable-write`와 Viewer 권한 token을 쓰는 수동 등록 절차를 스킬 KB에 기록했습니다.
-- 설치 inventory가 에이전트 29개, 스킬 63개로 늘었습니다.
+- 설치 inventory가 에이전트 30개, 스킬 67개로 늘었습니다.
+- `e2e-scenario-author`의 Spring 요청 DTO 검증 수집을 고쳤습니다. `List<@Valid @NotNull Item>`처럼
+  타입 인자 안에 있는 원소 검증 애노테이션 때문에 record 전체를 `SCA-5.2`로 거부하던 문제와, 그
+  애노테이션이 다음 컴포넌트의 제약으로 붙던 문제입니다. `@NotNull @Size(...)`처럼 연속된 제약도 이제
+  모두 집계합니다. Spring Boot `ErrorController` 구현체는 HTTP 표면에서 제외합니다. 컴포넌트 수준
+  중첩 `@Valid`와 메서드 지정 없는 일반 `@RequestMapping`은 기존처럼 fail-closed로 거부합니다.
+- E2E 결과의 PASS가 실제로 무엇을 비교했는지 남기게 했습니다. 실행된 결과마다 `assertions[]`(상태 코드와 본문
+  단언)를 기록하고, `evaluate-run-verdict.js`는 비교가 없는 PASS(`NO_ASSERTION`)와 비교와 모순되는 PASS
+  (`PASS_CONTRADICTS_ASSERTION`)를 `INCONCLUSIVE`로 판정합니다. 백틱 때문에 상태 비교가 빠진 하네스 결과는 이제
+  통과로 집계되지 않습니다.
+- 카탈로그 `Expected`에 기계가 검사하는 본문 단언(`assert $.path <연산자> [값]`, `[*]` 투영과 배열 리터럴 포함)을
+  추가했습니다. 사람이 쓰는 단언과 우선순위는 `docs/e2e-scenarios/scenario-overrides.json`에 두며, 카탈로그를 다시
+  생성해도 사라지지 않습니다. 없어진 시나리오를 가리키는 override는 `SCA-15.ORPHAN-OVERRIDE`로 드러납니다.
+- 수집기가 HTTP 표면의 요청 정보(경로·쿼리 파라미터의 위치와 필수 여부, 제약, 본문 enum 상수)를 인벤토리에 남기고,
+  `validate-catalog.js`가 정상 서버가 거부할 요청을 막습니다: 필수 파라미터 누락, 채우지 않은 경로 변수, 경로 변수
+  제약을 쿼리로 위반, 소스에 없는 enum 값, 선행 시나리오가 캡처하지 않는 `{{prev.X}}`. 확신할 수 없는 시나리오는
+  `Notes`의 `hold: <이유>`로 보류하며, 실행되지 않고 이유와 함께 보고됩니다.
+- 알려진 편차를 `docs/e2e-scenarios/known-deviations.json`에 사유·승인자·만료일과 함께 등록합니다. 수집 제외
+  (`discovery-exclusion`)와 시나리오 실행 제외(`scenario-exclusion`)를 지원하고, 등록된 편차만 있으면 승인 질문 없이
+  진행하며 보고서에 표시합니다. 만료되거나 잘못된 항목은 `SCA-5.3`으로 막습니다.
+- 저장소 하네스를 정식 실행 수단으로 받아들입니다. `export-catalog-plan.js`가 실행 순서·지연 teardown·override·
+  우선순위·제외 사유를 담은 계획을 만들고, 하네스는 관찰만 기록합니다. `assemble-run-result.js`가 단언·가림·판정
+  입력·`.done`을 처리하고, `validate-run-result.js`가 CONTRACT §5 형식·비교 기록·가림·판정 입력·`.done`을 검사합니다.
+  최소 Java 예제 `reference/examples/CatalogPlanRunner.java`를 함께 제공합니다.
+- 의존 시나리오가 있는 선행 시나리오의 teardown은 마지막 의존 시나리오가 끝난 뒤 실행합니다. 실패한 선행 시나리오
+  뒤에 실행된 의존 시나리오는 `FAILED-DEPENDENCY`로 집계합니다.
+- `check-output-root.js`로 보고서 출력 경로가 저장소 추적 파일과 겹치면 시작 전에 멈춥니다.
+- `e2e-report-renderer` 템플릿이 고정 열 배치로 목적 칸이 찌그러지지 않게 하고, 생성 시각·전체 소요 시간을
+  CONTRACT 필드로 채우며, 첫 화면에 확인한 비교 수와 제외·편차 목록을 보여 줍니다.
+- `evaluate-run-verdict.js`가 선택되지 않은 케이스마다 `unselectedReason`을 요구하고, 결과에
+  `selection.unselected`와 이유별 `notSelected`를 냅니다. 실행한 개수만 보고하는 결과를 막습니다.
+- `detect-test-profile.js`가 `infrastructure.dockerEnvironment`를 내고, runner·workflow는 카탈로그 하네스를
+  포함한 모든 Testcontainers 프로세스에 이를 적용합니다(Rancher Desktop·Colima 소켓 대응).
+- 새 `audit-orphans.js`는 실행 전 스냅숏과 비교하고 Ryuk의 비동기 정리를 유예 시간(기본 30초) 동안
+  기다린 뒤 잔여 컨테이너를 판정합니다. Docker 오류는 `PASS`가 되지 않습니다.
+- `e2e-test-workflow`는 run-only 요청에 빠른 경로를 기본으로 쓰고 결과를 통과·실패·제외·확인하지 못한 것 네 줄로
+  보고합니다. 저장소 카탈로그 하네스를 단일 환경 소유자로 받아들이는 어댑터 규약을 추가했고, 브라우저 lane을
+  쓸 수 없으면 필요한 구성을 커버리지 공백으로 남깁니다.
+- `e2e-scenario-author`의 surface 탐지가 정상 Java·Kotlin 소스를 `SCA-5.2`로 거부하던 두 경우를
+  고쳤습니다. `"\\"`처럼 이스케이프된 백슬래시로 끝나는 문자열·문자 리터럴을 닫히지 않은 것으로
+  보던 문제와, outbox 소유 클래스를 찾을 때 주석 속 아포스트로피(`spring-kafka's`)를 문자 리터럴로
+  읽던 문제입니다. 지원하지 않는 중첩 검증 타입을 거부하는 기존 fail-closed 동작은 그대로입니다.
+- `harness-refine`을 추가했습니다. Harness²의 Propose–Probe–Compose 방법을 옮겨, 에이전트나
+  스킬 하나를 같은 과제로 원본과 후보 하네스로 나란히 실행하고 실행 대비가 뒷받침하는 수정만
+  고릅니다. 절차(INV)와 실무 지식(DOM) 후보를 따로 내고, 채점 기준 없이 원본 산출물을 포함한
+  익명 풀에서 고르며, 교훈과 개선 기록은 `quarantined`로 남깁니다. 동봉 스크립트는 모델을
+  호출하지 않고 스냅숏·후보 검증·fixture 사본·탐침 예산·익명 풀·기록만 관리합니다.
+  실행기 격리는 검증하지 않으며 대상 자산 적용은 사용자 승인 뒤에만 합니다.
+- `knowledge` pack에 `harness-refine`을 포함했으며, 현재 스킬 카탈로그는 65개입니다.
+- `kotlin-code-authoring`을 `harness-refine` 두 회차(주문 취소, 회원 주문 목록)의 블라인드 선택
+  결과로 보강했습니다. 상태 전이·중복·동시 요청이 걸린 변경은 새 `state-transition-commands` KB를
+  먼저 읽고, 넘기기 전에 요청 조항별 코드·테스트를 대조하며 새 공개 계약을 밝힙니다. 빌드를
+  실행할 수 없으면 검증 명령을 build 파일과 대조해 막힌 항목을 알립니다.
+- `e2e-evidence-report`를 추가했습니다. TC 계획을 세우고 `e2e-test-workflow`로 실행하며, 브라우저 케이스는
+  저장소 설정을 바꾸지 않는 run 전용 Playwright overlay로 모두 녹화·캡처합니다. 각 케이스의 결과 데이터를
+  run-owned DB에서 읽기 전용 조회로 확인하고, 임시 디렉터리에 오프라인 HTML 증거 보고서를 만듭니다.
+  `playwright-e2e`에 이를 위한 PW-7.1 evidence mode를 더했습니다.
+- `load-test-engineer` 에이전트를 추가했습니다. 허가된 대상에만 k6로 부하를 걸고, 원시 결과와 서버 지표에서
+  응답 성공률·처리량·p50/p95/p99·지연 구간 분해·포화 지점·지표 상관을 계산해 근거 있는 병목 가설을 HTML
+  보고서로 냅니다. 운영·제3자 대상은 거부합니다. 두 자산은 `qa-e2e` pack에 포함되며 카탈로그는 에이전트 29개,
+  스킬 66개입니다.
+- `code-authoring-router`의 Java 경로가 설치된 `java-reviewer` 지식 번들을 작성 제약으로 읽고
+  Java 테스트는 `backend-test-author`로 보내도록 했습니다. `jvm-spring` pack 설명을 실제 구성
+  (Kotlin 작성·테스트, Kotlin·Java 리뷰)에 맞췄습니다.
+- NL-to-SQL MCP의 의존성 보안 권고 10건을 해소했습니다. `@modelcontextprotocol/sdk`와 `zod` 하한을
+  패치 버전으로 올렸습니다. 상위 `@azure/identity`가 아직 허용하지 않는 `@azure/msal-node` 패치는
+  override로 7.1.2 이상에 고정했습니다. `mssql`·`tedious` 버전과 SQL 인증 경로는 바뀌지 않습니다.
+
+## [1.1.0] - 2026-09-11
+
+- workflow 경제성의 사전 고정 과제·호출 비용 집계·사용 가이드를 추가했습니다.
+  기존 pilot의 실패와 불명 사용량을 보존하며, 완료 0건인 결과로 일반 절감을 주장하지 않습니다.
+- `start-task`의 경량·일반·독립 세션·감사 분기별 소스 토큰 예산과 필수 참조
+  coverage 검사를 추가했습니다. 공개 소스 baseline을 별도로 기록하고 과거 측정은 보존합니다.
+- `harness-propose`가 Codex·Claude·공존 설치와 호스트 목록을 구분해 수집하고,
+  기존 보고서가 없는 프로젝트에서도 독립 제안서를 작성하도록 보완했습니다.
+  호스트 ID의 namespace를 보존하며 정책 파일을 임의로 생성하지 않습니다.
+- 명시적 lightweight 프로필은 작업 lane 수와 관계없이 주 담당자만 실행하도록
+  선택기를 수정했습니다. 자동 standard 위임과 고위험 audit 전환은 유지합니다.
+- 세션 실행 기록 게시가 실패하면 실행 전임이 확인된 예약만 회수합니다. 취소 이력으로
+  중복 환급을 막고, 이미 게시된 기록이나 사용량 불명 실행의 예약은 유지합니다.
+- `explore-dead-code`를 추가했습니다. 저장소 참조를 묶음 검색해 미참조 코드 후보를
+  근거·신뢰도와 함께 빠르게 보고합니다. 간접 등록과 외부 API의 불확실성은 추가 확인
+  대상으로 남기며 코드를 삭제하지 않습니다.
+- `security-scan-workflow`를 추가했습니다. 인증·인가/테넌트, 비밀 노출, XSS·CSRF,
+  SQL·명령 주입, SSRF, 파일, 설정·의존성, 자원 고갈과 공유 리소스 영향 경로를 분석합니다.
+  검토 요청은 읽기 전용을 유지하고, 수정 요청은 소스 수정·격리 회귀 검증·독립 재검토까지
+  수행합니다. DB·Redis뿐 아니라 검색·큐·객체 저장소·인프라의 삭제·설정·가용성 영향을
+  점검하며, 실제 공유 서비스 작업과 비밀값 출력은 금지합니다.
+- `security-scan-workflow` 선택 설치 시 필수 `security-auditor`를 함께 설치하며,
+  현재 스킬 카탈로그는 64개입니다.
+- NL-to-SQL의 SQL Server 트랜잭션·관리 제어문 우회와 MySQL 실행 시간 제한 설정 실패 후
+  조회가 계속되는 경로를 차단했습니다. 제한을 지원하지 않는 MySQL 호환 서버에서는
+  조회를 거부합니다. 읽기 전용 DB 권한과 실제 엔진 검증은 여전히 별도입니다.
+- 설치 selector의 인자 경계와 작업 기록 보존, 세션 사전 검증·timeout 정리,
+  중복 평가 키 거부 등 설치·실행·검증 경계의 회귀 오류를 수정했습니다.
+- 전체 변경과 검증 한계는 [v1.1.0 릴리즈 노트](docs/releases/v1.1.0.md)에 기록합니다.
+  운영 평가 신뢰 이슈 #1은 열어 두며 자동 승격 차단을 유지합니다.
 
 ## [1.0.1] - 2026-09-08
 

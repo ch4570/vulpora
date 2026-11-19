@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import importlib.metadata
 import json
+import posixpath
 import re
 import subprocess
 import sys
@@ -74,7 +75,81 @@ def split_skill(text):
     return name.group(1).strip('"\''), description, match.group(0), text[match.end():]
 
 
+def expand_paths(contract, entries, active=()):
+    paths = []
+    for entry in entries:
+        if entry.startswith('@'):
+            name = entry[1:]
+            if name in active or name not in contract.get('file_groups', {}):
+                raise ValueError('Missing or cyclic load group: ' + name)
+            paths.extend(expand_paths(contract, contract['file_groups'][name], (*active, name)))
+        else:
+            paths.append(safe_path(entry))
+    return paths
+
+
+def instruction_links(filename, text):
+    """Collect local Markdown links and canonical plugin-root bundle paths in source order."""
+    paths = []
+    pattern = r'\]\(([^)]+)\)|\$\{CLAUDE_PLUGIN_ROOT\}/([^`\s]+\.md)'
+    for match in re.finditer(pattern, text):
+        if match.group(2):
+            paths.append(safe_path(match.group(2)))
+            continue
+        target = match.group(1).split('#')[0]
+        if re.match(r'^[a-zA-Z][a-zA-Z0-9+.-]*:', target) or not target.endswith('.md'):
+            continue
+        paths.append(safe_path(posixpath.normpath(posixpath.join(posixpath.dirname(filename), target))))
+    return paths
+
+
+def validate_load_coverage(source, contract, plan):
+    """Bind declared route inventories to source anchors without reading scripts as model context."""
+    coverage = contract.get('load_coverage')
+    if coverage is None:
+        return  # Historical contracts remain reproducible without retroactive edits.
+    scenarios = {row['id']: row for row in contract['scenarios']}
+    roots = coverage['roots']
+    if set(roots) != set(scenarios):
+        raise ValueError('Load coverage route inventory differs')
+    # Expected obligations must not shrink when a measured group loses a file.
+    for entries in [*roots.values(), *(rule['files'] for rule in coverage['rules'])]:
+        if any(entry.startswith('@') for entry in entries):
+            raise ValueError('Load coverage obligations must be independent of measured groups')
+    required = {key: {safe_path(path) for path in value} for key, value in roots.items()}
+    for rule in coverage['rules']:
+        if not rule['anchor'] or rule['anchor'] not in source.read(rule['source']):
+            raise ValueError('Load coverage source anchor changed: ' + rule['source'])
+        if not rule['routes'] or not set(rule['routes']).issubset(scenarios):
+            raise ValueError('Load coverage rule has an unknown route')
+        for route in rule['routes']:
+            required[route].update([rule['source'], *rule['files']])
+    for route, files in required.items():
+        for filename in files:
+            safe_path(filename)
+        if set(expand_paths(contract, scenarios[route][plan])) != files:
+            raise ValueError('Load coverage paths differ: ' + route)
+    # New local instruction links in the main routing surfaces need an explicit
+    # classification, even if all old declared token budgets still fit.
+    declared = set().union(*required.values())
+    if set(coverage['link_targets']) != set(coverage['link_sources']):
+        raise ValueError('Load coverage link source inventory differs')
+    for filename in coverage['link_sources']:
+        excluded = coverage.get('excluded_links', {}).get(filename, {})
+        if any(not reason for reason in excluded.values()):
+            raise ValueError('Excluded load links need a reason')
+        links = instruction_links(filename, source.read(filename))
+        for relative in links:
+            if relative not in declared and relative not in excluded:
+                raise ValueError('Unclassified instruction link: ' + relative)
+        # Preserve occurrences and order: a target already used on another route
+        # cannot silently replace or add an instruction on this source surface.
+        if links != coverage['link_targets'][filename]:
+            raise ValueError('Load coverage source links changed: ' + filename)
+
+
 def measure(source, scenario_contract, plan, encode, tokenizer_version):
+    validate_load_coverage(source, scenario_contract, plan)
     rows = []
     for item in manifest_skills(source.read('install/manifest.txt')):
         text = source.read(item['path'])
@@ -92,7 +167,7 @@ def measure(source, scenario_contract, plan, encode, tokenizer_version):
         if scenario['id'] in seen:
             raise ValueError('Duplicate scenario ID: ' + scenario['id'])
         seen.add(scenario['id'])
-        paths = scenario[plan]
+        paths = expand_paths(scenario_contract, scenario[plan])
         if len(paths) != len(set(paths)) or not paths:
             raise ValueError('Scenario paths must be non-empty and unique: ' + scenario['id'])
         files = [count_file(source, path, encode) for path in paths]

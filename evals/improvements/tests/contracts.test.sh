@@ -326,6 +326,34 @@ printf '%s\n' 'eval_id: duplicate-eval-id' >> "$WORK/ambiguous-results/after.yam
 write_record "$WORK/ambiguous-result.yaml" ambiguous-before-001 ambiguous-after-001
 expect_fail ambiguous_result_yaml bash "$VALIDATOR" --strict-promotion --results-dir "$WORK/ambiguous-results" "$WORK/ambiguous-result.yaml"
 
+# Quoted keys are valid general YAML but outside the runner result subset.
+# They must not hide a second verdict, score block, identity, or nested score.
+mkdir -p "$WORK/quoted-results"
+write_result "$WORK/quoted-results/before.yaml" quoted-before-001 0.80 1.00 1.00
+write_record "$WORK/quoted-result.yaml" quoted-before-001 quoted-after-001
+quoted_case=0
+for shadow in \
+  '"actual": { outcome_score: 0, process_score: 0, safety_score: 0 }' \
+  "'actual': { outcome_score: 0, process_score: 0, safety_score: 0 }" \
+  '"verdict": fail' "'verdict': fail" '"eval_id": shadow-result-id' \
+  '? verdict' '  "trial_count": 2' "  'trial_count': 2" \
+  '---' '    verdict: fail'; do
+  quoted_case=$((quoted_case + 1))
+  write_result "$WORK/quoted-results/after.yaml" quoted-after-001 0.90 1.00 1.00
+  printf '%s\n' "$shadow" >> "$WORK/quoted-results/after.yaml"
+  expect_fail "quoted_result_key_$quoted_case" bash "$VALIDATOR" --strict-promotion --results-dir "$WORK/quoted-results" "$WORK/quoted-result.yaml"
+done
+for shadow in '"safety_score": 0' "'safety_score': 0"; do
+  write_result "$WORK/quoted-results/after.yaml" quoted-after-001 0.90 1.00 1.00
+  awk -v shadow="$shadow" '/^actual:/ { sub(/ }$/, ", " shadow " }") } { print }' "$WORK/quoted-results/after.yaml" > "$WORK/quoted-results/after.rewritten"
+  mv "$WORK/quoted-results/after.rewritten" "$WORK/quoted-results/after.yaml"
+  expect_fail quoted_inline_score bash "$VALIDATOR" --strict-promotion --results-dir "$WORK/quoted-results" "$WORK/quoted-result.yaml"
+done
+write_result "$WORK/quoted-results/after.yaml" quoted-after-001 0.90 1.00 1.00
+awk '/^target:/ { print "target: { kind: agent, id: contract-agent, \"id\": foreign-agent }"; skip=2; next } skip { skip--; next } { print }' "$WORK/quoted-results/after.yaml" > "$WORK/quoted-results/after.rewritten"
+mv "$WORK/quoted-results/after.rewritten" "$WORK/quoted-results/after.yaml"
+expect_fail quoted_inline_target bash "$VALIDATOR" --strict-promotion --results-dir "$WORK/quoted-results" "$WORK/quoted-result.yaml"
+
 mkdir -p "$WORK/score-conflict-results"
 write_result "$WORK/score-conflict-results/before.yaml" score-before-001 0.80 1.00 1.00
 write_result "$WORK/score-conflict-results/after.yaml" score-after-001 0.90 1.00 1.00
@@ -393,6 +421,36 @@ expect_fail tsv_invalid_before_verdict bash "$VALIDATOR" --strict-promotion --re
 # A tab injection cannot create an ignored score-bearing TSV field.
 awk 'NR == 3 { print $0 "\tforged"; next } { print }' "$WORK/results.tsv" > "$WORK/results-injected.tsv"
 expect_fail tsv_field_injection bash "$VALIDATOR" --strict-promotion --results-index "$WORK/results-injected.tsv" "$WORK/valid-linked.yaml"
+
+# Preserve ingestion of an actual runner result, including its quoted target
+# values, one-line evidence strings, measurements, and optional score fields.
+# The sample adapter is deterministic and never invokes a model or network API.
+# Only the before fixture is derived; the candidate is the unmodified output.
+mkdir -p "$WORK/runner-results"
+VULPORA_BEHAVIORAL_RESULTS_DIR="$WORK/runner-results" \
+  VULPORA_RUN_GROUP_ID=improvement-runner-contract \
+  VULPORA_ADAPTER_ID=sample-adapter-v1 VULPORA_MODEL_ID=offline-contract-model \
+  VULPORA_CONFIG_ID=offline-contract-config \
+  VULPORA_BEHAVIORAL_RUNNER_CMD="bash \"$DIR/../behavioral/adapters/sample-adapter.sh\"" \
+  bash "$DIR/../behavioral/run-behavioral-evals.sh" --run --only=kotlin-spring-reviewer >/dev/null
+runner_after="$(find "$WORK/runner-results" -name '*.yaml' -type f)"
+runner_after_id="$(awk '/^eval_id:/ { print $2 }' "$runner_after")"
+awk '
+  /^eval_id:/ { print "eval_id: runner-before-001"; next }
+  /^actual:/ { sub(/outcome_score: [^,} ]+/, "outcome_score: 0.80") }
+  /^  outcome_score:/ { print "  outcome_score: 0.80"; next }
+  { print }
+' "$runner_after" > "$WORK/runner-results/before.yaml"
+write_record "$WORK/runner-record.yaml" runner-before-001 "$runner_after_id"
+awk -v approved="$(date -u +'%Y-%m-%dT%H:%M:%SZ')" '
+  $0 == "  id: contract-agent" { print "  id: kotlin-spring-reviewer"; next }
+  /^  approved_at:/ { print "  approved_at: " approved; next }
+  { print }
+' "$WORK/runner-record.yaml" > "$WORK/runner-record.rewritten"
+mv "$WORK/runner-record.rewritten" "$WORK/runner-record.yaml"
+bash "$VALIDATOR" --strict-promotion --results-dir "$WORK/runner-results" "$WORK/runner-record.yaml" >/dev/null
+printf '%s\n' '"verdict": fail' >> "$runner_after"
+expect_fail quoted_key_in_measured_runner_result bash "$VALIDATOR" --strict-promotion --results-dir "$WORK/runner-results" "$WORK/runner-record.yaml"
 
 node --test "$DIR/tests/promotion.test.cjs"
 printf '%s\n' 'improvement record and promotion-boundary contracts: PASS'

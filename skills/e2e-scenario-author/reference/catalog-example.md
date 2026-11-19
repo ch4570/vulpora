@@ -12,7 +12,7 @@ Read only when the project contract and SCA-11 need a worked example. The projec
 | Purpose | A synthetic member can read the article list |
 | Preconditions | `service.api.ready == true` |
 | Dataset | `memberId={{seed.MEMBER_ID}}, size=20` |
-| Expected | `200 OK`; response header `X-Session-ID` present; `$.content` non-empty |
+| Expected | `200 OK`; response header `X-Session-ID` present; `assert $.content non-empty` |
 | Mutates | — |
 | Depends-on | — |
 | Captures | X-SESSION-ID |

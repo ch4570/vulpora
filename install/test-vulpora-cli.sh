@@ -29,6 +29,7 @@ record() {
     pass=$((pass + 1))
   else
     printf '  ✗ %s\n' "$1"
+    if [ -n "${3:-}" ] && [ -f "$3" ]; then tail -n 60 "$3" >&2; fi
     fail=$((fail + 1))
   fi
 }
@@ -88,6 +89,19 @@ tui_agent_without_skills_keys() {
   printf ' \n'
   printf '\n'
   printf '\n'
+}
+
+tui_transition_log_is_valid() {
+  # A trailing newline would add an empty grep pattern and match any log line.
+  # Auto detection proceeds directly from the action menu to scope selection.
+  grep -Fxq -- '런타임 자동 감지: Claude Code + Codex' "$1" \
+    && grep -Fxq -- $'  적용 범위\033[K' "$1" \
+    && grep -Fxq -- $'    내 계정 전체\033[K' "$1" \
+    && grep -Fxq -- $'  > 현재 프로젝트\033[K' "$1" \
+    && grep -Fxq -- $'  이 저장소에만 설치\033[K' "$1" \
+    && ! grep -Fxq -- $'  > Claude Code\033[K' "$1" \
+    && ! grep -Fxq -- $'    Codex\033[K' "$1" \
+    && ! grep -Fq -- $'\033[2J' "$1"
 }
 
 record 'version exposes the repository release' \
@@ -228,16 +242,21 @@ record 'TTY interface exposes selected and full removal on the first screen' \
    && grep -Fq \$'\033[?25h' '$WORK/interactive-tui-quit.log' \
    && ! grep -Fq \$'\033[2J' '$WORK/interactive-tui-quit.log' \
    && grep -Fq '변경한 파일이 없습니다' '$WORK/interactive-tui-quit.log'"
-record 'TTY action-to-runtime transition clears stale text on every row' \
+record 'TTY action-to-scope transition shows auto detection and clears scope rows' \
   "printf '\nq' \
      | HOME='$user_target' VULPORA_STATE_HOME='$VULPORA_STATE_HOME' \
-       VULPORA_UI=tui NO_COLOR=1 TERM=xterm PATH='$interactive_bin:$PATH' \
+       VULPORA_RUNTIME=auto VULPORA_UI=tui NO_COLOR=1 TERM=xterm PATH='$interactive_bin:$PATH' \
        bash '$CLI' interactive > '$WORK/interactive-tui-transition.log' \
-   && grep -Fq \$'  > Claude Code\033[K\n' '$WORK/interactive-tui-transition.log' \
-   && grep -Fq \$'    Codex\033[K\n' '$WORK/interactive-tui-transition.log' \
-   && grep -Fq \$'    둘 다\033[K\n' '$WORK/interactive-tui-transition.log' \
-   && grep -Fq \$'  CLI 감지됨\033[K\n' '$WORK/interactive-tui-transition.log' \
-   && ! grep -Fq \$'\033[2J' '$WORK/interactive-tui-transition.log'"
+   && tui_transition_log_is_valid '$WORK/interactive-tui-transition.log'"
+record 'TTY transition assertions reject an empty log' \
+  ": > '$WORK/tui-transition-empty.log' \
+   && ! tui_transition_log_is_valid '$WORK/tui-transition-empty.log'"
+record 'TTY transition assertions reject unrelated lines' \
+  "printf 'unrelated output\n' > '$WORK/tui-transition-unrelated.log' \
+   && ! tui_transition_log_is_valid '$WORK/tui-transition-unrelated.log'"
+record 'TTY transition assertions reject a missing selected scope row' \
+  "sed '/현재 프로젝트/d' '$WORK/interactive-tui-transition.log' > '$WORK/tui-transition-missing-scope.log' \
+   && ! tui_transition_log_is_valid '$WORK/tui-transition-missing-scope.log'"
 record 'TTY selected removal deletes one agent and preserves the other' \
   "tui_remove_test_runner_keys \
      | HOME='$user_target' VULPORA_STATE_HOME='$VULPORA_STATE_HOME' \
@@ -246,7 +265,8 @@ record 'TTY selected removal deletes one agent and preserves the other' \
    && [ -f '$WORK/tui-project/.codex/agents/kotlin-spring-reviewer.toml' ] \
    && [ ! -e '$WORK/tui-project/.codex/agents/test-runner.toml' ] \
    && grep -Fq '제거할 에이전트' '$WORK/interactive-tui-remove.log' \
-   && grep -Fq 'Vulpora 선택 제거 완료' '$WORK/interactive-tui-remove.log'"
+   && grep -Fq 'Vulpora 선택 제거 완료' '$WORK/interactive-tui-remove.log'" \
+  "$WORK/interactive-tui-remove.log"
 record 'removed onboarding option fails with a migration message' \
   "output=\$(bash '$CLI' setup --runtime all --target '$all_target' --onboard notion-domain-researcher 2>&1); rc=\$?; \
    [ \$rc -ne 0 ] && printf '%s\\n' \"\$output\" | grep -Fq -- '--onboard는 1.0.0에서 제거'"

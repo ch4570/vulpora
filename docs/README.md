@@ -9,14 +9,16 @@ details needed for your project.
 
 | Guide | What it answers |
 |---|---|
-| Skills: [한국어](skills.ko.md) · [English](skills.en.md) | All 62 skill IDs, grouped purposes, exact invocation examples, dependency installation, and external-tool prerequisites |
+| Skills: [한국어](skills.ko.md) · [English](skills.en.md) | All 66 skill IDs, grouped purposes, exact invocation examples, dependency installation, and external-tool prerequisites |
 | Architecture: [한국어](architecture.ko.md) · [English](architecture.en.md) | Folder structure, catalog-to-runtime flow, dependency graph, model routing, MCP boundaries, and extension points |
 | [Installation and removal](../INSTALL.md) | Guided/CLI installation, runtime scope, offline packages, updates, MCP setup, and receipts |
+| [Workflow economics (한국어)](workflow-economics.ko.md) | Existing path selection, copyable task brief, all-attempt costs and limits of savings claims |
 | [Catalog guide](catalog-guide.md) | Packs, agents, workflows, runtime paths, project policy, and source layout |
 | [Product pack](product-pack.md) | Planning, UX design, independent review, and example prompts |
 | [Model routing](review-workflow-model-routing.md) | Cost profiles, explicit runtime selection, escalation, and specialist lanes |
 | [Native model-routing boundary](../skills/start-task/reference/kb/model-routing.md) | Executable catalog discovery, configuration preflight, neutral Codex defaults, explicit pins, and requested versus observed child evidence |
 | [Start-task orchestration](start-task-orchestration.md) | Lightweight, standard, and audit execution profiles and completion evidence |
+| [Start-task source-token budgets (한국어)](start-task-token-budgets.ko.md) | Source-backed route coverage, conditional audit loads, and reproducible token bounds |
 | [Visual artifact pipeline](visual-artifact-pipeline.md) | Editable sources, rendering, inspection, and document/diagram QA |
 | [NL-to-SQL MCP](../mcp/nl-sql/README.md) | Separate build and configuration for read-only database access |
 | [Name and visual identity](naming.md) | Vulpora's fox-inspired name, artwork, and project identifiers |
@@ -35,6 +37,7 @@ details needed for your project.
 | [Behavioral evaluation](../evals/behavioral/README.md) | Case contracts, runtime adapters, artifacts, and measurement |
 | [Evidence trust boundaries](eval-trust-boundaries.md) | What offline checks, signatures, and the bounded runner do and do not prove |
 | [Issue and evidence ledger](issue-resolution.md) | Dated integration checks, prior full-suite snapshots, and recorded native/operator verification gaps |
+| [Overnight improvement log](overnight-feedback-2026-09-08.md) | Reproduced failures, regression evidence, and review feedback from the 2026-09-08 improvement loop |
 | [Public release checklist](public-release-checklist.md) | Source rights, provenance, reviewed history, and operational release prerequisites |
 | [Security reporting](../SECURITY.md) | Private vulnerability reports |
 | [Governance](../GOVERNANCE.md) | Maintainer and contributor responsibilities |

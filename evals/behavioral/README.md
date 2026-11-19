@@ -83,7 +83,15 @@ Claude live adapter는 입력 파일 접근·CLI 호출 전에 exit 3으로 종�
 
 ### 로컬 Codex adapter 설정
 
-`adapters/codex-local-adapter.sh`는 legacy `--sandbox`를 쓰지 않는다. Codex 0.138+ permission profile로 host root·두 temporary root·command network를 deny하고, top-level web search, default apps, skill-MCP dependency install도 명시적으로 disable한다. read-only case에는 fixture read만, 명시 `file:`/`dir:` artifact case에는 fixture workspace-write만 허용한다. `shell_environment_policy.inherit="none"`과 allowlisted CLI environment도 사용한다. raw JSONL/prompt/final-message 파일은 adapter 임시 디렉터리에서 삭제되고 최종 답변만 stdout에 나온다.
+`adapters/codex-local-adapter.sh`는 legacy `--sandbox` 대신 Codex 0.138+ permission profile에
+host root·temporary root·명령 네트워크 차단과 fixture 권한을 요청한다. 설정 수락만으로 격리를
+주장하지 않으며, 모델 호출 전에 합성 파일의 읽기·쓰기 제한을 검사한다. 실패하면 NOT_RUN이다.
+현재 macOS/CLI 0.154.0 검사에서는 금지한 파일 접근이 허용돼 live 실행을 차단했다.
+네트워크·프로세스 격리와 인증된 exec의 권한 동등성은 이 파일 검사만으로 증명되지 않는다.
+자세한 근거와 native 준비 상태는 [adapter 안내](adapters/README.md#mechanical-isolation-preflight)에 있다.
+web search, default apps, skill-MCP dependency install을 비활성화하고,
+`shell_environment_policy.inherit="none"`과 허용 목록 기반 CLI 환경을 사용한다.
+raw JSONL/prompt/final-message는 임시 디렉터리에서 삭제하고 최종 답변만 stdout에 쓴다.
 
 ```bash
 VULPORA_ADAPTER_ID=codex-local \

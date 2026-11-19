@@ -198,6 +198,9 @@ flowchart LR
 7. **운영 → 개선**: versioned improvement record는 source failure/incident, hypothesis, asset, before/after eval evidence, approval, rollback을 연결하고 promoted record를 fail-closed로 검증한다. behavioral matrix strict gate는 paired trial, identity, process/safety regression을 확인한다. 표준 runtime trace/incident intake와 CI trend 수집은 아직 없다.
 8. **개선 → 안전한 승격**: improvement record contract는 autonomous prompt mutation이 아니며, `learn`, `retro`, `knowledge-audit`, `harness-propose`가 현재 없는
    `.claude/**`, `CLAUDE.md`, `harness/index.html`을 전제로 해 source repo에서 폐루프가 실행되지 않는다.
+   (2026-10-27 추가) `harness-refine`은 이 전제 없이 `harness/refinements/`에서 원본·후보 하네스의
+   실행 대비 증거와 `quarantined` improvement record를 만든다. 실행기 격리, 선택 뒤 behavioral 회귀,
+   독립 승인을 통한 승격은 여전히 별도 gate다.
 9. **상시 정책 → clone/CI 재현**: 이 세션에는 AGENTS 지침이 주입되어 있지만 저장소에 versioned
    `AGENTS.md`가 없어 다른 clone과 CI가 동일한 standing policy를 재현하지 못한다.
 

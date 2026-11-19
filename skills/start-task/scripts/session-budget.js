@@ -96,6 +96,7 @@ function normalizedUsage(value) {
 function snapshot(state) {
   let committedTokens = 0, reservedTokens = 0, spentRelativeUnits = 0, reservedRelativeUnits = 0, unresolvedAttempts = 0;
   for (const attempt of state.attempts) {
+    if (attempt.state === 'cancelled') continue;
     if (attempt.state === 'settled') {
       // Cached input is included in input. Reasoning is already in output.
       committedTokens = add(committedTokens, add(attempt.usage.inputTokens, attempt.usage.outputTokens));
@@ -125,7 +126,7 @@ function validateState(state) {
     if (!identifier(attempt.attemptId) || !digest(attempt.capsuleSha256)
       || !count(attempt.estimatedTokens, 1) || !count(attempt.relativeUnits, 1)
       || attempt.estimatedTokens > state.limits.totalTokens || attempt.relativeUnits > state.limits.maxRelativeUnits
-      || !['reserved', 'unresolved', 'settled'].includes(attempt.state) || ids.has(attempt.attemptId)) fail(code);
+      || !['reserved', 'unresolved', 'settled', 'cancelled'].includes(attempt.state) || ids.has(attempt.attemptId)) fail(code);
     ids.add(attempt.attemptId);
     if (attempt.state === 'settled') {
       const usage = normalizedUsage(attempt.usage);
@@ -220,6 +221,7 @@ function settleBudget(filename, request) {
     const attempt = state.attempts.find(item => item.attemptId === request.attemptId);
     if (!attempt) fail('BUDGET_ATTEMPT_NOT_FOUND');
     if (attempt.capsuleSha256 !== request.capsuleSha256) fail('BUDGET_ATTEMPT_BINDING_MISMATCH');
+    if (attempt.state === 'cancelled') fail('BUDGET_ATTEMPT_CANCELLED');
     const usage = normalizedUsage(request.usage);
     if (attempt.state === 'settled') {
       if (!usage || attempt.usageSha256 !== hash(canonical(usage))) fail('BUDGET_SETTLEMENT_CONFLICT');
@@ -238,4 +240,31 @@ function settleBudget(filename, request) {
   });
 }
 
-module.exports = {initBudget, readBudget, reserveBudget, settleBudget};
+// Internal prelaunch compensation, not a CLI refund or a provider usage claim.
+// Keep a tombstone so delayed cancellation cannot refund a newly reused attempt.
+function cancelBudget(filename, request) {
+  requestBinding(request, ['attemptDir']);
+  if (typeof request.attemptDir !== 'string' || !path.isAbsolute(request.attemptDir)
+    || request.attemptDir.includes('\0')) fail('BUDGET_INVALID_REQUEST');
+  return withLock(filename, absolute => {
+    const state = loadState(absolute);
+    if (state.id !== request.budgetId) fail('BUDGET_ID_MISMATCH');
+    const attempt = state.attempts.find(item => item.attemptId === request.attemptId);
+    if (!attempt) fail('BUDGET_ATTEMPT_NOT_FOUND');
+    if (attempt.capsuleSha256 !== request.capsuleSha256) fail('BUDGET_ATTEMPT_BINDING_MISMATCH');
+    if (attempt.state === 'cancelled') return snapshot(state);
+    if (attempt.state !== 'reserved') fail('BUDGET_ATTEMPT_NOT_RESERVED');
+    const capsulePath = checkedPath(path.join(request.attemptDir, 'capsule.json'));
+    if (hash(regularFile(capsulePath, 1024 * 1024)) !== request.capsuleSha256) fail('BUDGET_ATTEMPT_BINDING_MISMATCH');
+    for (const marker of ['launch.json', 'result.json']) {
+      try { fs.lstatSync(path.join(request.attemptDir, marker)); }
+      catch (error) { if (error.code === 'ENOENT') continue; throw error; }
+      fail('BUDGET_LAUNCH_NOT_EXCLUDED');
+    }
+    attempt.state = 'cancelled';
+    atomicWrite(absolute, state);
+    return snapshot(state);
+  });
+}
+
+module.exports = {initBudget, readBudget, reserveBudget, settleBudget, cancelBudget};

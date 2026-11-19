@@ -66,14 +66,27 @@ fi
 
 case "$ACTION" in install|remove|status|login) ;; help|-h|--help|'') usage; exit 0 ;; *) die "알 수 없는 MCP 작업: $ACTION" ;; esac
 
+require_option_value() {
+  [ "$#" -ge 2 ] && [ -n "$2" ] || die "$1 값이 필요합니다."
+  case "$2" in -*) die "$1 값에 옵션을 사용할 수 없습니다. literal 경로는 --target=<dir> 또는 ./<dir>로 지정하세요." ;; esac
+}
+
+canonical_directory() {
+  # An absolute operand also prevents cd's special interpretation of bare '-'.
+  case "$1" in
+    /*) (cd -- "$1" && pwd -P) ;;
+    *) (cd -- "$PWD/$1" && pwd -P) ;;
+  esac
+}
+
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --runtime|-r) [ "$#" -ge 2 ] || die "--runtime 값이 필요합니다."; RUNTIME="$2"; shift 2 ;;
-    --runtime=*) RUNTIME="${1#--runtime=}"; shift ;;
-    --scope) [ "$#" -ge 2 ] || die "--scope 값이 필요합니다."; SCOPE="$2"; shift 2 ;;
-    --scope=*) SCOPE="${1#--scope=}"; shift ;;
-    --target|-t) [ "$#" -ge 2 ] || die "--target 값이 필요합니다."; TARGET="$2"; shift 2 ;;
-    --target=*) TARGET="${1#--target=}"; shift ;;
+    --runtime|-r) require_option_value "$@"; RUNTIME="$2"; shift 2 ;;
+    --runtime=*) RUNTIME="${1#--runtime=}"; [ -n "$RUNTIME" ] || die "--runtime 값이 필요합니다."; shift ;;
+    --scope) require_option_value "$@"; SCOPE="$2"; shift 2 ;;
+    --scope=*) SCOPE="${1#--scope=}"; [ -n "$SCOPE" ] || die "--scope 값이 필요합니다."; shift ;;
+    --target|-t) require_option_value "$@"; TARGET="$2"; shift 2 ;;
+    --target=*) TARGET="${1#--target=}"; [ -n "$TARGET" ] || die "--target 값이 필요합니다."; shift ;;
     --dry-run) DRY_RUN=1; shift ;;
     -h|--help) usage; exit 0 ;;
     -*) die "알 수 없는 옵션: $1" ;;
@@ -89,21 +102,21 @@ case "$SCOPE" in user|project) ;; *) die "--scope user 또는 project가 필요�
 if [ "$SCOPE" = project ]; then
   [ -n "$TARGET" ] || TARGET="$PWD"
   [ -d "$TARGET" ] && [ ! -L "$TARGET" ] || die "프로젝트 디렉터리가 없거나 symlink입니다: $TARGET"
-  TARGET="$(cd "$TARGET" && pwd -P)"
+  TARGET="$(canonical_directory "$TARGET")"
 else
   [ -n "${HOME:-}" ] && [ -d "$HOME" ] || die "HOME 경로를 확인할 수 없습니다."
-  home_target="$(cd "$HOME" && pwd -P)"
+  home_target="$(canonical_directory "$HOME")"
   if [ "$RUNTIME" = codex ] && [ -n "${CODEX_HOME:-}" ]; then
     codex_home_parent="$(dirname "$CODEX_HOME")"
     [ -d "$codex_home_parent" ] \
       || die "custom CODEX_HOME의 parent directory를 확인할 수 없습니다: $codex_home_parent"
-    resolved_codex_home="$(cd "$codex_home_parent" && pwd -P)/$(basename "$CODEX_HOME")"
+    resolved_codex_home="$(canonical_directory "$codex_home_parent")/$(basename "$CODEX_HOME")"
     [ "$resolved_codex_home" = "$home_target/.codex" ] \
       || die "custom CODEX_HOME의 user scope는 MCP config target과 일치하지 않아 지원하지 않습니다. project scope를 사용하세요."
   fi
   if [ -n "$TARGET" ]; then
     [ -d "$TARGET" ] && [ ! -L "$TARGET" ] || die "user target이 없거나 symlink입니다: $TARGET"
-    explicit_target="$(cd "$TARGET" && pwd -P)"
+    explicit_target="$(canonical_directory "$TARGET")"
     [ "$explicit_target" = "$home_target" ] \
       || die "user scope의 --target은 exact canonical HOME이어야 합니다: $home_target"
   fi
@@ -222,13 +235,13 @@ resolve_codex_config_file() {
     /*) ;;
     *) CODEX_POLICY_ERROR="Codex config root가 absolute path가 아닙니다: $codex_root"; return 1 ;;
   esac
-  if [ -e "$codex_root" ] && { [ ! -d "$codex_root" ] || [ -L "$codex_root" ]; }; then
+  if [ -L "$codex_root" ] || { [ -e "$codex_root" ] && [ ! -d "$codex_root" ]; }; then
     CODEX_POLICY_ERROR="Codex config root가 directory가 아니거나 symlink입니다: $codex_root"
     return 1
   fi
   CODEX_CONFIG_FILE="$codex_root/config.toml"
-  if [ -e "$CODEX_CONFIG_FILE" ] \
-    && { [ ! -f "$CODEX_CONFIG_FILE" ] || [ -L "$CODEX_CONFIG_FILE" ]; }; then
+  if [ -L "$CODEX_CONFIG_FILE" ] \
+    || { [ -e "$CODEX_CONFIG_FILE" ] && [ ! -f "$CODEX_CONFIG_FILE" ]; }; then
     CODEX_POLICY_ERROR="Codex config가 regular file이 아니거나 symlink입니다: $CODEX_CONFIG_FILE"
     return 1
   fi
@@ -298,11 +311,77 @@ inspect_codex_policy() { # config-name catalog-policy
   fi
 }
 
+codex_file_identity() { # regular, non-symlink file; BSD/macOS or GNU/Linux stat
+  local identity
+  [ -f "$1" ] && [ ! -L "$1" ] || return 1
+  # GNU -f treats the BSD format as another filename. If that filename exists,
+  # it can succeed with a filesystem report; accept only the expected fields.
+  if identity="$(stat -f '%d:%i:%p:%u:%g' "$1" 2>/dev/null)" \
+    && [[ "$identity" =~ ^[0-9]+:[0-9]+:[0-7]+:[0-9]+:[0-9]+$ ]]; then
+    :
+  elif identity="$(stat -c '%d:%i:%f:%u:%g' "$1" 2>/dev/null)" \
+    && [[ "$identity" =~ ^[0-9]+:[0-9]+:[[:xdigit:]]+:[0-9]+:[0-9]+$ ]]; then
+    :
+  else
+    return 1
+  fi
+  printf '%s\n' "$identity"
+}
+
+codex_policy_owned() { # temporary path, recorded identity
+  local identity
+  [ -n "$1" ] && [ -n "$2" ] || return 1
+  identity="$(codex_file_identity "$1")" || return 1
+  [ "$identity" = "$2" ]
+}
+
+codex_policy_matches() { # expected config identity, bytes snapshot, snapshot identity
+  local identity
+  [ -n "$1" ] && codex_policy_owned "$2" "$3" || return 1
+  [ -d "$TARGET/.codex" ] && [ ! -L "$TARGET/.codex" ] || return 1
+  identity="$(codex_file_identity "$CODEX_CONFIG_FILE")" || return 1
+  [ "$identity" = "$1" ] && cmp -s "$CODEX_CONFIG_FILE" "$2" || return 1
+  # Observe replacement/type/mode drift during the byte comparison too. These
+  # checks are not an atomic compare-and-swap with the subsequent rename.
+  identity="$(codex_file_identity "$CODEX_CONFIG_FILE")" || return 1
+  [ "$identity" = "$1" ] && codex_policy_owned "$2" "$3"
+}
+
+codex_policy_remove_owned() { # temporary path, recorded identity
+  [ -n "$1" ] || return 0
+  [ -e "$1" ] || [ -L "$1" ] || return 0
+  codex_policy_owned "$1" "$2" || return 1
+  rm -f "$1"
+}
+
+codex_policy_clean_candidates() {
+  local failed=0
+  codex_policy_remove_owned "${policy_tmp:-}" "${CODEX_POLICY_TMP_ID:-}" || failed=1
+  codex_policy_remove_owned "${CODEX_POLICY_PUBLISHED:-}" "${CODEX_POLICY_SNAPSHOT_ID:-}" || failed=1
+  [ "$failed" = 0 ]
+}
+
+codex_policy_drift() {
+  CODEX_POLICY_CONFLICT=1
+  CODEX_POLICY_ERROR="Codex config 변경을 감지해 자동 쓰기/제거를 중단했습니다: $CODEX_CONFIG_FILE"
+  [ -z "${CODEX_POLICY_BACKUP:-}" ] \
+    || CODEX_POLICY_ERROR="$CODEX_POLICY_ERROR (수동 검토용 backup: $CODEX_POLICY_BACKUP)"
+  codex_policy_clean_candidates || CODEX_POLICY_ERROR="$CODEX_POLICY_ERROR (변경된 임시 경로도 보존했습니다.)"
+  return 1
+}
+
 ensure_codex_policy() { # config-name catalog-policy
   policy_name="$1"
   policy_catalog="$2"
   CODEX_POLICY_CHANGED=0
   CODEX_POLICY_BACKUP=""
+  CODEX_POLICY_BACKUP_ID=""
+  CODEX_POLICY_PUBLISHED=""
+  CODEX_POLICY_SNAPSHOT_ID=""
+  CODEX_POLICY_PUBLISHED_ID=""
+  CODEX_POLICY_CONFLICT=0
+  policy_tmp=""
+  CODEX_POLICY_TMP_ID=""
   inspect_codex_policy "$policy_name" "$policy_catalog" || return 1
   case "$CODEX_POLICY_STATE" in
     not_applicable|exact) return 0 ;;
@@ -311,16 +390,22 @@ ensure_codex_policy() { # config-name catalog-policy
     *) CODEX_POLICY_ERROR="알 수 없는 Codex MCP policy 상태"; return 1 ;;
   esac
 
+  CODEX_POLICY_ORIGINAL_ID="$(codex_file_identity "$CODEX_CONFIG_FILE")" \
+    || { codex_policy_drift; return 1; }
   CODEX_POLICY_BACKUP="$(mktemp "${CODEX_CONFIG_FILE}.vulpora.backup.XXXXXX")" \
     || { CODEX_POLICY_ERROR="Codex MCP policy backup을 만들 수 없습니다."; return 1; }
+  CODEX_POLICY_BACKUP_ID="$(codex_file_identity "$CODEX_POLICY_BACKUP")" \
+    || { codex_policy_drift; return 1; }
   if ! cp "$CODEX_CONFIG_FILE" "$CODEX_POLICY_BACKUP"; then
-    rm -f "$CODEX_POLICY_BACKUP"
-    CODEX_POLICY_BACKUP=""
-    CODEX_POLICY_ERROR="Codex MCP policy backup을 기록할 수 없습니다."
+    codex_policy_drift
     return 1
   fi
+  codex_policy_matches "$CODEX_POLICY_ORIGINAL_ID" "$CODEX_POLICY_BACKUP" "$CODEX_POLICY_BACKUP_ID" \
+    || { codex_policy_drift; return 1; }
   policy_tmp="$(mktemp "${CODEX_CONFIG_FILE}.vulpora.XXXXXX")" \
     || { CODEX_POLICY_ERROR="Codex MCP policy 임시 파일을 만들 수 없습니다."; return 1; }
+  CODEX_POLICY_TMP_ID="$(codex_file_identity "$policy_tmp")" \
+    || { codex_policy_drift; return 1; }
   set +e
   awk -v name="$policy_name" -v policy="$CODEX_POLICY_LINE" '
     BEGIN { headers = 0 }
@@ -333,19 +418,34 @@ ensure_codex_policy() { # config-name catalog-policy
       }
     }
     END { if (headers != 1) exit 42 }
-  ' "$CODEX_CONFIG_FILE" > "$policy_tmp"
+  ' "$CODEX_POLICY_BACKUP" > "$policy_tmp"
   policy_write_rc=$?
   set -e
   if [ "$policy_write_rc" -ne 0 ]; then
-    rm -f "$policy_tmp"
     CODEX_POLICY_ERROR="Codex MCP policy를 안전하게 기록할 수 없습니다: $policy_name"
     return 1
   fi
+  # Keep independent bytes, not a hard link: an in-place operator edit must not
+  # change our reference copy. Candidate/backup files remain private (0600).
+  CODEX_POLICY_PUBLISHED="$(mktemp "${CODEX_CONFIG_FILE}.vulpora.published.XXXXXX")" \
+    || { CODEX_POLICY_ERROR="Codex MCP policy 검증 snapshot을 만들 수 없습니다."; return 1; }
+  CODEX_POLICY_SNAPSHOT_ID="$(codex_file_identity "$CODEX_POLICY_PUBLISHED")" \
+    || { codex_policy_drift; return 1; }
+  codex_policy_owned "$policy_tmp" "$CODEX_POLICY_TMP_ID" \
+    || { codex_policy_drift; return 1; }
+  cp "$policy_tmp" "$CODEX_POLICY_PUBLISHED" \
+    || { CODEX_POLICY_ERROR="Codex MCP policy 검증 snapshot을 기록할 수 없습니다."; return 1; }
+  CODEX_POLICY_PUBLISHED_ID="$CODEX_POLICY_TMP_ID"
+  codex_policy_owned "$policy_tmp" "$CODEX_POLICY_TMP_ID" \
+    && codex_policy_owned "$CODEX_POLICY_PUBLISHED" "$CODEX_POLICY_SNAPSHOT_ID" \
+    || { codex_policy_drift; return 1; }
+  codex_policy_matches "$CODEX_POLICY_ORIGINAL_ID" "$CODEX_POLICY_BACKUP" "$CODEX_POLICY_BACKUP_ID" \
+    || { codex_policy_drift; return 1; }
   if ! mv "$policy_tmp" "$CODEX_CONFIG_FILE"; then
-    rm -f "$policy_tmp"
     CODEX_POLICY_ERROR="Codex MCP policy를 원자적으로 교체할 수 없습니다: $policy_name"
     return 1
   fi
+  policy_tmp=""
   CODEX_POLICY_CHANGED=1
   inspect_codex_policy "$policy_name" "$policy_catalog" || return 1
   [ "$CODEX_POLICY_STATE" = exact ] \
@@ -353,14 +453,39 @@ ensure_codex_policy() { # config-name catalog-policy
 }
 
 commit_codex_policy() {
-  [ -z "${CODEX_POLICY_BACKUP:-}" ] || rm -f "$CODEX_POLICY_BACKUP"
+  [ "${CODEX_POLICY_CHANGED:-0}" = 1 ] || return 0
+  codex_policy_matches "$CODEX_POLICY_PUBLISHED_ID" "$CODEX_POLICY_PUBLISHED" "$CODEX_POLICY_SNAPSHOT_ID" \
+    || { codex_policy_drift; return 1; }
+  codex_policy_clean_candidates \
+    || { codex_policy_drift; return 1; }
+  codex_policy_remove_owned "$CODEX_POLICY_BACKUP" "$CODEX_POLICY_BACKUP_ID" \
+    || { codex_policy_drift; return 1; }
   CODEX_POLICY_BACKUP=""
 }
 
 restore_codex_policy() {
+  [ "${CODEX_POLICY_CONFLICT:-0}" = 0 ] || return 1
   [ -n "${CODEX_POLICY_BACKUP:-}" ] || return 0
-  [ -f "$CODEX_POLICY_BACKUP" ] && [ ! -L "$CODEX_POLICY_BACKUP" ] || return 1
-  mv "$CODEX_POLICY_BACKUP" "$CODEX_CONFIG_FILE" || return 1
+  if [ "$CODEX_POLICY_CHANGED" = 1 ]; then
+    codex_policy_matches "$CODEX_POLICY_PUBLISHED_ID" "$CODEX_POLICY_PUBLISHED" "$CODEX_POLICY_SNAPSHOT_ID" \
+      || { codex_policy_drift; return 1; }
+    codex_policy_owned "$CODEX_POLICY_BACKUP" "$CODEX_POLICY_BACKUP_ID" \
+      || { codex_policy_drift; return 1; }
+    codex_policy_clean_candidates || { codex_policy_drift; return 1; }
+    if ! mv "$CODEX_POLICY_BACKUP" "$CODEX_CONFIG_FILE"; then
+      CODEX_POLICY_CONFLICT=1
+      CODEX_POLICY_ERROR="Codex config 복원에 실패해 자동 쓰기/제거를 중단했습니다: $CODEX_CONFIG_FILE (수동 검토용 backup: $CODEX_POLICY_BACKUP)"
+      return 1
+    fi
+  else
+    # A failed preparation has not published anything to restore. Verify the
+    # original before allowing a caller to remove a newly added runtime entry.
+    codex_policy_matches "$CODEX_POLICY_ORIGINAL_ID" "$CODEX_POLICY_BACKUP" "$CODEX_POLICY_BACKUP_ID" \
+      || { codex_policy_drift; return 1; }
+    codex_policy_clean_candidates || { codex_policy_drift; return 1; }
+    codex_policy_remove_owned "$CODEX_POLICY_BACKUP" "$CODEX_POLICY_BACKUP_ID" \
+      || { codex_policy_drift; return 1; }
+  fi
   CODEX_POLICY_BACKUP=""
   CODEX_POLICY_CHANGED=0
 }
@@ -379,6 +504,12 @@ rollback_new_mcp() { # config-name
   [ "$EXISTING_RC" -ne 0 ]
 }
 
+# Config ownership is a path boundary for every Codex pack, not a tool-policy
+# feature. Reject unsafe paths before even the first get (which may create .codex).
+if [ "$RUNTIME" = codex ]; then
+  resolve_codex_config_file || die "$CODEX_POLICY_ERROR"
+fi
+
 for pack_id in $PACKS; do
   row="$(catalog_row "$pack_id")"
   transport="$(printf '%s' "$row" | awk -F'|' '{print $2}')"
@@ -394,19 +525,30 @@ for pack_id in $PACKS; do
       if [ "$EXISTING_RC" = 0 ]; then
         existing_matches_endpoint "$endpoint" \
           || die "existing_mcp_conflict: $config_name 이름의 기존 사용자 설정을 덮어쓰지 않습니다."
+        if [ "$DRY_RUN" = 1 ]; then
+          # An existing endpoint may still need policy hardening. Inspect and
+          # preview it without entering the policy writer or rollback paths.
+          inspect_codex_policy "$config_name" "$codex_enabled_tools" || die "$CODEX_POLICY_ERROR"
+          case "$CODEX_POLICY_STATE" in
+            conflict|error) die "$CODEX_POLICY_ERROR" ;;
+            missing) printf 'policy: %s enabled_tools=%s\n' "$config_name" "$codex_enabled_tools" ;;
+          esac
+          printf 'already_configured: %s (%s)\n' "$config_name" "$endpoint"
+          continue
+        fi
         if ! ensure_codex_policy "$config_name" "$codex_enabled_tools"; then
           policy_failure="$CODEX_POLICY_ERROR"
           restore_codex_policy \
-            || die "$policy_failure (기존 config 원복에도 실패했습니다.)"
+            || die "$CODEX_POLICY_ERROR (기존 config를 덮어쓰지 않았습니다.)"
           die "$policy_failure (기존 config를 원복했습니다.)"
         fi
         if ! verify_codex_runtime_config "$config_name" "$endpoint" "$codex_enabled_tools"; then
           policy_failure="$CODEX_POLICY_ERROR"
           restore_codex_policy \
-            || die "$policy_failure (기존 config 원복에도 실패했습니다.)"
+            || die "$CODEX_POLICY_ERROR (기존 config를 덮어쓰지 않았습니다.)"
           die "$policy_failure (기존 config를 원복했습니다.)"
         fi
-        commit_codex_policy
+        commit_codex_policy || die "$CODEX_POLICY_ERROR"
         [ "$CODEX_POLICY_CHANGED" = 0 ] \
           || printf 'policy_updated: %s (%s)\n' "$config_name" "$codex_enabled_tools"
         printf 'already_configured: %s (%s)\n' "$config_name" "$endpoint"
@@ -419,7 +561,7 @@ for pack_id in $PACKS; do
         fi
         continue
       fi
-      if [ "$RUNTIME" = codex ] && [ "$codex_enabled_tools" != - ]; then
+      if [ "$RUNTIME" = codex ]; then
         resolve_codex_config_file || die "$CODEX_POLICY_ERROR"
       fi
       runtime_add "$config_name" "$transport" "$endpoint"
@@ -433,7 +575,7 @@ for pack_id in $PACKS; do
       fi
       if ! ensure_codex_policy "$config_name" "$codex_enabled_tools"; then
         policy_failure="$CODEX_POLICY_ERROR"
-        restore_codex_policy || policy_failure="$policy_failure; policy snapshot 원복 실패"
+        restore_codex_policy || die "$CODEX_POLICY_ERROR (자동 rollback을 중단했습니다.)"
         if rollback_new_mcp "$config_name"; then
           die "$policy_failure (새 설정은 rollback했습니다.)"
         fi
@@ -441,13 +583,13 @@ for pack_id in $PACKS; do
       fi
       if ! verify_codex_runtime_config "$config_name" "$endpoint" "$codex_enabled_tools"; then
         policy_failure="$CODEX_POLICY_ERROR"
-        restore_codex_policy || policy_failure="$policy_failure; policy snapshot 원복 실패"
+        restore_codex_policy || die "$CODEX_POLICY_ERROR (자동 rollback을 중단했습니다.)"
         if rollback_new_mcp "$config_name"; then
           die "$policy_failure (새 설정은 rollback했습니다.)"
         fi
         die "$policy_failure (자동 rollback도 실패했습니다. vulpora mcp remove로 확인하세요.)"
       fi
-      commit_codex_policy
+      commit_codex_policy || die "$CODEX_POLICY_ERROR"
       printf 'installed: %s (%s)\n' "$config_name" "$endpoint"
       [ "$CODEX_POLICY_CHANGED" = 0 ] \
         || printf 'policy_installed: %s (%s)\n' "$config_name" "$codex_enabled_tools"
@@ -514,16 +656,16 @@ for pack_id in $PACKS; do
       if ! ensure_codex_policy "$config_name" "$codex_enabled_tools"; then
         policy_failure="$CODEX_POLICY_ERROR"
         restore_codex_policy \
-          || die "$policy_failure (기존 config 원복에도 실패했습니다.)"
+          || die "$CODEX_POLICY_ERROR (기존 config를 덮어쓰지 않았습니다.)"
         die "$policy_failure (기존 config를 원복했습니다.)"
       fi
       if ! verify_codex_runtime_config "$config_name" "$endpoint" "$codex_enabled_tools"; then
         policy_failure="$CODEX_POLICY_ERROR"
         restore_codex_policy \
-          || die "$policy_failure (기존 config 원복에도 실패했습니다.)"
+          || die "$CODEX_POLICY_ERROR (기존 config를 덮어쓰지 않았습니다.)"
         die "$policy_failure (기존 config를 원복했습니다.)"
       fi
-      commit_codex_policy
+      commit_codex_policy || die "$CODEX_POLICY_ERROR"
       [ "$CODEX_POLICY_CHANGED" = 0 ] \
         || printf 'policy_updated: %s (%s)\n' "$config_name" "$codex_enabled_tools"
       runtime_login "$config_name"

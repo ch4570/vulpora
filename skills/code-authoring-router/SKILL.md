@@ -31,7 +31,7 @@ Record the resolved policy and any branch action with the routing evidence.
 | Repository and task evidence | Load before editing |
 |---|---|
 | Actual Kotlin source in the affected module, supported by its build settings; the change edits Kotlin code | `kotlin-code-authoring` |
-| Java source in the affected module, including Java/Spring | Repository-local Java authoring and test conventions; `java-spring-review-workflow` for Spring review if installed |
+| Java source in the affected module, including Java/Spring | Repository-local Java authoring and test conventions. If the `java-reviewer` agent is installed, read its bundle's `java-review/reference/kb/INDEX.md` and only the matching topics as construction constraints, not as a review request; `backend-test-author` for Java tests and `java-spring-review-workflow` for Spring review if installed |
 | PostgreSQL driver/dialect plus affected SQL, repository query, schema, or migration | `postgres-code-authoring` |
 | SQL Server driver/dialect plus affected T-SQL, stored procedure, schema, index, or migration | `mssql-code-authoring` |
 | OpenSearch client/dependency plus affected mapping, Query DSL, pipeline, index setting, or search behavior | `opensearch-code-authoring` |

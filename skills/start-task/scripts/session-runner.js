@@ -15,7 +15,7 @@ const {createTelemetry} = require('./session-telemetry.js');
 const {buildEditPrompt, validateEditProposal, applyEditProposal, MAX_BYTES: MAX_PROPOSAL_BYTES} = require('./session-edit-proposal.js');
 const {readOutputSchema} = require('./session-output-schema.js');
 const {selectTaskExecution, resolveTaskRoute} = require('./task-router.js');
-const {initBudget, readBudget, reserveBudget, settleBudget} = require('./session-budget.js');
+const {initBudget, readBudget, reserveBudget, settleBudget, cancelBudget} = require('./session-budget.js');
 
 const TASK_TYPES = ['deterministic', 'lookup', 'documentation', 'implementation', 'review', 'testing', 'architecture', 'research'];
 const DEFAULT_LIMITS = {timeoutMs: 300000, maxOutputBytes: 4 * 1024 * 1024, maxResultBytes: 4096, maxPromptBytes: 8192, toolOutputTokens: 2000};
@@ -154,6 +154,10 @@ function validateEditRepositoryContext(task) {
     let parent = task.cwd;
     for (const segment of file.split('/').slice(0, -1)) {
       parent = path.join(parent, segment);
+      let stat;
+      try { stat = fs.lstatSync(parent); }
+      catch (error) { if (error.code === 'ENOENT') fail('EDIT_PARENT_MISSING'); throw error; }
+      if (!stat.isDirectory() || stat.isSymbolicLink()) fail('INVALID_EDIT_PARENT');
       try { fs.lstatSync(path.join(parent, 'AGENTS.md')); fail('EDIT_REPOSITORY_CONTEXT_REQUIRED'); }
       catch (error) { if (error.code !== 'ENOENT') throw error; }
     }
@@ -182,7 +186,8 @@ function git(cwd, args, optional = false) {
   return result.stdout;
 }
 function snapshot(task, attemptDir) {
-  const files = {};
+  // Scoped filenames are data, including Object.prototype property names.
+  const files = Object.create(null);
   for (const name of task.files) {
     const filename = scopedFile(task.cwd, name);
     try { files[name] = hash(regularFile(filename, 4 * 1024 * 1024)); }
@@ -194,7 +199,9 @@ function snapshot(task, attemptDir) {
     const excluded = path.relative(task.cwd, attemptDir);
     const paths = ['--', '.', ...(excluded && !excluded.startsWith(`..${path.sep}`) && !path.isAbsolute(excluded)
       ? [`:(exclude,literal)${excluded}`] : [])];
-    const diff = git(task.cwd, ['diff', '--binary', 'HEAD', ...paths]);
+    // A workspace fingerprint must reflect Git's raw diff, not a configurable
+    // renderer that can hide edits, vary independently, or execute a helper.
+    const diff = git(task.cwd, ['diff', '--no-ext-diff', '--no-textconv', '--binary', 'HEAD', ...paths]);
     const status = git(task.cwd, ['status', '--porcelain=v1', '-z', '--untracked-files=all', ...paths]);
     repositorySha256 = hash(Buffer.concat([diff, Buffer.from('\0'), status]));
   }
@@ -503,7 +510,24 @@ async function run(options) {
     relativeUnits: capsule.route.relativeUnits});
   try { writeNew(path.join(attemptDir, 'launch.json'), {schema: 'vulpora.session-launch/v1',
     attemptId: capsule.attemptId, capsuleSha256, startedAt: new Date().toISOString()}); }
-  catch (error) { if (error.code === 'EEXIST') fail('ATTEMPT_ALREADY_STARTED'); throw error; }
+  catch (error) {
+    if (error.code === 'EEXIST') {
+      throw Object.assign(new Error('ATTEMPT_ALREADY_STARTED'), {code: 'ATTEMPT_ALREADY_STARTED', execution: 'UNKNOWN'});
+    }
+    try {
+      cancelBudget(capsule.budget.file, {budgetId: capsule.budget.id, attemptId: capsule.attemptId,
+        capsuleSha256, attemptDir});
+      error.budgetCancellation = {status: 'RELEASED', reason: 'PRELAUNCH_FAILURE'};
+    } catch (cancellationError) {
+      // Publication may already have succeeded before fsync/cleanup failed.
+      // Cancellation itself can publish its ledger before a later fsync fails.
+      // Preserve both causes without inferring accounting from an exception.
+      const reason = /^[A-Z_]+$/.test(cancellationError.code || '') ? cancellationError.code : 'BUDGET_CANCELLATION_FAILED';
+      error.budgetCancellation = {status: 'UNKNOWN', reason};
+      error.execution = 'UNKNOWN';
+    }
+    throw error;
+  }
   let runtime;
   try { runtime = await execute(capsule, attemptDir); }
   catch (error) { runtime = {reason: /^[A-Z_]+$/.test(error.code || '') ? error.code : 'RUNTIME_EXECUTION_FAILED',
@@ -578,7 +602,8 @@ async function main(args = process.argv.slice(2)) {
 function errorResult(error) {
   const reason = /^[A-Z_]+$/.test(error.code || '') ? error.code
     : /^[A-Z_]+$/.test(error.message || '') ? error.message : 'INVALID_OR_CHANGED_SESSION_INPUT';
-  return {schema: 'vulpora.session-error/v1', status: 'BLOCKED', reason, execution: error.execution || 'NOT_RUN'};
+  return {schema: 'vulpora.session-error/v1', status: 'BLOCKED', reason, execution: error.execution || 'NOT_RUN',
+    ...(error.budgetCancellation ? {budgetCancellation: error.budgetCancellation} : {})};
 }
 module.exports = {main, prepare, run, status, reconcile, validateTask, validateCandidate, promptFor,
   workerPromptFor, outputSchemaPathFor, applyEditProposal, classifyRuntimeFailure, errorResult};

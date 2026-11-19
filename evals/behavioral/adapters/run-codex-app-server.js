@@ -32,6 +32,26 @@ const child = spawn("codex", ["app-server", "--stdio", "--enable", "multi_agent"
   stdio: ["pipe", "pipe", "pipe"],
 });
 let buffer = "", stderr = "", topThreadId = null, completed = false, lastTopMessage = null;
+let observedExit = false, observedClose = false, eventsClosed = false, cleanupAbandoned = false;
+let shutdownCode = 1, hardStop, cleanupDeadline;
+
+function finishShutdown() {
+  if (!completed || (!cleanupAbandoned && (!observedClose || !eventsClosed))) return;
+  clearTimeout(hardStop);
+  clearTimeout(cleanupDeadline);
+  process.exit(shutdownCode);
+}
+function signalChild(signal) {
+  // An observed exit releases this PID; never signal it again while draining
+  // inherited output pipes from a descendant.
+  if (observedExit || observedClose || child.exitCode !== null || child.signalCode !== null) return;
+  try { child.kill(signal); } catch (error) {
+    if (error.code !== "ESRCH") {
+      shutdownCode ||= 1;
+      process.stderr.write(`app_server_signal_failed:${error.code || "unknown"}\n`);
+    }
+  }
+}
 
 function send(message) {
   let recorded = message;
@@ -47,10 +67,34 @@ function startThread() {
 function stop(code, message) {
   if (completed) return;
   completed = true;
+  shutdownCode = code;
   if (message) process.stderr.write(`${message}\n`);
-  child.kill("SIGTERM");
-  setTimeout(() => child.kill("SIGKILL"), 2000).unref();
-  events.end(() => process.exit(code));
+  child.stdin.end();
+  signalChild("SIGTERM");
+  // Keep the escalation alive and observe runtime shutdown before returning.
+  // The outer process-group wrapper owns descendants; an inherited pipe that
+  // cannot drain here is an explicit failure, never a successful evaluation.
+  hardStop = setTimeout(() => signalChild("SIGKILL"), 2000);
+  cleanupDeadline = setTimeout(() => {
+    shutdownCode ||= 1;
+    process.stderr.write("app_server_cleanup_unverified\n");
+    child.stdin.destroy(); child.stdout.destroy(); child.stderr.destroy();
+    child.unref();
+    events.destroy();
+    cleanupAbandoned = true;
+    finishShutdown();
+  }, 4000);
+  events.end(error => {
+    // Writable invokes this callback before its error event. Account for the
+    // error here so an already-closed child cannot turn a lost event into exit 0.
+    if (error) {
+      shutdownCode ||= 1;
+      process.stderr.write(`event_write_failed:${error.code || "unknown"}\n`);
+    }
+    eventsClosed = true;
+    finishShutdown();
+  });
+  finishShutdown();
 }
 function parseReport(text) {
   if (typeof text !== "string") return null;
@@ -60,6 +104,7 @@ function parseReport(text) {
   try { return JSON.parse(text.slice(first, last + 1)); } catch { return null; }
 }
 function handle(message) {
+  if (completed) return;
   events.write(`${JSON.stringify(message)}\n`);
   if (message.id === 1) {
     if (message.error) return stop(1, `initialize_failed:${message.error.message || "unknown"}`);
@@ -97,10 +142,7 @@ function handle(message) {
     const report = parseReport(lastTopMessage);
     if (!report) return stop(65, "terminal_report_parse_failed");
     fs.writeFileSync(reportPath, `${JSON.stringify(report)}\n`, {flag: "wx"});
-    completed = true;
-    child.stdin.end();
-    child.kill("SIGTERM");
-    events.end(() => process.exit(0));
+    stop(0);
   }
 }
 
@@ -117,10 +159,18 @@ child.stdout.on("data", (chunk) => {
 });
 child.stderr.setEncoding("utf8");
 child.stderr.on("data", (chunk) => { stderr = `${stderr}${chunk}`.slice(-8192); });
+child.stdin.on("error", (error) => { if (!completed) stop(1, `app_server_input_failed:${error.code || "unknown"}`); });
+events.on("error", (error) => {
+  eventsClosed = true;
+  if (!completed) stop(1, `event_write_failed:${error.code || "unknown"}`);
+  else { shutdownCode ||= 1; finishShutdown(); }
+});
 child.on("error", (error) => stop(1, `app_server_spawn_failed:${error.message}`));
 child.on("exit", (code) => {
+  observedExit = true;
   if (!completed) stop(code || 1, `app_server_exited:${code}:${stderr.trim().slice(-1000)}`);
 });
+child.on("close", () => { observedClose = true; finishShutdown(); });
 for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) process.on(signal, () => stop(130, `interrupted:${signal}`));
 
 send({id: 1, method: "initialize", params: {clientInfo: {name: "vulpora-start-task-e2e", version: "1.0.0"}, capabilities: {experimentalApi: true}}});

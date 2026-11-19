@@ -641,6 +641,7 @@ vulporael() {
     architecture-reviewer) printf '아키텍처 리뷰' ;;
     qa-test-designer) printf 'QA·테스트 설계' ;;
     e2e-test-runner) printf 'E2E 테스트 실행' ;;
+    load-test-engineer) printf '부하 테스트' ;;
     test-runner) printf '테스트 실행' ;;
     search-relevance-evaluator) printf '검색 관련성 평가' ;;
     nl-sql-guardian) printf '자연어 SQL 안전 검증' ;;

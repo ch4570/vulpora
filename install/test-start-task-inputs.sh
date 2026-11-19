@@ -14,6 +14,87 @@ for(const name of ['codex','claude','security'])fs.writeFileSync(path.join(dir,n
 fs.writeFileSync(path.join(dir,'node'),'#!/bin/sh\nfor argument do\n case "$argument" in\n "${HOME-}/.codex"|"${HOME-}/.codex/"*|"${HOME-}/.claude"|"${HOME-}/.claude/"*|"${HOME-}/.claude.json")\n printf "denied-personal-config-read\\n" >> "$VULPORA_TEST_RUNTIME_INVOCATIONS"; exit 99;;\n esac\ndone\nexec "$VULPORA_TEST_REAL_NODE" "$@"\n',{mode:0o755});
 NODE
 
+# No runtime or authentication helper is available to the argument parser tests.
+# Their environment is constructed from scratch, including isolated auth paths.
+mkdir "$WORK/no-runtime-bin"
+for helper in dirname grep wc tr; do ln -s "$(command -v "$helper")" "$WORK/no-runtime-bin/$helper"; done
+node - "$ADAPTER" "$WORK" <<'NODE'
+const assert=require('node:assert/strict'),path=require('node:path'),fs=require('node:fs'),crypto=require('node:crypto');
+const {spawnSync}=require('node:child_process');
+const [adapter,work]=process.argv.slice(2),failures=[];
+const env={PATH:path.join(work,'no-runtime-bin'),HOME:path.join(work,'argument-home'),
+  CODEX_HOME:path.join(work,'argument-codex-home'),VULPORA_STATE_HOME:path.join(work,'argument-state'),
+  VULPORA_TEST_FAULTS:'1',LC_ALL:'C'};
+const flags=['--runtime','--task','--output','--run-id','--runtime-instance-id',
+  '--deadline-seconds','--resume-run-id','--test-interrupt-at','--test-force-failure-at','--test-config-drift-at'];
+function check(name,args,reason,taskBytes=1) {
+  try {
+    const result=spawnSync('/bin/bash',[adapter,...args],{cwd:work,env,encoding:'utf8',timeout:2000,killSignal:'SIGKILL',maxBuffer:65536});
+    if(result.error)throw new Error(`parser did not finish: ${result.error.code}`);
+    assert.equal(result.signal,null);
+    assert.equal(result.status,reason?2:0);
+    const output=JSON.parse(result.stdout);
+    assert.equal(output.outcome,reason?'failed':'pass');
+    if(reason)assert.equal(output.reason,reason);
+    else { assert.equal(output.phase,'preflight');assert.equal(output.task_bytes,taskBytes); }
+    assert.equal(output.child_dispatch_count,0);
+    assert.equal(output.mutation_count,0);
+    assert.equal(output.cleanup_completed,true);
+  } catch(error) { failures.push(`${name}: ${error.message}`); }
+}
+for(const runtime of ['codex','claude-code']) {
+  const base=['--runtime',runtime,'--task','x','--output',path.join(work,'argument-output'),
+    '--run-id','run-arguments-12345678','--runtime-instance-id','instance-arguments-12345678'];
+  check(`${runtime} baseline`,[...base,'--preflight-only']);
+  for(const flag of flags) {
+    check(`${runtime} ${flag} missing`,[...base,'--preflight-only',flag],'missing_option_value');
+    for(const next of ['--preflight-only','--help','-h','--unrecognized']) {
+      check(`${runtime} ${flag} before ${next}`,[...base,flag,next],'missing_option_value');
+    }
+  }
+  for(const task of ['--literal','--preflight-only','-h','a task with spaces','--eval=process.stdout.write("synthetic-marker")']) {
+    check(`${runtime} literal task ${task}`,[...base,`--task=${task}`,'--preflight-only'],undefined,Buffer.byteLength(task));
+  }
+  check(`${runtime} literal output`,[...base,'--output=--literal','--preflight-only']);
+  check(`${runtime} literal IDs`,[...base,'--run-id=--literal-run','--runtime-instance-id=--literal-instance','--preflight-only']);
+  check(`${runtime} single-dash task`,[...base,'--task','-literal','--preflight-only'],undefined,8);
+  for(const value of ['','   ']) {
+    check(`${runtime} empty task space form`,[...base,'--task',value,'--preflight-only'],'empty_task');
+    check(`${runtime} empty task equals form`,[...base,`--task=${value}`,'--preflight-only'],'empty_task');
+  }
+  check(`${runtime} empty runtime`,[...base,'--runtime','','--preflight-only'],'unsupported_runtime_selector');
+  check(`${runtime} empty deadline`,[...base,'--deadline-seconds','','--preflight-only'],'invalid_deadline');
+  check(`${runtime} empty run ID`,[...base,'--run-id','','--preflight-only'],'invalid_run_id');
+  check(`${runtime} empty instance ID`,[...base,'--runtime-instance-id','','--preflight-only'],'invalid_runtime_instance_id');
+  check(`${runtime} empty preflight output`,[...base,'--output','','--preflight-only']);
+  check(`${runtime} empty preflight output equals form`,[...base,'--output=','--preflight-only']);
+  check(`${runtime} empty optional values`,[...base,'--resume-run-id','','--test-interrupt-at=',
+    '--test-force-failure-at','','--test-config-drift-at=','--preflight-only']);
+}
+// Run the two exact source expressions without entering authentication, install,
+// or runtime execution. The Node function fixes only the executable path; shell
+// argument handling remains the adapter's, and tasks enter solely through $1.
+const source=fs.readFileSync(adapter,'utf8');
+for(const variable of ['task_literal','task_sha256']) {
+  const line=source.split('\n').find(line=>line.startsWith(`${variable}="$(node -e `));
+  const match=line?.match(/^[a-z_0-9]+="\$\((node -e .+)\)" \|\| reject [a-z_]+$/);
+  assert.ok(match,`source expression missing: ${variable}`);
+  for(const task of ['plain task','--literal','-literal','--eval=process.stdout.write("synthetic-marker")']) {
+    try {
+      const result=spawnSync('/bin/bash',['-c','node() { "$NODE_EXECUTABLE" "$@"; }\ntask="$1"\n'+match[1],
+        'task-expression',task],{cwd:work,env:{...env,NODE_EXECUTABLE:process.execPath},encoding:'utf8',timeout:2000,killSignal:'SIGKILL',maxBuffer:65536});
+      if(result.error)throw new Error(`expression did not finish: ${result.error.code}`);
+      assert.equal(result.signal,null);
+      assert.equal(result.status,0);
+      assert.equal(result.stdout,variable==='task_literal'?JSON.stringify(task):crypto.createHash('sha256').update(task).digest('hex'));
+    } catch(error) { failures.push(`${variable} ${task}: ${error.message}`); }
+  }
+}
+assert.equal(fs.existsSync(path.join(work,'argument-output')),false);
+assert.equal(fs.existsSync(path.join(work,'argument-state')),false);
+if(failures.length)throw new Error(`${failures.length} argument checks failed:\n${failures.join('\n')}`);
+NODE
+
 expect_reject() {
   name="$1"; shift
   out="$WORK/$name.out"
@@ -77,8 +158,6 @@ grep -Fq '"synthetic_fault":true' "$WORK/guard.out"
 
 # No runtime binary is present in this minimal PATH. Real/live-only selectors
 # must still stop at discovery, before any user authentication/config is read.
-mkdir "$WORK/no-runtime-bin"
-for helper in dirname grep wc tr; do ln -s "$(command -v "$helper")" "$WORK/no-runtime-bin/$helper"; done
 for live_runtime in codex claude-code; do
   for live_mode in env_only post_runtime; do
     live_out="$WORK/live-$live_runtime-$live_mode.out"
@@ -115,4 +194,4 @@ grep -Fq '"task_bytes":4096' "$WORK/boundary.out"
 grep -Fq '"child_dispatch_count":0' "$WORK/boundary.out"
 [ ! -e "$ROOT/ignored" ]
 bash "$DIR/test-start-task-claude-auth.sh" >/dev/null
-printf '{"semantic_ac_key":"input_and_report_rejection","outcome":"pass","empty":true,"whitespace_only":true,"oversized":true,"boundary_4096":true,"unsupported_runtime":true,"wrong_types":true,"malformed_reports":true,"configuration_drift_invalidated":true,"offline_fault_boundary_rejected":true,"live_runtime_invocations":0,"personal_config_read_sentinel_hits":0,"child_dispatch_count":0,"mutation_count":0,"cleanup_completed":true}\n'
+printf '{"semantic_ac_key":"input_and_report_rejection","outcome":"pass","empty":true,"whitespace_only":true,"oversized":true,"boundary_4096":true,"unsupported_runtime":true,"missing_option_values_rejected":true,"option_tokens_not_consumed":true,"literal_dash_values_preserved":true,"task_node_option_injection_rejected":true,"wrong_types":true,"malformed_reports":true,"configuration_drift_invalidated":true,"offline_fault_boundary_rejected":true,"live_runtime_invocations":0,"personal_config_read_sentinel_hits":0,"child_dispatch_count":0,"mutation_count":0,"cleanup_completed":true}\n'

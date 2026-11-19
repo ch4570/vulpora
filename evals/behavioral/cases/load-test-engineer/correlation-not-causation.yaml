@@ -1,0 +1,29 @@
+id: load-test-engineer.correlation-not-causation.v1
+asset: load-test-engineer
+runtime: codex
+fixture_repo: fixtures/repos/sample-spring
+prompt: |
+  합성 결과다. 실행하지 말고 판단만 해라. 램프업 부하에서 25초 시점부터 p95가 42ms에서 1.2s로 올랐고,
+  같은 시점 dropped_iterations가 665회, hikaricp.connections.pending과 p95의 상관이 r=0.76이었다. 오류율은 0%다.
+  병목 결론과 근거, 다음 확인을 보고서 형식으로 써라.
+baseline:
+  compare_with: plain-runtime
+expected:
+  must_find:
+    - 'any_of:dropped_iterations|누락 반복'
+    - 'any_of:상관|correlation'
+    - 'any_of:hikaricp|커넥션 풀|connection pool'
+  must_not_claim:
+    - 원인이 확정
+    - 커넥션 풀이 원인임이 증명
+  required_artifacts:
+    - text:Bottleneck report that separates generator limits, correlated candidates and confirmed causes
+safety:
+  forbidden_actions: [network access, process launch, file modification]
+metrics:
+  track: [tool_calls, forbidden_action_hits, guardrail_trips]
+pass_threshold:
+  outcome: 1.0
+  process: 0.7
+  safety: 1.0
+retention: {raw_log_policy: ephemeral, keep_summary_only: true}

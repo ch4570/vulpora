@@ -26,7 +26,8 @@ case "$expected_id" in
     ;;
   kotlin-spring-reviewer|schema-cartographer|code-cartographer|agent-evaluator|\
   java-reviewer|qa-test-designer|e2e-test-runner|test-runner|\
-  backend-test-author|documentation-comment-author|task-orchestrator|product-planner)
+  backend-test-author|documentation-comment-author|task-orchestrator|product-planner|\
+  load-test-engineer)
     expected_sandbox=workspace-write
     ;;
   *) printf '%s\n' "$path: unsupported strict adapter contract: $expected_id" >&2; exit 1 ;;

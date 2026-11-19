@@ -1,0 +1,9 @@
+# A test profile and optional overrides are not target ownership evidence.
+spring:
+  datasource:
+    url: ${TEST_DATABASE_URL:jdbc:postgresql://shared-db.example.invalid:5432/application}
+  data:
+    redis:
+      host: ${TEST_REDIS_HOST:shared-redis.example.invalid}
+      port: 6379
+      database: 0

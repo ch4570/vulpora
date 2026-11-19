@@ -78,6 +78,12 @@ Authentication is source-backed only when expressed by a local annotation/decora
 `@UseGuards`, or a project decorator whose definition wraps `UseGuards`; do **not** infer it from global security
 configuration. NestJS class-validator constraints count only when a global or handler-local `ValidationPipe` is
 proven from source.
+Spring request constraints count per declared component; type-use annotations inside type arguments
+(`List<@Valid @NotNull Item>`) validate elements, so they add no component floor and never shift to the next
+component, while component-level `@Valid` on a nested type remains unsupported. A controller whose supertypes
+include Spring Boot `ErrorController`, `AbstractErrorController`, or `BasicErrorController` is the container's
+error dispatch, not a client-invokable surface, and is excluded; any other method-level `@RequestMapping` without a
+resolvable HTTP method still fails.
 
 **SCA-5.1 (Path constant resolution) — MUST.** When a mapping or NestJS global prefix uses a constant or property
 placeholder (`@GetMapping(Endpoints.ARTICLES)` / `@GetMapping("${api.articles.path}")` /
@@ -169,6 +175,16 @@ mutating scenario that optional position is required. Its first non-blank line i
 it with finally semantics even when the primary fails or times out. Read-only scenarios have no teardown fence;
 SQL remains read-only.
 
+**SCA-12.1 (Correct requests and business-rule assertions) — MUST.** A generated request must be one a correct
+server accepts for its behavior: a `HAPPY` request fills every required path/query parameter, uses enum constants
+from source, and reads `{{prev.X}}` only from an ancestor that captures `X`; a validation-failure request violates the
+constraint at the location where it is declared. With a bound inventory the validator enforces these (`SCA-19.*`,
+`SCA-15.BAD-PREV-SOURCE`). Prefer fewer correct scenarios: when a request cannot be proven, keep its coverage slot with
+`Notes` = `hold: <reason>` instead of guessing. A `HAPPY` HTTP scenario whose body carries a business rule adds an
+`assert` clause (`CONTRACT.md §1`) derived from the source response type and a dataset, capture, or source constant;
+never invent values. Human assertions belong in `scenario-overrides.json` (`CONTRACT.md §9`), which the author never
+writes.
+
 ---
 
 ## D. When to run
@@ -246,12 +262,20 @@ whose ID ends in the behavior token. Reject stale fingerprints, duplicate source
 and missing floor coverage with `SCA-19.FINGERPRINT-MISMATCH`, `SCA-19.DUP-SURFACE|DUP-TARGET`,
 `SCA-19.EXTRA-TARGET`, or `SCA-19.MISSING-COVERAGE`. An agent checklist or prose claim cannot satisfy this rule.
 
+**SCA-5.3 (Known deviations) — MUST.** When the collector cannot prove a source file that the project cannot change,
+a reviewer may register a `discovery-exclusion` in `docs/e2e-scenarios/known-deviations.json` with a reason, approver,
+and expiry date per [`CONTRACT.md §9`](../../../docs/e2e-scenarios/CONTRACT.md). Only registered files are skipped;
+any other `SCA-5.2` still stops generation. The author never writes this registry or
+`scenario-overrides.json`, and never copies or edits application source to avoid a failure. Report every
+`excluded_sources` entry with the generated catalog. An expired or invalid entry fails with `SCA-5.3`.
+
 ---
 
 ## Checklist
 
 - [ ] Candidate validated twice, then catalog atomically replaced; header carries source fingerprint and contract version (`SCA-3`, `SCA-10`, `SCA-13`)
 - [ ] Every endpoint, listener, and outbox handler meets its per-surface floor in the bound inventory (`SCA-7`, `SCA-19`)
+- [ ] Requests pass the inventory-bound content checks, unprovable ones are held, happy paths assert their business rule, and every known deviation is reported (`SCA-12.1`, `SCA-5.3`)
 - [ ] Scenario IDs preserve route variables and validation constraint tokens and regenerate identically (`SCA-6`, `SCA-6.1`, `SCA-6.2`, `SCA-13`)
 - [ ] `Preconditions` use the formal grammar; `Depends-on` is an array; `Captures` are uppercase tokens (`SCA-8`, `SCA-9`, `CONTRACT.md §1, §3, §4`)
 - [ ] Scenario blocks use fixed keys, one primary fence, and at most one shell teardown (`SCA-11`, `SCA-12`)

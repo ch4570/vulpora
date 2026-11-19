@@ -1,5 +1,20 @@
 # Release work and issue status
 
+## Public v1.1.0 update — 2026-09-11
+
+Public issues #8–#12 are closed after their individual fixes and CI-verified merges:
+[PR #15](https://github.com/ch4570/vulpora/pull/15),
+[PR #16](https://github.com/ch4570/vulpora/pull/16),
+[PR #17](https://github.com/ch4570/vulpora/pull/17),
+[PR #18](https://github.com/ch4570/vulpora/pull/18), and
+[PR #19](https://github.com/ch4570/vulpora/pull/19).
+[Public issue #1](https://github.com/ch4570/vulpora/issues/1) remains open and operational promotion remains
+blocked. The package release does not certify external runners, signing policy, immutable storage, or provider
+budget enforcement. See [v1.1.0 release notes](releases/v1.1.0.md) for changes and verification limits.
+GitHub publication is recorded in the release itself; npm registry publication remains deferred.
+
+## Historical v1.0.0 snapshot
+
 Snapshot: 2026-09-07. Vulpora v1.0.0 is the first public release. Earlier issue and PR numbers below
 refer to the privately archived development repository; they are not issue numbers in the new public repository.
 A local test result does not by itself prove remote closure or operational deployment.

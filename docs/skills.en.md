@@ -2,7 +2,7 @@
 
 [한국어](skills.ko.md) · English · [README](../README.md)
 
-This handbook covers the purpose and invocation of all **63 skills** in the installation manifest.
+This handbook covers the purpose and invocation of all **67 skills** in the installation manifest.
 One entry, `codex-agent-runtime`, is a disabled compatibility contract. Each skill name links to its
 actual `SKILL.md`, which defines the inputs, procedure, and expected output.
 
@@ -79,7 +79,8 @@ between choosing a model and proving that a task actually ran with it.
 | Initialize a repository and implement a change | `vulpora-init` → `start-task` | `pack:core pack:orchestration` |
 | Turn an idea into requirements and an interface | `product-requirements` → `product-ui-design` | `pack:product-discovery-ko pack:visual` |
 | Write and review Kotlin/Java with Spring | `kotlin-code-authoring`, the language's review workflow | `pack:jvm-spring` |
-| Review architecture, security, or test quality | The corresponding `*-workflow` | `pack:jvm-quality` |
+| Review architecture or test quality | The corresponding `*-workflow` | `pack:jvm-quality` |
+| Analyze and fix security and shared-resource risks | `security-scan-workflow` | `security-scan-workflow` |
 | Work on PostgreSQL, SQL Server, or OpenSearch | The corresponding authoring/review skills | `pack:postgres`, `pack:mssql`, `pack:opensearch` |
 | Verify APIs and browser flows together | `e2e-test-workflow` | `pack:qa-e2e` |
 | Produce diagrams, HTML, and PDF documents | `visual-artifact-router` | `pack:visual` |
@@ -126,7 +127,19 @@ naming conventions, and architectural rules.
 | [flyway](../skills/flyway/SKILL.md) | Author a PostgreSQL Flyway migration alongside the entity change | `$flyway "Write the migration SQL for this Order entity change"` |
 | [test-authoring](../skills/test-authoring/SKILL.md) | Write deterministic, isolated Kotlin unit and narrow integration tests against real contracts | `$test-authoring "Test OrderService cancellation boundary cases"` |
 
-### Code, design, and test quality review · 11
+### Security and shared-data safety · 1
+
+The installer includes the required read-only `security-auditor`. Review requests stay read-only;
+explicit hardening requests also produce scoped source repairs, inspected offline regressions and
+an independent final review. Coverage includes authorization/tenants, injection, SSRF, files,
+configuration, dependencies, resource exhaustion and shared DB/cache/search/queue/storage effects.
+Neither mode operates on shared services to prove a flaw. Unverified coverage stays explicit.
+
+| Skill | Purpose | Conversation example |
+|---|---|---|
+| [security-scan-workflow](../skills/security-scan-workflow/SKILL.md) | Analyze security and shared-resource effects; fix and verify when authorized | `$security-scan-workflow "Analyze diverse vulnerabilities and fix shared-resource risks with isolated regressions"` |
+
+### Code, design, and test quality review · 12
 
 Supply target files, modules, or a diff range and baseline for consolidated reviews. Review-only
 requests do not authorize code changes. Workflows that dispatch specialists require those agents
@@ -142,6 +155,7 @@ and an explicit model route to be available in the current runtime.
 | [oop-design-review](../skills/oop-design-review/SKILL.md) | Assess SOLID, GRASP, cohesion, and encapsulation | `$oop-design-review "Review responsibility allocation across the payment policy classes"` |
 | [design-pattern-apply](../skills/design-pattern-apply/SKILL.md) | Assess whether a pattern fits a real axis of change and how to apply it | `$design-pattern-apply "Assess whether these shipping policy branches need Strategy"` |
 | [refactoring-catalog](../skills/refactoring-catalog/SKILL.md) | Select behavior-preserving refactoring steps and verification for code smells | `$refactoring-catalog "Propose steps to reduce duplicate branches in OrderService"` |
+| [explore-dead-code](../skills/explore-dead-code/SKILL.md) | Quickly scan unreferenced code candidates with batched searches and evidence/confidence; hold uncertain indirect registrations and external APIs for follow-up, without deletion | `$explore-dead-code "Find unreferenced code candidates in src and report evidence and confidence without deleting anything"` |
 | [test-quality-review](../skills/test-quality-review/SKILL.md) | Audit test oracles, boundaries, isolation, and fault detection | `$test-quality-review "Review whether OrderServiceTest detects plausible defects"` |
 | [test-refactoring](../skills/test-refactoring/SKILL.md) | Improve Kotlin/JVM tests and fixtures only for validated quality findings | `$test-refactoring "Fix the attached findings within OrderServiceTest and its fixtures"` |
 | [test-quality-refactoring-workflow](../skills/test-quality-refactoring-workflow/SKILL.md) | Coordinate quality auditing, test-side improvements, negative proof, and fresh execution | `$test-quality-refactoring-workflow "Review and improve the order module's Kotlin tests, limiting edits to tests and fixtures"` |
@@ -166,7 +180,7 @@ live query results through `nl-sql-query` requires the separate MCP setup below.
 | [opensearch-review-workflow](../skills/opensearch-review-workflow/SKILL.md) | Consolidate query, schema, and optimization reviews | `$opensearch-review-workflow "Review the product DSL, mapping, and index settings together"` |
 | [nl-sql-query](../skills/nl-sql-query/SKILL.md) | Query a connected PostgreSQL/MySQL/SQL Server database in natural language, read-only | `$nl-sql-query "Show order counts by status for the last 7 days and include the SQL used"` |
 
-### QA and E2E · 5
+### QA and E2E · 6
 
 | Skill | Purpose | Conversation example |
 |---|---|---|
@@ -175,6 +189,7 @@ live query results through `nl-sql-query` requires the separate MCP setup below.
 | [playwright-e2e](../skills/playwright-e2e/SKILL.md) | Execute QA browser scenarios with owned data, cleanup, and evidence | `$playwright-e2e "Execute TC-CHECKOUT-001 from the attached QA handoff"` |
 | [e2e-report-renderer](../skills/e2e-report-renderer/SKILL.md) | Render completed runner JSON as single-run, trend, or comparison HTML | `$e2e-report-renderer "Create comparison HTML for two completed runs in test-report/e2e"` |
 | [e2e-test-workflow](../skills/e2e-test-workflow/SKILL.md) | Coordinate catalog, API, browser, and HTML stages under one environment owner | `$e2e-test-workflow "Refresh order scenarios, run the API cases and QA browser handoff, and save an HTML report"` |
+| [e2e-evidence-report](../skills/e2e-evidence-report/SKILL.md) | Plan TCs, run them with video and screenshots, verify result rows with read-only DB queries, and publish an HTML evidence report in a temporary directory | `$e2e-evidence-report "Plan and run the order-cancel TCs, then report recordings and DB results as HTML"` |
 
 ### Documents, diagrams, and visual artifacts · 9
 
@@ -190,7 +205,7 @@ live query results through `nl-sql-query` requires the separate MCP setup below.
 | [visual-artifact-router](../skills/visual-artifact-router/SKILL.md) | Route artifact requests through the appropriate design, rendering, and QA skills | `$visual-artifact-router "Turn the architecture explanation into editable source and shareable HTML"` |
 | [korean-dev-writer](../skills/korean-dev-writer/SKILL.md) | Write or revise natural Korean technical documents, PRs, reviews, and comments while preserving facts | `$korean-dev-writer "Revise the Korean README for clear, natural technical prose"` |
 
-### Evaluation, knowledge, retrospectives, and collaboration · 8
+### Evaluation, knowledge, retrospectives, and collaboration · 9
 
 | Skill | Purpose | Conversation example |
 |---|---|---|
@@ -200,6 +215,7 @@ live query results through `nl-sql-query` requires the separate MCP setup below.
 | [retro](../skills/retro/SKILL.md) | Review completed work as Keep, Problem, and Try, then propose improvements | `$retro "Review the search improvement task we just completed"` |
 | [knowledge-audit](../skills/knowledge-audit/SKILL.md) | Verify auto-collected knowledge against current code, then promote, discard, or defer it | `$knowledge-audit "Verify and curate the candidates in .claude/knowledge/auto"` |
 | [harness-propose](../skills/harness-propose/SKILL.md) | Compare current harness capabilities with recent research and write an HTML proposal | `$harness-propose "Research the next useful improvements for this harness"` |
+| [harness-refine](../skills/harness-refine/SKILL.md) | Run the base and candidate harnesses on the same task and adopt only edits the execution contrast supports | `$harness-refine "Refine skills/postgres-query-review against this behavioral case"` |
 | [git-flow](../skills/git-flow/SKILL.md) | Prepare a work branch or commit, push, and create a GitLab merge request | `$git-flow "Review and commit this feature change, then open a GitLab MR targeting develop"` |
 | [notion-domain-context](../skills/notion-domain-context/SKILL.md) | Search a connected private Notion workspace for cited read-only evidence | `$notion-domain-context "Find Notion evidence for order cancellation policy and the owning team"` |
 
@@ -227,7 +243,7 @@ authentication, Docker, browsers, and model-provider authentication require sepa
 | `markdown-publisher`, `pdf-qa` | Node.js for HTML; a local Chromium-family browser for PDF; Python 3, Poppler, and image inspection for PDF QA | QA requires `pdfinfo` and either `pdftocairo` or `pdftoppm`. Successful rendering still requires visual inspection of every page. |
 | `agent-eval` | The SkillEvaluator CLI revision pinned by the wrapper; additional scanners, providers, datasets, and sandbox prerequisites for other tiers | Default Tier 1 is keyless static evidence. Installation or static success does not establish live model performance. |
 | `git-flow` | GitLab remote, authenticated transport, and suitable work/target branches | The default target is `develop`. This skill implements GitLab MR workflows, not GitHub PR creation. |
-| `learn`, `retro`, `knowledge-audit`, `harness-propose` | The project knowledge structure named by the skill, including `.claude/knowledge/` and `.claude/retro/` where applicable | Installing skills does not enable automatic learning hooks. Knowledge persistence and accepted improvements follow each skill's approval contract. |
+| `learn`, `retro`, `knowledge-audit`, `harness-propose`, `harness-refine` | The project knowledge structure named by the skill, including `.claude/knowledge/` and `.claude/retro/` where applicable | Installing skills does not enable automatic learning hooks. Knowledge persistence and accepted improvements follow each skill's approval contract. |
 
 ### Set up the local SQL MCP
 

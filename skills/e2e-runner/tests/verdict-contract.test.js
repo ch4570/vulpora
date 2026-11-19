@@ -14,7 +14,8 @@ function baseRun() {
   return {
     selection: { collectedCount: 1 },
     execution: { supportedStack: true, slowTestExclusions: [] },
-    testCases: [{ id: 'E2E-LOGIN', priority: 'P0', selected: true, executed: true, status: 'PASS' }],
+    testCases: [{ id: 'E2E-LOGIN', priority: 'P0', selected: true, executed: true, status: 'PASS',
+      assertions: [{ kind: 'status', expected: '200', actual: '200', passed: true }] }],
     lifecycle: {
       cleanup: { status: 'PASS' },
       teardown: { status: 'PASS' },
@@ -59,7 +60,21 @@ function expectInvalid(name, mutate) {
 
 try {
   const pass = expectVerdict('pass', () => {}, 'PASS', 0);
-  assert.deepEqual(pass.output.selection, { collected: 1, selected: 1, executed: 1 });
+  assert.deepEqual(pass.output.selection, { collected: 1, selected: 1, executed: 1, unselected: 0 });
+  assert.deepEqual(pass.output.notSelected, []);
+  const gaps = expectVerdict('pass-with-reported-gaps', (input) => {
+    input.selection.collectedCount += 3;
+    input.testCases.push(
+      { id: 'E2E-CDN-PURGE', priority: 'P1', selected: false, executed: false, unselectedReason: 'outside requested area' },
+      { id: 'E2E-CACHE-REFRESH', priority: 'P1', selected: false, executed: false, unselectedReason: 'outside requested area' },
+      { id: 'E2E-SEARCH-GET', priority: 'P2', selected: false, executed: false, unselectedReason: 'requires OpenSearch fixture' },
+    );
+  }, 'PASS', 0);
+  assert.deepEqual(gaps.output.selection, { collected: 4, selected: 1, executed: 1, unselected: 3 });
+  assert.deepEqual(gaps.output.notSelected, [
+    { reason: 'outside requested area', count: 2, caseIds: ['E2E-CDN-PURGE', 'E2E-CACHE-REFRESH'] },
+    { reason: 'requires OpenSearch fixture', count: 1, caseIds: ['E2E-SEARCH-GET'] },
+  ]);
 
   expectVerdict('partial-non-p0', (input) => {
     input.selection.collectedCount += 1;
@@ -75,7 +90,7 @@ try {
   }, 'PARTIAL', 2);
   expectVerdict('partial-slow-exclusion', (input) => {
     input.selection.collectedCount += 1;
-    input.testCases.push({ id: 'E2E-SLOW-EXPORT', priority: 'P2', selected: false, executed: false });
+    input.testCases.push({ id: 'E2E-SLOW-EXPORT', priority: 'P2', selected: false, executed: false, unselectedReason: 'slow-test exclusion' });
     input.execution.slowTestExclusions.push({ id: 'E2E-SLOW-EXPORT', reason: 'excluded by the 30 minute CI budget' });
   }, 'PARTIAL', 2);
 
@@ -94,6 +109,7 @@ try {
   expectVerdict('inconclusive-zero-selected', (input) => {
     input.testCases[0].selected = false;
     input.testCases[0].executed = false;
+    input.testCases[0].unselectedReason = 'outside requested area';
     delete input.testCases[0].status;
   }, 'INCONCLUSIVE', 4);
   expectVerdict('inconclusive-zero-executed', (input) => {
@@ -133,6 +149,7 @@ try {
   expectVerdict('diagnostic-zero-selected', (input) => {
     input.testCases[0].selected = false;
     input.testCases[0].executed = false;
+    input.testCases[0].unselectedReason = 'outside requested area';
     delete input.testCases[0].status;
   }, 'INCONCLUSIVE', 4, ['--diagnostic-only']);
   expectVerdict('diagnostic-zero-executed', (input) => {
@@ -178,6 +195,26 @@ try {
   expectInvalid('missing-teardown', (input) => { delete input.lifecycle.teardown; });
   expectInvalid('missing-orphan-audit', (input) => { delete input.lifecycle.orphanAudit; });
   expectInvalid('duplicate-probe', (input) => { input.lifecycle.absenceProbes.push({ ...input.lifecycle.absenceProbes[0] }); });
+  // The reported false-PASS: Expected was `204`, the harness stripped nothing and skipped the comparison.
+  const skipped = expectVerdict('inconclusive-no-assertion', (input) => { input.testCases[0].assertions = []; }, 'INCONCLUSIVE', 4);
+  assert.deepEqual(skipped.output.reasons, [{ code: 'NO_ASSERTION', caseId: 'E2E-LOGIN' }]);
+  expectVerdict('inconclusive-missing-assertions', (input) => { delete input.testCases[0].assertions; }, 'INCONCLUSIVE', 4);
+  const contradiction = expectVerdict('inconclusive-status-contradiction', (input) => {
+    input.testCases[0].assertions = [{ kind: 'status', expected: '204', actual: '404', passed: true }];
+  }, 'INCONCLUSIVE', 4);
+  assert.deepEqual(contradiction.output.reasons, [{ code: 'PASS_CONTRADICTS_ASSERTION', caseId: 'E2E-LOGIN' }]);
+  expectVerdict('inconclusive-failed-assertion', (input) => {
+    input.testCases[0].assertions.push({ kind: 'body', clause: 'assert $.x exists', passed: false });
+  }, 'INCONCLUSIVE', 4);
+  expectVerdict('framework-assertions', (input) => {
+    delete input.testCases[0].assertions;
+    input.testCases[0].assertionSource = 'framework';
+  }, 'PASS', 0);
+  expectInvalid('bad-assertion-shape', (input) => { input.testCases[0].assertions = [{ kind: 'status' }]; });
+  expectInvalid('unselected-without-reason', (input) => {
+    input.selection.collectedCount += 1;
+    input.testCases.push({ id: 'E2E-CDN-PURGE', priority: 'P1', selected: false, executed: false });
+  });
   expectInvalid('exclusion-not-collected', (input) => {
     input.execution.slowTestExclusions.push({ id: 'E2E-MISSING', reason: 'budget' });
   });

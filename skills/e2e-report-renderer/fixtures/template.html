@@ -35,7 +35,7 @@
   .meta code { font-family: var(--mono); background: var(--surface); padding: 1px 5px; border-radius: 3px; }
   .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
   .theme-toggle { background: var(--surface); border: 1px solid var(--border); color: var(--fg); padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-family: inherit; }
-  .summary-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 16px 0; }
+  .summary-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin: 16px 0; }
   .card { border: 1px solid var(--border); background: var(--surface); padding: 14px 12px; border-radius: 8px; }
   .card .n { font-size: 26px; font-weight: 600; line-height: 1; margin-bottom: 4px; font-family: var(--mono); }
   .card .l { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
@@ -46,11 +46,19 @@
   .filters { display: flex; gap: 10px; margin: 16px 0; flex-wrap: wrap; }
   .filters select, .filters input { background: var(--surface); border: 1px solid var(--border); color: var(--fg); padding: 6px 10px; border-radius: 6px; font-family: inherit; font-size: 13px; }
   .filters input { flex: 1; min-width: 180px; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+  col.c-btn { width: 36px; } col.c-id { width: 24%; } col.c-purpose { width: 18%; } col.c-data { width: 12%; }
+  col.c-exp { width: 16%; } col.c-act { width: 12%; } col.c-status { width: 10%; } col.c-lat { width: 64px; }
+  tbody td { overflow: hidden; text-overflow: ellipsis; overflow-wrap: anywhere; }
+  td.clip { white-space: nowrap; }
+  @media (max-width: 720px) { .summary-row { grid-template-columns: repeat(2, 1fr); } }
+  .gaps { margin: 0; padding-left: 20px; }
+  .gaps li { margin: 4px 0; }
+  .card.check .n { color: var(--accent); }
   thead th { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
   tbody tr { border-bottom: 1px solid var(--border); }
   tbody td { padding: 10px 8px; vertical-align: top; }
-  td.id { font-family: var(--mono); white-space: nowrap; }
+  td.id { font-family: var(--mono); }
   td.lat { font-family: var(--mono); text-align: right; color: var(--muted); }
   .status { font-weight: 600; font-family: var(--mono); white-space: nowrap; }
   .status.pass { color: var(--pass); }
@@ -91,7 +99,11 @@
     <div class="card skip"><div class="n" id="sum-skip">0</div><div class="l">건너뜀 –</div></div>
     <div class="card dep"><div class="n" id="sum-dep">0</div><div class="l">의존 실패 ⤴</div></div>
     <div class="card"><div class="n" id="sum-total">0</div><div class="l">전체 · <span id="wall">0ms</span></div></div>
+    <div class="card check"><div class="n" id="sum-checked">0</div><div class="l">확인한 비교 / <span id="sum-proved">0</span>개 시나리오</div></div>
   </section>
+
+  <h2>제외·알려진 편차</h2>
+  <ul class="gaps" id="gaps"></ul>
 
   <div class="filters" role="region" aria-label="필터">
     <select id="filter-area" aria-label="영역"><option value="">전체 영역</option></select>
@@ -101,12 +113,14 @@
       <option value="FAIL">실패 (FAIL)</option>
       <option value="SKIPPED">건너뜀 (SKIPPED)</option>
       <option value="FAILED-DEPENDENCY">의존 실패 (FAILED-DEPENDENCY)</option>
+      <option value="PROBE-ERROR">점검 오류 (PROBE-ERROR)</option>
     </select>
     <input id="filter-text" type="search" placeholder="ID 또는 목적으로 검색…" aria-label="검색" />
   </div>
 
   <h2>결과</h2>
   <table aria-label="결과">
+    <colgroup><col class="c-btn"><col class="c-id"><col class="c-purpose"><col class="c-data"><col class="c-exp"><col class="c-act"><col class="c-status"><col class="c-lat"></colgroup>
     <thead><tr><th></th><th>ID</th><th>목적</th><th>데이터셋</th><th>예상</th><th>실제</th><th>상태</th><th class="lat">지연</th></tr></thead>
     <tbody id="results-body"></tbody>
   </table>
@@ -136,7 +150,8 @@
 
   $("run-id").textContent = data.runId || "—";
   $("mode").textContent = data.mode || "—";
-  $("generated-at").textContent = data.generatedAt || "—";
+  // CONTRACT §5 fields first; generatedAt/wallTimeMs are optional conveniences.
+  $("generated-at").textContent = data.generatedAt || data.finishedAt || "—";
   $("branch").textContent = (data.git && data.git.branch) || "—";
   $("sha").textContent = (data.git && data.git.sha) || "—";
   $("catalog-sha").textContent = (data.catalog && data.catalog.sha) || "—";
@@ -146,7 +161,20 @@
   $("sum-skip").textContent = data.summary.skipped || 0;
   $("sum-dep").textContent = data.summary.failedDependency || 0;
   $("sum-total").textContent = data.summary.total || 0;
-  $("wall").textContent = (data.wallTimeMs || 0) + "ms";
+  var wall = data.wallTimeMs != null ? data.wallTimeMs : (Date.parse(data.finishedAt) - Date.parse(data.startedAt));
+  $("wall").textContent = (isFinite(wall) && wall >= 0 ? wall : "—") + "ms";
+  var results = data.results || [];
+  $("sum-checked").textContent = data.summary.assertionsChecked != null ? data.summary.assertionsChecked
+    : results.reduce(function (n, r) { return n + ((r.assertions || []).length); }, 0);
+  $("sum-proved").textContent = results.filter(function (r) { return (r.assertions || []).length > 0; }).length;
+  var gaps = [];
+  (data.notSelected || []).forEach(function (g) { gaps.push("실행 제외 " + g.count + "건 — " + g.reason + " (" + (g.caseIds || []).join(", ") + ")"); });
+  ((data.catalog && data.catalog.knownDeviations) || []).forEach(function (d) {
+    gaps.push("알려진 편차: " + (d.path || d.scenario) + " — " + d.reason + " (승인 " + (d.approvedBy || "—") + ", 만료 " + d.expires + ")");
+  });
+  ((data.catalog && data.catalog.excludedSources) || []).forEach(function (d) { gaps.push("수집 제외 소스: " + d.path + " — " + d.reason); });
+  if (gaps.length === 0) gaps.push("없음");
+  gaps.forEach(function (text) { var li = document.createElement("li"); li.textContent = text; $("gaps").appendChild(li); });
 
   var areas = Array.from(new Set((data.results || []).map(function (r) { return r.area; }))).filter(Boolean).sort();
   areas.forEach(function (a) {
@@ -155,8 +183,8 @@
     $("filter-area").appendChild(opt);
   });
 
-  var statusClass = { "PASS": "pass", "FAIL": "fail", "SKIPPED": "skip", "FAILED-DEPENDENCY": "dep" };
-  var statusGlyph = { "PASS": "✓", "FAIL": "✕", "SKIPPED": "–", "FAILED-DEPENDENCY": "⤴" };
+  var statusClass = { "PASS": "pass", "FAIL": "fail", "SKIPPED": "skip", "FAILED-DEPENDENCY": "dep", "PROBE-ERROR": "dep" };
+  var statusGlyph = { "PASS": "✓", "FAIL": "✕", "SKIPPED": "–", "FAILED-DEPENDENCY": "⤴", "PROBE-ERROR": "?" };
 
   function cell(text, cls) {
     var td = document.createElement("td");
@@ -184,7 +212,9 @@
     tr.appendChild(cell(r.purpose));
     tr.appendChild(cell(typeof r.dataset === "string" ? r.dataset : JSON.stringify(r.dataset || {})));
     tr.appendChild(cell(r.expected));
-    tr.appendChild(cell(r.actual));
+    var actual = cell(r.actual, "clip");
+    actual.title = r.actual == null ? "" : String(r.actual);
+    tr.appendChild(actual);
 
     var s = document.createElement("td");
     var span = document.createElement("span");
@@ -210,6 +240,11 @@
     }
     kv("전제조건", r.preconditions);
     kv("의존", (r.dependsOn || []).join(", ") || "—");
+    kv("실제(전체)", r.actual);
+    (r.assertions || []).forEach(function (a) {
+      kv(a.passed ? "비교 ✓" : "비교 ✕", (a.clause || a.kind) + " · 기대 " + JSON.stringify(a.expected) + " · 실제 " + JSON.stringify(a.actual));
+    });
+    if ((r.assertions || []).length === 0 && r.status === "PASS") kv("비교", "기록된 비교 없음 — 근거 없는 통과");
     if (r.status === "SKIPPED") kv("건너뜀 사유", r.skippedReason);
     if (r.evidence) {
       kv("원본 본문 경로", r.evidence.rawBodyPath || "—");

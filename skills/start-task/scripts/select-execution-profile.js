@@ -107,7 +107,7 @@ const controls = profile === 'audit'
       specification: 'single_concise_brief',
       brief_count: 1,
       questions: profile === 'lightweight' ? 'none_unless_material_blocker' : 'single_batched_turn_if_needed',
-      execution_owner: input.task.independent_lane_count > 1
+      execution_owner: profile === 'standard' && input.task.independent_lane_count > 1
         ? 'primary_with_optional_independent_children'
         : 'primary',
       child_no_progress_seconds: profile === 'standard' ? 60 : null,

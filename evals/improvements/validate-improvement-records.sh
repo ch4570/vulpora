@@ -219,9 +219,21 @@ parse_result_yaml() {
     function score(s) { return s ~ /^(0|1|0\.[0-9]+|1\.0+)$/ }
     function inline(s,k,  r) { r="(^|[, {])" k ":[[:space:]]*[^,} ]+"; if (match(s,r)) { x=substr(s,RSTART,RLENGTH); sub(/^.*:[[:space:]]*/, "", x); return clean(x) } return "" }
     function inline_count(s,k,  r,rest,n) { r="(^|[, {])" k ":[[:space:]]*[^,} ]+"; rest=s; while (match(rest,r)) { n++; rest=substr(rest,RSTART+RLENGTH) } return n }
+    function inline_mapping(s,  parts,n,i,v) {
+      sub(/[ ]*$/, "", s)
+      if (s !~ /^\{.*\}$/) return 0
+      s=substr(s,2,length(s)-2); n=split(s,parts,",")
+      for (i=1; i<=n; i++) {
+        if (parts[i] !~ /^[ ]*[A-Za-z_][A-Za-z0-9_]*:[ ]*/) return 0
+        v=parts[i]; sub(/^[^:]*:[ ]*/, "", v); sub(/[ ]*$/, "", v)
+        if (v ~ /^".*"$/ || v ~ /^\047.*\047$/) v=substr(v,2,length(v)-2)
+        if (v !~ /^[A-Za-z0-9][A-Za-z0-9._:-]*$/) return 0
+      }
+      return n > 0
+    }
     function bad_result() { bad=1 }
     /^[[:space:]]*#/ || /^[[:space:]]*$/ { next }
-    /^[^[:space:]][A-Za-z_][A-Za-z0-9_]*:/ {
+    /^[A-Za-z_][A-Za-z0-9_]*:/ {
       key=$1; sub(/:.*/, "", key); v=val($0)
       section=(v == "" ? key : "")
       if (key == "schema" || key == "eval_id" || key == "case_id" || key == "target" || key == "actual" || key == "verdict" || key == "behavioral" || key == "run") if (seen["root" SUBSEP key]++) bad_result()
@@ -231,10 +243,10 @@ parse_result_yaml() {
       else if (key == "verdict") verdict=v
       else if (key == "target") {
         target_inline=(v != ""); tk=inline($0,"kind"); ti=inline($0,"id")
-        if (target_inline && (inline_count($0,"kind") != 1 || inline_count($0,"id") != 1)) bad_result()
+        if (target_inline && (!inline_mapping(v) || inline_count($0,"kind") != 1 || inline_count($0,"id") != 1)) bad_result()
       } else if (key == "actual") {
         actual_line=$0; actual_inline=(v != ""); outcome=inline($0,"outcome_score"); process=inline($0,"process_score"); safety=inline($0,"safety_score")
-        if (actual_inline && (inline_count($0,"outcome_score") != 1 || inline_count($0,"process_score") != 1 || inline_count($0,"safety_score") != 1)) bad_result()
+        if (actual_inline && (!inline_mapping(v) || inline_count($0,"outcome_score") != 1 || inline_count($0,"process_score") != 1 || inline_count($0,"safety_score") != 1)) bad_result()
       }
       else if (key == "outcome_score" || key == "process_score" || key == "safety_score") bad_result()
       next
@@ -285,6 +297,11 @@ parse_result_yaml() {
       }
       next
     }
+    # The runner emits only one-line evidence items. All other unmatched lines
+    # are unsupported syntax, including quoted/explicit keys and bad indentation;
+    # silently dropping them would let duplicate core fields escape the audit.
+    /^  - [A-Za-z_][A-Za-z0-9_]*:/ { if (section != "evidence") bad_result(); next }
+    { bad_result() }
     END {
       if (schema != "vulpora.eval-result") bad_result()
       if (verdict !~ /^(pass|fail)$/) bad_result()

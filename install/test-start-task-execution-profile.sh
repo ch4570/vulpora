@@ -87,6 +87,17 @@ const coordinated = select(parallel);
 expect(coordinated.profile === 'standard', 'independent lanes should use standard coordination');
 expect(coordinated.controls.execution_owner === 'primary_with_optional_independent_children', 'children must be optional and independence-gated');
 
+const explicitLightweight = structuredClone(parallel);
+explicitLightweight.requested_profile = 'lightweight';
+const direct = select(explicitLightweight);
+expect(direct.profile === 'lightweight', 'explicit lightweight must remain selected without a risk floor');
+expect(direct.controls.execution_owner === 'primary', 'explicit lightweight must never permit execution children');
+expect(direct.controls.child_no_progress_seconds === null, 'lightweight has no execution child lifecycle');
+
+const explicitStandard = structuredClone(base);
+explicitStandard.requested_profile = 'standard';
+expect(select(explicitStandard).controls.execution_owner === 'primary', 'explicit standard with one lane stays primary-owned');
+
 for (const risk of [
   'destructive_or_irreversible',
   'security_or_authorization_boundary',
@@ -105,6 +116,7 @@ for (const risk of [
   expect(audit.controls.routing_receipts === 'native_execution_attempts_only', 'audit must bind receipts only to native execution attempts');
   expect(audit.controls.child_no_progress_seconds === 60, 'audit execution children must have a no-progress reclaim bound');
   risky.requested_profile = 'lightweight';
+  risky.task.independent_lane_count = 3;
   expect(select(risky).profile === 'audit', `${risk} must invalidate an expected lightweight write guard`);
 }
 

@@ -28,15 +28,92 @@
 
    | dialect | 읽기 전용 보장 | 방식 |
    |---|---|---|
-   | **PostgreSQL** | **엔진 하드 보장** | `BEGIN TRANSACTION READ ONLY` + 항상 `ROLLBACK`. 쓰기는 PG가 직접 거부 |
-   | **MySQL** | **엔진 하드 보장** | `START TRANSACTION READ ONLY` + `ROLLBACK`(5.6.5+). 쓰기는 MySQL이 거부 |
+   | **PostgreSQL** | **엔진 하드 보장** | `BEGIN TRANSACTION READ ONLY` + `ROLLBACK` 시도, 실패 시 연결 폐기. 쓰기는 PG가 직접 거부 |
+   | **MySQL** | **엔진 하드 보장** | `START TRANSACTION READ ONLY` + `ROLLBACK` 시도, 실패 시 연결 폐기(5.6.5+). 쓰기는 MySQL이 거부 |
    | **SQL Server** | **소프트(엔진 모드 없음)** | 가드 + **읽기 전용 로그인(필수)** + 트랜잭션 `ROLLBACK`. ⚠️ 트랜잭션 읽기전용 모드가 없으므로 **반드시 db_datareader 권한만 가진 로그인**으로 접속 |
 
 4. **자원 한계** — statement timeout(기본 5s; pg `statement_timeout`, mysql `MAX_EXECUTION_TIME`, mssql `requestTimeout`), 반환 행 하드 캡(기본 100), 셀 절단, **파라미터 바인딩**으로 인젝션 회피.
+   MySQL의 시간 제한 설정이 실패하면 조회와 시작 시 연결 확인도 거부합니다. 이를 지원하지
+   않는 MySQL 호환 서버에서 제한 없이 계속 실행하는 fallback은 제공하지 않습니다.
+   SQL Server 가드는 트랜잭션·세션·관리 제어문을 차단하지만 완전한 T-SQL 문법 분석기는
+   아니므로 읽기 전용 DB 권한은 계속 필요합니다.
 5. **오류 위생** — DB 드라이버 원문 오류·호스트·사용자·연결 문자열은 MCP 응답이나 stderr로 전달하지 않는다. 외부에는 `NLSQL_DB_QUERY_FAILED` 같은 안정적인 오류 코드만 노출한다.
 6. **최소 권한 접속(운영 필수)** — 아래 dialect별 읽기 전용 역할.
 
 > 가드 단독을 신뢰하지 않는다. PG/MySQL은 엔진 보장이 진짜 안전선이고, **MSSQL은 읽기 전용 로그인이 안전선**이다.
+
+CTE 이름은 선언 순서와 쿼리 범위에 따라 해석한다. PostgreSQL/MySQL의 비재귀 CTE 본문은
+이전에 선언한 형제 CTE와 바깥 범위의 CTE만 참조할 수 있다. 자기 이름이나 미래 CTE 이름을
+붙여도 미한정 물리 테이블 검사를 면제하지 않는다. 예를 들어
+`WITH pg_settings AS (SELECT * FROM pg_settings) SELECT * FROM pg_settings`는 거부한다.
+중첩 `WITH`의 이름은 해당 쿼리 밖으로 노출되지 않는다.
+
+| dialect | 재귀 CTE 본문에서 보이는 이름 | 중첩 `WITH` |
+|---|---|---|
+| PostgreSQL `WITH RECURSIVE` | 자신과 같은 `WITH`의 모든 형제(뒤에 선언한 CTE 포함), 바깥 범위 | 지원 |
+| MySQL `WITH RECURSIVE` | 자신과 이전 형제, 바깥 범위 | 지원 |
+| SQL Server `WITH` | 자신과 이전 형제(별도 `RECURSIVE` 키워드 없음) | 거부 |
+
+범위 규칙의 근거는 [PostgreSQL WITH 문서](https://www.postgresql.org/docs/current/sql-select.html#SQL-WITH)와
+[공식 parser의 비재귀 처리](https://doxygen.postgresql.org/parse__cte_8c_source.html#l00215),
+[MySQL WITH 문서](https://dev.mysql.com/doc/refman/8.4/en/with.html),
+[SQL Server CTE 문서](https://learn.microsoft.com/en-us/sql/t-sql/queries/with-common-table-expression-transact-sql?view=sql-server-ver17)다.
+이 검사는 CTE 이름의 접근 범위를 검증하며, 전체 SQL 문법이나 재귀 쿼리의 적합성까지 증명하지는 않는다.
+중복 이름·해석할 수 없는 CTE 헤더는 실행 전에 거부하고, 나머지 문법·권한 검사는 DB 엔진에도 맡긴다.
+
+PostgreSQL/MySQL의 따옴표·스키마 한정이 없는 `EXTRACT`, `SUBSTRING`, `TRIM` 호출에서는
+해당 인자 괄호 최상위의 `FROM`을 표현식 구분자로 처리한다. 예를 들어
+`SELECT EXTRACT(YEAR FROM created_at) FROM public.orders`의 `created_at`은 물리 테이블이 아니다.
+함수 내부의 중첩 SELECT/TABLE·CTE 범위와 스키마 한정 함수·금지 함수 검사는 그대로 유지한다.
+임의의 함수나 다른 dialect에 이 예외를 확대하지 않는다. 문법 근거는
+[PostgreSQL EXTRACT](https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-EXTRACT),
+[PostgreSQL 문자열 함수](https://www.postgresql.org/docs/current/functions-string.html),
+[MySQL EXTRACT](https://dev.mysql.com/doc/refman/8.4/en/date-and-time-functions.html#function_extract),
+[MySQL 문자열 함수](https://dev.mysql.com/doc/refman/8.4/en/string-functions.html#function_substring)다.
+
+문자열·주석 경계는 두 정적 검사기에서 같은 dialect 규칙을 사용한다. PostgreSQL/SQL Server의
+`--` 주석은 CR·LF·CRLF에서 끝나지만, MySQL의 `--`/`#` 주석은 LF까지 이어진다.
+PostgreSQL의 `$한글$...$한글$` 같은 비ASCII 달러 태그도 문자열로 처리하여 내부의 `FROM`/`LIMIT`이
+스키마 검사나 행 제한 판단에 영향을 주지 않게 한다. `$1` 파라미터와 식별자에 붙은 `$tag$`는
+달러 인용 시작이 아니며, 열린 달러 인용의 미종료·태그 대소문자 불일치는 실행 전에 거부한다.
+근거는 [PostgreSQL lexer](https://github.com/postgres/postgres/blob/master/src/backend/parser/scan.l),
+[SQL Server 주석 문서](https://learn.microsoft.com/en-us/sql/t-sql/language-elements/comment-transact-sql?view=sql-server-ver17),
+[MySQL 8.4 lexer의 MY_LEX_COMMENT](https://github.com/mysql/mysql-server/blob/8.4/sql/sql_lex.cc)다.
+
+MySQL의 `--` 시작은 다음 ASCII 공백·제어 바이트(`0x01..0x20`, `0x7f`) 또는 입력 끝으로 판정한다.
+NBSP 같은 Unicode 공백을 주석 시작으로 처리하지 않는다. 기본 mysql2 연결은
+[UTF-8/utf8mb4](https://github.com/sidorares/node-mysql2/blob/v3.24.3/lib/connection_config.js)를 사용하며,
+[MySQL 문자 분류](https://github.com/mysql/mysql-server/blob/mysql-8.4.0/strings/ctype-uca.cc#L5728-L5745)는
+그 첫 바이트를 공백이 아닌 식별자 문자로 본다. SQL 텍스트의 embedded NUL은 MySQL에서 보수적으로
+거부한다(주석·리터럴 내부도 포함). 데이터의 NUL은 SQL에 직접 넣지 않고 `params`로 바인딩할 수 있다.
+
+스키마·테이블·CTE 이름은 기존의 128자 이하 ASCII 식별자 범위만 지원한다. 비ASCII 접미사까지
+하나의 이름으로 읽은 뒤 검증하므로 `seedé.orders`를 CTE `seed`로 면제하지 않는다. SQL Server도
+[Unicode 문자 식별자](https://learn.microsoft.com/en-us/sql/relational-databases/databases/database-identifiers)를
+허용하므로 이 이름 경계 검사는 세 dialect에 적용한다. PostgreSQL/MySQL의 인용·주석 밖 비ASCII
+공백은 삭제하지 않고 거부하여 `public`과 `public`+NBSP 스키마를 혼동하지 않는다.
+입력 앞뒤·종료 세미콜론을 정리할 때도 ASCII 공백만 제거하여 관계 이름의 NBSP를 보존한다. 따라서 이전에
+우연히 통과하던 Unicode 관계 이름·인용 별칭은 지원을 보장하지 않는다. 일반 Unicode 컬럼 표현식,
+문자열과 PostgreSQL 달러 인용의 데이터는 유지한다. SQL Server의 공백 분류는 이번 수정에서
+기존 동작을 유지하며, 이 보수적 검사가 엔진의 모든 Unicode·문법 규칙을 구현한다는 뜻은 아니다.
+
+### 트랜잭션 정리와 연결 재사용
+
+PostgreSQL/MySQL은 연결을 획득한 뒤 설정·조회가 실패해도 `ROLLBACK`을 시도한다.
+성공한 rollback 뒤에만 정상 `release()`하며, 실패하면 PostgreSQL은
+[`release(true)`](https://node-postgres.com/apis/pool#releasing-clients), MySQL은
+[`destroy()`](https://github.com/sidorares/node-mysql2/blob/master/lib/pool_connection.js)로
+해당 연결의 풀 재사용을 차단한다. 폐기 뒤에 정상 반환을 추가로 시도하지 않는다.
+조회가 성공하고 폐기 API가 정상 반환하면 조회 결과를 유지하지만, 이것이 서버의 rollback 완료를
+증명하지는 않는다. 설정·조회에서 발생한 최초 오류는 정리 오류가 덮지 않으며,
+최초 오류 없이 반환·폐기 자체가 실패하면 조회도 실패한다. 연결 획득 실패에는 정리를 실행하지 않는다.
+
+SQL Server는 별도 한계가 있다. 감사한 node-mssql 12.7.0의
+[Transaction 구현](https://github.com/tediousjs/node-mssql/blob/master/lib/tedious/transaction.js)은
+rollback 콜백이 오류를 반환해도 먼저 연결을 풀에 돌려주며, 현재 드라이버는 이 rollback 오류를 무시한다.
+기본 `SELECT 1` 건강 검사는 트랜잭션 정리를 보증하지 않는다. fake 전송과 실제 풀을 조합한 감사에서
+미종료 트랜잭션 상태의 연결 재사용이 재현됐으며, PostgreSQL/MySQL의 폐기 보장을 SQL Server에
+적용한 것으로 보아서는 안 된다. 공개 Transaction API에 동일한 연결별 폐기 기능이 없어 별도 개선이 필요하다.
 
 ### 읽기 전용 역할 (dialect별)
 ```sql
@@ -129,7 +206,9 @@ NLSQL_ALLOWED_SCHEMAS=app
 | `host`/`port`/`database`/`user`/`password` | `PGHOST`/`PGPORT`/`PGDATABASE`/`PGUSER`/`PGPASSWORD` | dialect 기본 포트 | 개별 필드 |
 | `ssl` | `PGSSLMODE` | `prefer` | `require`=암호화, `verify-ca`/`verify-full`=**서버 인증서 검증 강제**(MITM 방지) |
 | `allowedSchemas` | `NLSQL_ALLOWED_SCHEMAS`(CSV) | **필수** | 조회 허용 스키마. 빈 목록은 시작 거부. mysql=DB명, mssql=dbo 등 |
-| `limits.maxRows` | `NLSQL_MAX_ROWS` | `100` | 반환 행 하드 캡 |
+| `limits.maxRows` | `NLSQL_MAX_ROWS` | `100` | 드라이버 수집 행 한도(1..10,000) |
+| `limits.maxResultBytes` | `NLSQL_MAX_RESULT_BYTES` | `1048576` | 드라이버 수집 결과 바이트 예산(1,024..67,108,864) |
+| `limits.maxInboundBytes` | `NLSQL_MAX_INBOUND_BYTES` | `4194304` | 논리 패킷·셀 파서에 전달할 수신 바이트 한도(1,024..33,554,432) |
 | `limits.statementTimeoutMs` | `NLSQL_STATEMENT_TIMEOUT_MS` | `5000` | 쿼리 타임아웃(ms) |
 | `limits.maxCellChars` | `NLSQL_MAX_CELL_CHARS` | `2000` | 셀 출력 최대 문자 |
 
@@ -141,7 +220,15 @@ NLSQL_ALLOWED_SCHEMAS=app
 ## 한계 (정직 고지)
 - **MSSQL 읽기 전용은 소프트**다(엔진 트랜잭션 읽기전용 모드 부재). 가드+ROLLBACK은 보조이고, **db_datareader 전용 로그인**이 실질 보장이다. 반드시 그렇게 접속하라.
 - allowlist를 정적으로 증명할 수 있도록 실행 SQL의 물리 테이블은 항상 `schema.table`로 써야 한다. 쉼표 조인은 명시적 `JOIN`으로 바꾸고, 테이블 반환 함수가 필요하면 별도의 좁은 도구로 노출하는 방식을 권장한다.
-- 행 캡: pg/mysql 은 `LIMIT` 주입(외곽 LIMIT 없을 때) + 결과 절단. **mssql 은 `LIMIT` 미지원이라 결과 절단만** — 큰 결과는 쿼리에 `TOP (n)`/`OFFSET..FETCH` 를 직접 넣는 게 좋다. 매우 큰 결과는 드라이버가 전 행 버퍼링 후 절단하므로 메모리에 주의(타임아웃이 먼저 끊을 수 있음).
+- 세 드라이버 모두 행 이벤트로 결과를 수집하며, `maxRows` 또는 `maxResultBytes`를 넘으면 연결을 종료하고 `NLSQL_RESULT_LIMIT_EXCEEDED`로 실패한다. 일부 행을 성공 결과로 반환하지 않으므로 스키마 조회와 `EXPLAIN`에도 같은 한도가 적용된다. 바이트 예산은 필드 이름·문자열의 UTF-8 크기, 바이너리 길이와 값별 고정 비용을 합산하며, 중첩 깊이 32·값 100,000개도 제한한다.
+- pg/mysql은 외곽 제한이 없을 때 `LIMIT`을 추가한다. CTE·서브쿼리의 제한은 외곽 제한으로 취급하지 않으며, 명시한 큰 `LIMIT`이나 `LIMIT ALL`도 다시 쓰지 않는다. 명시한 한도가 수집 예산을 넘으면 실행 중 실패한다. MSSQL은 필요한 `TOP (n)`/`OFFSET..FETCH`를 쿼리에 직접 넣는다.
+- `maxInboundBytes`는 디코딩 예산과 별개다. PostgreSQL/MySQL은 연결 획득 후 현재 스트림의 `data` 전달을, MSSQL은 트랜잭션 시작 후 복호화된 TDS 입력 스트림의 `write`를 검사한다. 누적 한도를 넘기는 청크 전체와 그 이후의 청크는 논리 패킷·셀 파서로 전달하지 않고 연결을 종료한다. PostgreSQL/MySQL의 설정 응답과 각 드라이버의 롤백 응답도 설치된 게이트의 예산에 포함된다. 인증·연결 협상 및 게이트 설치 전 MSSQL 트랜잭션 시작 응답은 제외된다.
+- **이 한도는 파서에 허용한 입력 바이트의 상한이며, 프로세스 RSS·OS 수신량·TLS 내부 버퍼의 절대 상한은 아니다.** 검사를 받는 현재 청크는 이미 OS/TLS/Node에서 할당되었고, 허용한 입력을 디코딩하면서 추가 메모리를 사용할 수 있다. `maxCellChars`도 출력 제한이다. 큰 열을 제외하거나 길이를 제한한 읽기 전용 뷰를 사용하고 실행 프로세스의 메모리 한도를 별도로 설정한다.
+- 수신 게이트의 내부 API는 `pg 8.23.0` + `pg-protocol 1.16.0`, `mysql2 3.24.3`, `mssql 12.7.0` + `tedious 20.0.0`에서 검증했다. 버전이나 스트림 구조가 다르면 `NLSQL_DRIVER_UNSUPPORTED`로 사용자 SQL 실행 전에 거부한다. 의존성 업그레이드 시 분할 패킷 회귀 검증과 호환 버전 표를 함께 갱신해야 한다. MySQL 압축은 URI 설정을 포함해 비활성화하고 실제 세션 설정도 검사한다.
+- MSSQL은 쿼리별 전용 풀을 닫아 롤백에 실패한 세션의 재사용을 막는다. 동시 실행은 최대 4개이며 초과 요청을 대기열 없이 거부한다. 연결 재사용이 없어 연결 지연이 늘어난다. 요청 종료와 정리에는 타임아웃이 있으며, FOR JSON/XML의 특수 청크 결과는 드라이버 내부 버퍼링을 피하도록 메타데이터 단계에서 거부한다.
+- 성공한 요청과 롤백이 끝난 연결만 수신 메서드를 원래 속성 상태로 복원한다. 실패하거나 중단된 연결은 복원·재사용하지 않는다. MSSQL의 `__proto__`/`constructor` 결과 별칭과 예상 밖 객체 프로토타입은 예산 우회 가능성 때문에 거부한다.
+- pg/mysql의 설정·실행·롤백에도 `statementTimeoutMs`를 클라이언트 종료 기한으로 적용하여 서버 응답이 끊겨도 연결을 폐기한다. MSSQL은 취소 후 최대 5초의 종료 유예와 최대 5초의 정리 기한을 두며, 연결 종료를 확인할 수 없으면 드라이버를 재시작하기 전까지 새 요청을 거부한다.
+- MySQL의 `MAX_EXECUTION_TIME` 설정에 실패하면 쿼리를 실행하지 않는다. 이 설정을 지원하지 않는 MariaDB 등과는 호환되지 않을 수 있다.
 - `explain_select` 는 pg/mysql만. SQL Server는 미지원(SSMS/`SET SHOWPLAN_XML` 사용).
-- fake 드라이버 단위 테스트로 가드·allowlist·인트로스펙션·오류 비노출을 검증한다. **실제 3개 엔진 연결 통합 테스트는 사용자 환경의 DB에서 수행**해야 한다.
+- 오프라인 테스트는 실제 라이브러리의 행 수집·분할 패킷·TDS/PLP 파서와 합성 전송 계층으로 실행한다. 실제 엔진 통합 검증은 실행별로 소유한 일회용 DB와 읽기 전용 계정에 한정한다. 공용·운영 DB에서 부하나 초과 응답을 재현하지 않는다.
 - NL→SQL 작성·실행·표시 워크플로는 `nl-sql-query` 스킬을 함께 쓴다. 정적 스키마 문서(ERD/명세)는 `schema-cartographer` 에이전트 + `schema-doc-extract` 스킬.

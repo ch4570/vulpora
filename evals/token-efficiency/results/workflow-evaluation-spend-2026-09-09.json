@@ -1,0 +1,344 @@
+{
+  "schema": "vulpora.workflow-evaluation-spend/v1",
+  "createdAt": "2026-09-09T08:28:48.834Z",
+  "scope": "All recorded runtime attempts from the startup-failed and configured pilot cohorts; not total development investment.",
+  "sources": [
+    {
+      "path": "workflow-pilot-2026-09-09.json",
+      "sha256": "d3aea974118561633b776297de8d4ec3d382924da8e579c351c883b8be126b92",
+      "plannedRuns": 9,
+      "startedRuns": 1,
+      "stopReason": "USAGE_UNAVAILABLE",
+      "complete": false,
+      "comparable": false
+    },
+    {
+      "path": "workflow-pilot-configured-2026-09-09.json",
+      "sha256": "344c51ec0f620aafd288ff994d2f50d0d453586e5f4c73631f96b5f75076a758",
+      "plannedRuns": 9,
+      "startedRuns": 3,
+      "stopReason": "AGGREGATE_TOKEN_GUARD",
+      "complete": false,
+      "comparable": false
+    }
+  ],
+  "input": {
+    "expectedInvocationIds": [
+      "startup/run-1-attempt-1",
+      "configured/run-1-attempt-1",
+      "configured/run-2-attempt-1",
+      "configured/run-3-attempt-1"
+    ],
+    "records": [
+      {
+        "invocationId": "startup/run-1-attempt-1",
+        "parentInvocationId": null,
+        "purpose": "primary",
+        "model": "gpt-5.6-terra",
+        "usage": {
+          "schema_version": 1,
+          "runtime": "codex",
+          "measurement_kind": "unknown",
+          "usage_status": "unknown",
+          "fallback_reason": "missing_final_usage",
+          "usage_scope": "unknown",
+          "source_event": null,
+          "aggregation": "none",
+          "input_tokens": null,
+          "uncached_input_tokens": null,
+          "cached_input_tokens": null,
+          "cache_creation_input_tokens": null,
+          "output_tokens": null,
+          "reasoning_tokens": null,
+          "reasoning_semantics": "unknown",
+          "input_output_tokens": null,
+          "billing_amount": null
+        }
+      },
+      {
+        "invocationId": "configured/run-1-attempt-1",
+        "parentInvocationId": null,
+        "purpose": "primary",
+        "model": "gpt-5.6-terra",
+        "usage": {
+          "schema_version": 1,
+          "runtime": "codex",
+          "measurement_kind": "provider_observed",
+          "usage_status": "observed",
+          "fallback_reason": null,
+          "usage_scope": "single_turn",
+          "source_event": "turn.completed.usage",
+          "aggregation": "single_final_only",
+          "input_tokens": 333962,
+          "uncached_input_tokens": 33930,
+          "cached_input_tokens": 300032,
+          "cache_creation_input_tokens": null,
+          "output_tokens": 3045,
+          "reasoning_tokens": 362,
+          "reasoning_semantics": "provider_reported_not_added",
+          "input_output_tokens": 337007,
+          "billing_amount": null
+        }
+      },
+      {
+        "invocationId": "configured/run-2-attempt-1",
+        "parentInvocationId": null,
+        "purpose": "primary",
+        "model": "gpt-5.6-terra",
+        "usage": {
+          "schema_version": 1,
+          "runtime": "codex",
+          "measurement_kind": "provider_observed",
+          "usage_status": "observed",
+          "fallback_reason": null,
+          "usage_scope": "single_turn",
+          "source_event": "turn.completed.usage",
+          "aggregation": "single_final_only",
+          "input_tokens": 163604,
+          "uncached_input_tokens": 28948,
+          "cached_input_tokens": 134656,
+          "cache_creation_input_tokens": null,
+          "output_tokens": 2322,
+          "reasoning_tokens": 393,
+          "reasoning_semantics": "provider_reported_not_added",
+          "input_output_tokens": 165926,
+          "billing_amount": null
+        }
+      },
+      {
+        "invocationId": "configured/run-3-attempt-1",
+        "parentInvocationId": null,
+        "purpose": "primary",
+        "model": "gpt-5.6-terra",
+        "usage": {
+          "schema_version": 1,
+          "runtime": "codex",
+          "measurement_kind": "provider_observed",
+          "usage_status": "observed",
+          "fallback_reason": null,
+          "usage_scope": "single_turn",
+          "source_event": "turn.completed.usage",
+          "aggregation": "single_final_only",
+          "input_tokens": 140614,
+          "uncached_input_tokens": 29254,
+          "cached_input_tokens": 111360,
+          "cache_creation_input_tokens": null,
+          "output_tokens": 2230,
+          "reasoning_tokens": 258,
+          "reasoning_semantics": "provider_reported_not_added",
+          "input_output_tokens": 142844,
+          "billing_amount": null
+        }
+      }
+    ],
+    "runs": [
+      {
+        "runId": "startup/run-1",
+        "finished": true,
+        "accepted": false,
+        "attempts": [
+          {
+            "accepted": false,
+            "invocationIds": [
+              "startup/run-1-attempt-1"
+            ]
+          }
+        ]
+      },
+      {
+        "runId": "startup/run-2",
+        "finished": false,
+        "accepted": false,
+        "attempts": []
+      },
+      {
+        "runId": "startup/run-3",
+        "finished": false,
+        "accepted": false,
+        "attempts": []
+      },
+      {
+        "runId": "startup/run-4",
+        "finished": false,
+        "accepted": false,
+        "attempts": []
+      },
+      {
+        "runId": "startup/run-5",
+        "finished": false,
+        "accepted": false,
+        "attempts": []
+      },
+      {
+        "runId": "startup/run-6",
+        "finished": false,
+        "accepted": false,
+        "attempts": []
+      },
+      {
+        "runId": "startup/run-7",
+        "finished": false,
+        "accepted": false,
+        "attempts": []
+      },
+      {
+        "runId": "startup/run-8",
+        "finished": false,
+        "accepted": false,
+        "attempts": []
+      },
+      {
+        "runId": "startup/run-9",
+        "finished": false,
+        "accepted": false,
+        "attempts": []
+      },
+      {
+        "runId": "configured/run-1",
+        "finished": true,
+        "accepted": false,
+        "attempts": [
+          {
+            "accepted": false,
+            "invocationIds": [
+              "configured/run-1-attempt-1"
+            ]
+          }
+        ]
+      },
+      {
+        "runId": "configured/run-2",
+        "finished": true,
+        "accepted": false,
+        "attempts": [
+          {
+            "accepted": false,
+            "invocationIds": [
+              "configured/run-2-attempt-1"
+            ]
+          }
+        ]
+      },
+      {
+        "runId": "configured/run-3",
+        "finished": true,
+        "accepted": false,
+        "attempts": [
+          {
+            "accepted": false,
+            "invocationIds": [
+              "configured/run-3-attempt-1"
+            ]
+          }
+        ]
+      },
+      {
+        "runId": "configured/run-4",
+        "finished": false,
+        "accepted": false,
+        "attempts": []
+      },
+      {
+        "runId": "configured/run-5",
+        "finished": false,
+        "accepted": false,
+        "attempts": []
+      },
+      {
+        "runId": "configured/run-6",
+        "finished": false,
+        "accepted": false,
+        "attempts": []
+      },
+      {
+        "runId": "configured/run-7",
+        "finished": false,
+        "accepted": false,
+        "attempts": []
+      },
+      {
+        "runId": "configured/run-8",
+        "finished": false,
+        "accepted": false,
+        "attempts": []
+      },
+      {
+        "runId": "configured/run-9",
+        "finished": false,
+        "accepted": false,
+        "attempts": []
+      }
+    ]
+  },
+  "measurement": {
+    "expectedInvocations": 4,
+    "observedInvocations": 4,
+    "duplicateSnapshots": 0,
+    "selectedInvocationIds": [
+      "configured/run-1-attempt-1",
+      "configured/run-2-attempt-1",
+      "configured/run-3-attempt-1"
+    ],
+    "unknownInvocationIds": [],
+    "unknownUsageIds": [
+      "startup/run-1-attempt-1"
+    ],
+    "unknownPricingIds": [],
+    "errors": [],
+    "perPurpose": {
+      "primary": {
+        "invocations": 4,
+        "unknownUsage": 1,
+        "selectedAccountingRecords": 3,
+        "accountedSubtotalTokens": 645777,
+        "inclusiveAccountingRecords": 0
+      }
+    },
+    "completeUsage": false,
+    "completePricing": false,
+    "complete": false,
+    "observedSubtotalTokens": 645777,
+    "totalTokens": null,
+    "billingAttested": false,
+    "standard": {
+      "observedSubtotalUsd": {
+        "minUsd": 0.3846375999999999,
+        "maxUsd": 0.43070359999999996
+      },
+      "totalUsd": null,
+      "costPerAcceptedTaskUsd": null
+    },
+    "fast": {
+      "observedSubtotalUsd": {
+        "minUsd": 0.7692751999999998,
+        "maxUsd": 0.8614071999999999
+      },
+      "totalUsd": null,
+      "costPerAcceptedTaskUsd": null
+    },
+    "runErrors": [],
+    "taskRuns": 4,
+    "unstartedRuns": 14,
+    "unfinishedRuns": 0,
+    "attemptCount": 4,
+    "repairAttempts": 0,
+    "firstPassAcceptedTasks": 0,
+    "acceptedTasks": 0,
+    "firstPassAcceptanceRate": 0,
+    "acceptanceRate": 0,
+    "tokensPerAcceptedTask": null
+  },
+  "excludedUnmeasured": {
+    "supervisingAndReviewModelUsage": null,
+    "engineeringCost": null,
+    "preparationAndInstallationLatency": null,
+    "actualBilling": null
+  },
+  "assessment": {
+    "totalEvaluationTokens": "unknown_due_to_original_startup_attempt",
+    "totalEvaluationCost": "unknown",
+    "totalInvestmentPayback": "unknown",
+    "globalDefaultChange": false,
+    "note": "Known configured-cohort subtotals are not the total cost of both cohorts. Per-accepted-task values remain undefined with zero accepted tasks."
+  }
+}

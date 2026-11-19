@@ -46,6 +46,30 @@ whitespace, it is exactly one of:
 Every catalog target exists in the inventory generated from the same source fingerprint. Each inventory
 `required_behaviors` token has at least one scenario on that exact target whose ID ends in `-<BEHAVIOR>`.
 
+`Expected` starts with the expected HTTP status (or the async outcome) and may add `;`-separated clauses. Free-text
+clauses are human guidance. A clause starting with `assert` is machine-checked and must match exactly:
+
+```text
+assert <json-path> <operator> [<literal>]
+```
+
+- json-path: `$` followed by `.name`, `[index]`, or `[*]` segments; `[*]` projects an array, for example
+  `$.refreshTargets[*].site`
+- operator with a literal: `==`, `!=`, `contains`, `excludes` (array membership or substring)
+- operator without a literal: `exists`, `absent`, `non-empty`
+- literal: a double-quoted string without `"` or `\`, a number, `true`, `false`, `null`, an array of those
+  (`["SITE-A","ALL"]`), `{{prev.TOKEN}}`, or `{{seed.TOKEN}}`
+
+A malformed `assert` clause fails validation; it is never downgraded to free text. Use assertions for the business
+rule a happy-path scenario proves, such as `assert $.refreshTargets excludes "OTHER-BRAND"`, so the scenario cannot
+pass on status code alone. Inline-code wrappers never hide the status: `` `204` `` and `204` are the same expectation.
+
+`Notes` starting with `hold: <reason>` marks a scenario the author could not prove correct. It still occupies its
+coverage slot, but runners never execute it and report it as unselected with that reason.
+
+`{{prev.TOKEN}}` in a primary fence, `Dataset`, or `Expected` must be captured by an ancestor in the `Depends-on`
+chain; a teardown fence may also read the scenario's own captures.
+
 Each scenario has exactly one primary executable fence with info string `http`, `sql`, or `shell`. A scenario whose
 `Mutates` value is not `—` also has exactly one following `shell` teardown fence. The first non-blank teardown line
 is `# teardown`. A read-only scenario must not have a teardown fence. The runner executes teardown with finally
@@ -96,6 +120,16 @@ Each result requires `id`, `status`, `target`, `dataset`, `dependsOn`, `actual`,
 - `SKIPPED` / `FAILED-DEPENDENCY`: `actual`, `latencyMs`, and raw-body path are `null`.
 - `PROBE-ERROR`: probe failure is explicit and never counted as an unmet precondition.
 
+Every executed result records `assertions[]`: one `{kind, expected, actual, passed}` entry per comparison, including
+the status (`kind: "status"`) whenever `Expected` names one. A `PASS` with no comparison, a failed comparison, or a
+status comparison whose expected and actual differ is not proof; the verdict evaluator reports it `INCONCLUSIVE`.
+Repository-suite tests whose assertions live in framework code declare `assertionSource: "framework"` instead.
+`generatedAt` and `wallTimeMs` are optional; consumers fall back to `finishedAt` and `finishedAt - startedAt`.
+
+The result also carries the RUN-16.7 verdict input (`selection`, `execution`, `testCases`, `lifecycle`) and
+`notSelected`: every catalog scenario outside the run, grouped by reason. Without a project override, `HAPPY`,
+`CONSUME`, `PUBLISH`, and `DLQ` scenarios are `P0`; every other behavior is `P1`.
+
 ## 6. Mutation and teardown
 
 `Mutates` is `—` or a comma-separated list matching `^[a-z][a-z0-9_.-]*$`. Every state-changing HTTP request,
@@ -126,7 +160,40 @@ The author generates an ephemeral canonical JSON inventory with schema
 fingerprinted input paths, source fingerprint, and every discovered surface's stable key, exact target, source
 location, and required behavior floor. The inventory is validation input, not a fourth project artifact.
 
+Spring HTTP surfaces may carry `request`: their path/query/header parameters (name, location, required, constraints)
+and enum constants of request-body fields. With a bound inventory the validator rejects a `HAPPY` request missing a
+required query parameter (`SCA-19.MISSING-PARAM`), an unfilled `{path}` variable (`SCA-19.UNFILLED-PATH`), a
+path-variable constraint violated through a query parameter (`SCA-19.CONSTRAINT-LOCATION`), and a body enum value
+outside the source constants (`SCA-19.BAD-ENUM`).
+
 The catalog header fingerprint must equal `source_fingerprint`. Validation fails for duplicate surfaces or targets,
 catalog targets absent from the inventory, or missing required behavior coverage. A runner regenerates the same
 inventory read-only. When its fingerprint matches the catalog, inventory-bound validation is mandatory before any
 scenario executes; a mismatch follows the runner's explicit stale-catalog decision path.
+
+## 9. Human-owned companions
+
+The catalog is regenerated; these reviewed files next to it are never written by the author and survive regeneration.
+
+`docs/e2e-scenarios/known-deviations.json` records accepted gaps so runs proceed without asking again:
+
+```json
+{"schema": "vulpora.e2e-known-deviations/v1", "deviations": [
+  {"kind": "discovery-exclusion", "path": "<discovered source file>", "reason": "...", "approvedBy": "...", "expires": "YYYY-MM-DD"},
+  {"kind": "scenario-exclusion", "scenario": "E2E-...", "reason": "...", "approvedBy": "...", "expires": "YYYY-MM-DD"}]}
+```
+
+Every entry needs a reason, an approver, and an expiry date; an expired, unknown, or incomplete entry fails with
+`SCA-5.3`. A discovery exclusion keeps the file fingerprinted, skips its surfaces, joins the fingerprint itself, and
+appears in the inventory as `excluded_sources`. A scenario exclusion does not affect the fingerprint; runners leave
+that scenario (and its dependents) unselected with the recorded reason. Reports list every deviation.
+
+`docs/e2e-scenarios/scenario-overrides.json` adds human business-rule assertions and priorities per scenario ID:
+
+```json
+{"schema": "vulpora.e2e-scenario-overrides/v1", "scenarios": {
+  "E2E-...-HAPPY": {"priority": "P0", "assertions": ["assert $.refreshTargets[*].site == [\"SITE-A\",\"ALL\"]"]}}}
+```
+
+Runners append these clauses to `Expected`. An override for an ID that no longer exists fails validation with
+`SCA-15.ORPHAN-OVERRIDE`, so regeneration never drops an assertion silently.

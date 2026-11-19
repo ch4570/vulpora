@@ -589,28 +589,13 @@ rmdir "$TARGET/.vulpora/receipts/v1/snapshots" 2>/dev/null || true
 rmdir "$TARGET/.vulpora/receipts/v1" 2>/dev/null || true
 rmdir "$TARGET/.vulpora/receipts" 2>/dev/null || true
 
-# Once no runtime receipt remains, every file below .vulpora is installer
-# metadata. Remove stale metadata left by older releases, but never extend this
-# cleanup to shared runtime roots such as .claude, .codex, or .agents.
-remaining_receipt=0
-for candidate_receipt in "$TARGET/.vulpora/receipts/v1/"*.tsv; do
-  [ -e "$candidate_receipt" ] || continue
-  remaining_receipt=1
-  break
-done
-if [ "$remaining_receipt" = 0 ] && [ -e "$TARGET/.vulpora" ]; then
-  if [ -L "$TARGET/.vulpora" ] || [ ! -d "$TARGET/.vulpora" ] \
-    || receipt_tree_has_symlink "$TARGET/.vulpora"; then
-    partial=1
-    printf '%s\n' 'preserved_unsafe_state: .vulpora metadata 경로를 안전하게 삭제할 수 없습니다.' >&2
-  elif ! rm -rf -- "$TARGET/.vulpora"; then
-    partial=1
-    printf '%s\n' 'preserved_cleanup_failure: .vulpora metadata 제거에 실패했습니다.' >&2
-  fi
-fi
+# .vulpora also contains approved task specifications, execution evidence, and
+# user settings. Only receipt-owned paths above authorize deletion; leave all
+# other data intact, and remove the shared state directory only when empty.
+rmdir "$TARGET/.vulpora" 2>/dev/null || true
 
 if [ "$partial" = 1 ]; then
-  printf '%s\n' 'partial_uninstall: 수정되었거나 안전하게 판정할 수 없는 경로를 보존했습니다.' >&2
+  printf '%s\n' 'partial_uninstall: 일부 경로 제거를 완료하지 못했습니다. 위 경고와 복구 경로를 확인하세요.' >&2
   exit 3
 fi
 printf 'uninstall_complete: %s\n' "$RUNTIME"

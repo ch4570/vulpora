@@ -83,8 +83,9 @@ if [ "$rc" -eq 0 ] && printf '%s\n' "$output" | grep -Fq 'uninstall_complete: co
   && [ -d "$FRESH/.codex/agents" ] \
   && grep -Fq 'company agent' "$FRESH/.codex/agents/company-agent.toml" \
   && grep -Fq 'company skill' "$FRESH/.agents/skills/company-skill/SKILL.md" \
-  && [ ! -e "$FRESH/.vulpora" ]; then result=0; fi
-record 'catalog uninstall removes Vulpora state but preserves runtime folders and foreign assets' "$result"
+  && [ ! -e "$FRESH/.vulpora/receipts" ] \
+  && grep -Fq 'stale metadata' "$FRESH/.vulpora/retired-state"; then result=0; fi
+record 'catalog uninstall removes receipts but preserves runtime folders, foreign assets, and unowned state' "$result"
 
 output="$(uninstall_target "$FRESH" codex 2>&1)"; rc=$?
 result=1

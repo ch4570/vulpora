@@ -19,9 +19,11 @@
   "_4_allowedSchemas": "필수 조회 허용 스키마 목록(이 안에서만 조회). pg=[\"public\"], mysql=[\"<DB명>\"], mssql=[\"dbo\"]. 비우면 안전을 위해 서버가 시작되지 않음",
   "allowedSchemas": ["public"],
 
-  "_5_limits": "maxRows=응답 최대 행 수, statementTimeoutMs=쿼리 제한시간(ms), maxCellChars=셀 출력 최대 글자. 생략하면 기본값(100/5000/2000)",
+  "_5_limits": "maxRows=수집 최대 행 수, maxResultBytes=수집 결과 바이트 예산, maxInboundBytes=파서에 전달할 수신 바이트 한도, statementTimeoutMs=쿼리 제한시간(ms), maxCellChars=셀 출력 최대 글자. 기본값(100/1048576/4194304/5000/2000)",
   "limits": {
     "maxRows": 100,
+    "maxResultBytes": 1048576,
+    "maxInboundBytes": 4194304,
     "statementTimeoutMs": 5000,
     "maxCellChars": 2000
   }

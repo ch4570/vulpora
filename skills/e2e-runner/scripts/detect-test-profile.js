@@ -289,6 +289,9 @@ process.stdout.write(`${JSON.stringify({
   },
   infrastructure: {
     dockerCli,
+    // Apply to every Testcontainers process, including a repository catalog harness:
+    // Rancher Desktop/Colima contexts expose a non-default socket the JVM client cannot find alone.
+    dockerEnvironment: localDockerEnvironment,
     testcontainersRuntime: { status: 'unverified' },
     compose: composeServices,
     repositorySuiteCandidates: suiteCandidates,

@@ -315,6 +315,47 @@ function updateDocument(existing, block) {
   return `${prefix}${separator}${block}\n`;
 }
 
+function sameRegularFile(left, right) {
+  return Boolean(left && right && left.isFile() && right.isFile() && left.dev === right.dev && left.ino === right.ino);
+}
+
+function documentChanged() {
+  return new Error('AGENTS.md changed while generating routing guidance; refusing to overwrite it');
+}
+
+function readDocumentSnapshot(filename) {
+  const stat = fs.lstatSync(filename, { throwIfNoEntry: false });
+  if (!stat) return { stat, bytes: Buffer.alloc(0) };
+  if (stat.isSymbolicLink()) throw new Error('refusing symlinked AGENTS.md');
+  if (!stat.isFile()) throw new Error('refusing non-regular AGENTS.md');
+  // Where available, do not follow a substituted symlink or block on a FIFO
+  // swapped in between lstat and open. Recheck the opened file's identity too.
+  const flags = fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW || 0) | (fs.constants.O_NONBLOCK || 0);
+  const descriptor = fs.openSync(filename, flags);
+  try {
+    if (!sameRegularFile(stat, fs.fstatSync(descriptor))) throw documentChanged();
+    const bytes = fs.readFileSync(descriptor);
+    const after = fs.lstatSync(filename, { throwIfNoEntry: false });
+    if (!sameRegularFile(stat, after) || stat.mode !== after.mode) throw documentChanged();
+    return { stat, bytes };
+  } finally {
+    fs.closeSync(descriptor);
+  }
+}
+
+function assertDocumentUnchanged(filename, snapshot) {
+  let current;
+  try {
+    current = readDocumentSnapshot(filename);
+  } catch {
+    throw documentChanged();
+  }
+  const sameIdentity = snapshot.stat
+    ? sameRegularFile(snapshot.stat, current.stat) && snapshot.stat.mode === current.stat.mode
+    : !current.stat;
+  if (!sameIdentity || !snapshot.bytes.equals(current.bytes)) throw documentChanged();
+}
+
 function main() {
   const { target, mode } = parseArgs(process.argv.slice(2));
   let root;
@@ -326,8 +367,8 @@ function main() {
   if (!fs.statSync(root).isDirectory()) fail(`target is not a directory: ${target}`);
 
   const agentsPath = path.join(root, 'AGENTS.md');
-  if (fs.lstatSync(agentsPath, { throwIfNoEntry: false })?.isSymbolicLink()) fail('refusing symlinked AGENTS.md');
-  const existing = fs.existsSync(agentsPath) ? fs.readFileSync(agentsPath, 'utf8') : '';
+  const snapshot = readDocumentSnapshot(agentsPath);
+  const existing = snapshot.bytes.toString('utf8');
   const config = loadProjectConfig(root);
   const evidence = inspect(root);
   const block = renderBlock(evidence, config);
@@ -338,6 +379,7 @@ function main() {
     return;
   }
   if (mode === 'check') {
+    assertDocumentUnchanged(agentsPath, snapshot);
     if (existing !== updated) {
       process.stderr.write('routing_guidance_stale: AGENTS.md\n');
       process.exit(1);
@@ -346,21 +388,51 @@ function main() {
     return;
   }
   if (existing === updated) {
+    assertDocumentUnchanged(agentsPath, snapshot);
     process.stdout.write('routing_guidance_unchanged: AGENTS.md\n');
     return;
   }
 
   const temporary = `${agentsPath}.vulpora-${process.pid}.tmp`;
-  const fileMode = fs.existsSync(agentsPath) ? fs.statSync(agentsPath).mode & 0o777 : 0o644;
+  const fileMode = snapshot.stat ? snapshot.stat.mode & 0o777 : 0o644;
+  // A successful exclusive open, not a completed write, establishes ownership.
+  // An existing file or dangling symlink must never enter our cleanup path.
+  const descriptor = fs.openSync(temporary, 'wx', fileMode);
+  let descriptorOpen = true;
+  let owned = true;
+  let temporaryStat;
   try {
-    fs.writeFileSync(temporary, updated, { encoding: 'utf8', flag: 'wx', mode: fileMode });
+    temporaryStat = fs.fstatSync(descriptor);
+    fs.writeFileSync(descriptor, updated, { encoding: 'utf8' });
+    fs.closeSync(descriptor);
+    descriptorOpen = false;
+    if (!sameRegularFile(temporaryStat, fs.lstatSync(temporary, { throwIfNoEntry: false }))) {
+      throw new Error('routing guidance temporary file changed before publication');
+    }
+    // Portable Node has no compare-and-swap rename: this rejects observed drift,
+    // but cannot exclude another writer racing the final recheck -> rename gap.
+    // Throw here (never fail/process.exit) so the owned temporary is cleaned up.
+    assertDocumentUnchanged(agentsPath, snapshot);
     fs.renameSync(temporary, agentsPath);
+    owned = false;
   } finally {
-    if (fs.existsSync(temporary)) fs.unlinkSync(temporary);
+    try {
+      if (descriptorOpen) fs.closeSync(descriptor);
+    } finally {
+      // If identity cannot be confirmed, leave a possibly replaced path alone.
+      if (owned && sameRegularFile(temporaryStat, fs.lstatSync(temporary, { throwIfNoEntry: false }))) {
+        fs.unlinkSync(temporary);
+      }
+    }
   }
   const detected = ['java', 'kotlin', 'spring'].filter(name => evidence.modules.some(module => module[name].length > 0));
   detected.push(...['postgres', 'mssql', 'opensearch'].filter(name => evidence[name].length > 0));
   process.stdout.write(`routing_guidance_updated: AGENTS.md\ndetected_profiles: ${detected.join(',') || 'none'}\nproject_config: ${fs.existsSync(path.join(root, CONFIG_FILE)) ? CONFIG_FILE : 'defaults'}\n`);
 }
 
-main();
+try {
+  main();
+} catch (error) {
+  process.stderr.write(`vulpora-init: ${error.message}\n`);
+  process.exitCode = 2;
+}

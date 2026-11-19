@@ -30,6 +30,10 @@ export interface AppConfig {
   readonly sslMode: string;
   /** 단일 응답 하드 캡(행). */
   readonly maxRows: number;
+  /** 드라이버가 보관할 결과의 논리적 바이트 예산. 디코더의 셀 할당은 별도. */
+  readonly maxResultBytes: number;
+  /** 사용자 쿼리 파서에 전달할 수신 청크 바이트 한도. */
+  readonly maxInboundBytes: number;
   /** 쿼리당 statement timeout(ms). */
   readonly statementTimeoutMs: number;
   /** 조회 허용 스키마. 공개 안전 기본값을 위해 반드시 하나 이상 필요하다. */
@@ -52,6 +56,8 @@ interface FileConfig {
   allowedSchemas?: string[];
   limits?: {
     maxRows?: number;
+    maxResultBytes?: number;
+    maxInboundBytes?: number;
     statementTimeoutMs?: number;
     maxCellChars?: number;
   };
@@ -197,6 +203,8 @@ export function loadConfig(): AppConfig {
     ssl: resolveSsl(file.ssl),
     sslMode: resolveSslMode(file.ssl),
     maxRows: int('NLSQL_MAX_ROWS', limits.maxRows, 100, 1, 10_000),
+    maxResultBytes: int('NLSQL_MAX_RESULT_BYTES', limits.maxResultBytes, 1_048_576, 1024, 67_108_864),
+    maxInboundBytes: int('NLSQL_MAX_INBOUND_BYTES', limits.maxInboundBytes, 4_194_304, 1024, 33_554_432),
     statementTimeoutMs: int('NLSQL_STATEMENT_TIMEOUT_MS', limits.statementTimeoutMs, 5_000, 100, 120_000),
     allowedSchemas,
     maxCellChars: int('NLSQL_MAX_CELL_CHARS', limits.maxCellChars, 2_000, 16, 1_000_000),

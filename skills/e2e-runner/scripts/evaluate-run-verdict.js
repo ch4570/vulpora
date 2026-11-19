@@ -79,6 +79,15 @@ for (const testCase of run.testCases) {
     failInput(`executed case requires PASS or FAIL status: ${testCase.id}`);
   }
   if (!testCase.selected && hasStatus) failInput(`unselected case must not have status: ${testCase.id}`);
+  // An unselected case is coverage the run did not exercise; its reason must travel with the result.
+  if (!testCase.selected) requireNonEmptyString(testCase.unselectedReason, `unselectedReason for ${testCase.id}`);
+  if (testCase.assertions !== undefined && (!Array.isArray(testCase.assertions)
+    || testCase.assertions.some((assertion) => !isObject(assertion) || typeof assertion.passed !== 'boolean'))) {
+    failInput(`assertions must be an array of objects with boolean passed: ${testCase.id}`);
+  }
+  if (testCase.assertionSource !== undefined && testCase.assertionSource !== 'framework') {
+    failInput(`assertionSource must be framework when present: ${testCase.id}`);
+  }
   if (testCase.selected && !testCase.executed && !['SKIPPED', 'FAILED-DEPENDENCY', 'PROBE-ERROR'].includes(testCase.status)) {
     failInput(`selected unexecuted case requires SKIPPED, FAILED-DEPENDENCY, or PROBE-ERROR status: ${testCase.id}`);
   }
@@ -137,6 +146,19 @@ for (const testCase of selectedCases) {
   }
 }
 
+// A PASS is proof only when it records what it compared. Repository-suite tests keep
+// their assertions inside framework code and declare `assertionSource: "framework"`.
+for (const testCase of executedCases.filter((candidate) => candidate.status === 'PASS')) {
+  if (testCase.assertionSource === 'framework') continue;
+  const assertions = testCase.assertions || [];
+  if (assertions.length === 0) {
+    inconclusiveReasons.push({ code: 'NO_ASSERTION', caseId: testCase.id });
+  } else if (assertions.some((assertion) => !assertion.passed
+    || (assertion.kind === 'status' && String(assertion.expected) !== String(assertion.actual)))) {
+    inconclusiveReasons.push({ code: 'PASS_CONTRADICTS_ASSERTION', caseId: testCase.id });
+  }
+}
+
 for (const exclusion of run.execution.slowTestExclusions) {
   partialReasons.push({ code: 'SLOW_TEST_EXCLUSION', caseId: exclusion.id });
 }
@@ -183,6 +205,12 @@ const diagnosticP0Bypass = diagnosticOnly
   && inconclusiveReasons.length > 0
   && inconclusiveReasons.every((reason) => reason.code === 'SELECTED_P0_NOT_PASS');
 
+const notSelected = new Map();
+for (const testCase of run.testCases.filter((candidate) => !candidate.selected)) {
+  const reason = testCase.unselectedReason.trim();
+  notSelected.set(reason, [...(notSelected.get(reason) || []), testCase.id]);
+}
+
 const output = {
   verdict,
   exit_code: diagnosticP0Bypass ? 0 : exitCode,
@@ -192,7 +220,22 @@ const output = {
     collected: run.selection.collectedCount,
     selected: selectedCases.length,
     executed: executedCases.length,
+    unselected: run.testCases.length - selectedCases.length,
   },
+  assertions: {
+    checked: executedCases.reduce((total, testCase) => total + (testCase.assertions || []).length, 0),
+    executedCases: executedCases.length,
+    frameworkCases: executedCases.filter((testCase) => testCase.assertionSource === 'framework').length,
+  },
+  // The four lines a person needs: passed, failed, excluded, and not verified.
+  humanSummary: [
+    `passed: ${executedCases.filter((testCase) => testCase.status === 'PASS').length}`,
+    `failed: ${executedCases.filter((testCase) => testCase.status === 'FAIL').length}`,
+    `excluded: ${run.testCases.length - selectedCases.length}`,
+    `not verified: ${selectedCases.length - executedCases.length} unexecuted, ${inconclusiveReasons.filter((reason) => ['NO_ASSERTION', 'PASS_CONTRADICTS_ASSERTION'].includes(reason.code)).length} PASS without proof`,
+  ],
+  notSelected: [...notSelected].sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+    .map(([reason, caseIds]) => ({ reason, count: caseIds.length, caseIds })),
   reasons,
 };
 
