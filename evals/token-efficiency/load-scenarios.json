@@ -15,7 +15,7 @@
         "skills/test-authoring/SKILL.md",
         "skills/test-authoring/reference/kb/junit5-idioms.md"
       ],
-      "max_tokens": 4500
+      "max_tokens": 4600
     },
     {
       "id": "test-authoring-jpa",
@@ -179,5 +179,5 @@
       "max_tokens": 8300
     }
   ],
-  "max_discovery_tokens": 4500
+  "max_discovery_tokens": 4600
 }

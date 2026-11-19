@@ -1,6 +1,6 @@
 ---
 name: grafana-monitoring-report
-description: Produce a severity-ranked Grafana monitoring report for one saved or supplied scope by delegating read-only collection to the grafana-monitor subagent through a connected Grafana MCP server, then diff it against the previous report. Use for periodic or on-demand alert, signal, and datasource health checks; exclude Grafana writes, incident response, and token handling.
+description: Report Grafana alert, signal, and datasource health for a saved scope via the read-only grafana-monitor subagent and Grafana MCP. Use for periodic monitoring reports; not for Grafana writes.
 ---
 
 # Grafana Monitoring Report
