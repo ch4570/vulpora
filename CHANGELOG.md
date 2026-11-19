@@ -4,6 +4,14 @@ Vulpora의 사용자 관점 변경 사항을 기록합니다.
 
 ## [Unreleased]
 
+- `grafana-monitoring-report` 스킬과 읽기 전용 `grafana-monitor` 에이전트를 추가했습니다. 저장된 scope
+  (`.vulpora/grafana-monitor.json`)나 인자로 받은 범위를 Grafana MCP(`vulpora-grafana`)로 수집하고,
+  Critical/Warning/Info 순 보고서, 이전 보고서 대비 변화, 데이터 공백, 다음 확인 항목을 만듭니다.
+  Claude Code에서는 `mcp-grafana` read tool만 허용한 서브에이전트가 수집하고, 근거 없이 "이상 없음"을
+  보고하지 않습니다. 주기 실행은 `/loop`, Desktop·cloud 예약 작업, headless cron 안내를 따릅니다.
+- Grafana MCP는 사용자 URL과 service account token이 필요한 local stdio server라 MCP pack에 넣지 않았습니다.
+  `--disable-write`와 Viewer 권한 token을 쓰는 수동 등록 절차를 스킬 KB에 기록했습니다.
+- 설치 inventory가 에이전트 30개, 스킬 67개로 늘었습니다.
 - `e2e-scenario-author`의 Spring 요청 DTO 검증 수집을 고쳤습니다. `List<@Valid @NotNull Item>`처럼
   타입 인자 안에 있는 원소 검증 애노테이션 때문에 record 전체를 `SCA-5.2`로 거부하던 문제와, 그
   애노테이션이 다음 컴포넌트의 제약으로 붙던 문제입니다. `@NotNull @Size(...)`처럼 연속된 제약도 이제

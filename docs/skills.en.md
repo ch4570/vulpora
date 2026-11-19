@@ -2,7 +2,7 @@
 
 [한국어](skills.ko.md) · English · [README](../README.md)
 
-This handbook covers the purpose and invocation of all **66 skills** in the installation manifest.
+This handbook covers the purpose and invocation of all **67 skills** in the installation manifest.
 One entry, `codex-agent-runtime`, is a disabled compatibility contract. Each skill name links to its
 actual `SKILL.md`, which defines the inputs, procedure, and expected output.
 
@@ -219,6 +219,12 @@ live query results through `nl-sql-query` requires the separate MCP setup below.
 | [git-flow](../skills/git-flow/SKILL.md) | Prepare a work branch or commit, push, and create a GitLab merge request | `$git-flow "Review and commit this feature change, then open a GitLab MR targeting develop"` |
 | [notion-domain-context](../skills/notion-domain-context/SKILL.md) | Search a connected private Notion workspace for cited read-only evidence | `$notion-domain-context "Find Notion evidence for order cancellation policy and the owning team"` |
 
+### Observability · 1
+
+| Skill | Purpose | Chat invocation example |
+|---|---|---|
+| [grafana-monitoring-report](../skills/grafana-monitoring-report/SKILL.md) | Query Grafana MCP read-only, rank findings by severity, and diff against the previous report | `/grafana-monitoring-report --scope-file .vulpora/grafana-monitor.json --out reports/grafana/` |
+
 ## Skills that need external tools
 
 The installer copies skills and their declared asset dependencies. Database accounts, MCP
@@ -229,6 +235,7 @@ authentication, Docker, browsers, and model-provider authentication require sepa
 | Specialist review workflows and delegated `start-task` work | Agents discovered by the actual runtime and an available explicit model/effort route | Installation or route resolution alone does not execute work. Missing mandatory execution yields `INCOMPLETE`/`BLOCKED`. |
 | `nl-sql-query` | Build and register the separate `nl-sql` MCP; use a read-only DB account and non-empty schema allowlist | One server instance selects one PostgreSQL/MySQL/SQL Server dialect. SQL Server does not support `explain_select`. |
 | `notion-domain-context` | Notion MCP configuration, OAuth, and allowed search/fetch tools; Claude Code also needs `notion-domain-researcher` | Configuration, approval, authentication, and successful live research are separate states. |
+| `grafana-monitoring-report` | A user-registered `vulpora-grafana` MCP (`mcp-grafana --disable-write` with a Viewer service account); Claude Code also needs `grafana-monitor` | A missing MCP, failed authentication, or partial collection is never reported as healthy. Setup steps are in the skill's `setup-and-onboarding` KB. |
 | `e2e-scenario-author`, `e2e-runner` | A supported Spring Boot/JVM or NestJS repository; execution also needs Docker, Testcontainers, and project build tools | Shared Compose environments are not reused. Ordinary runs are ephemeral; request persistent reports explicitly. |
 | `playwright-e2e` | Playwright dependency, configuration, and browser; Node Testcontainers; QA case IDs, seed/cleanup owners, and absence probes | The application must be ephemeral and owned by the run. An existing production/shared `baseURL` is not accepted. |
 | `e2e-report-renderer` | Completed runner JSON in `test-report/e2e` with its `.done` marker | The renderer writes HTML without editing its inputs; it does not merge the separate browser E2E JSON format. |

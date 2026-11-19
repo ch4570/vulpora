@@ -2,7 +2,7 @@
 
 한국어 · [English](skills.en.md) · [README](../README.ko.md)
 
-설치 매니페스트에 등록된 **66개 스킬**의 용도와 호출 예제를 정리합니다. 이 중
+설치 매니페스트에 등록된 **67개 스킬**의 용도와 호출 예제를 정리합니다. 이 중
 `codex-agent-runtime`은 실행 기능이 비활성화된 호환성 항목입니다. 각 스킬 이름을 누르면 실제
 `SKILL.md`의 입력, 절차, 출력 계약을 확인할 수 있습니다.
 
@@ -217,6 +217,12 @@ SQL·mapping 작성과 리뷰는 제공된 코드·스키마·실행 계획을 �
 | [git-flow](../skills/git-flow/SKILL.md) | 작업 branch 준비 또는 커밋·push·GitLab MR 생성 | `$git-flow "현재 기능 변경을 검토해 커밋하고 develop 대상 GitLab MR을 만들어줘"` |
 | [notion-domain-context](../skills/notion-domain-context/SKILL.md) | 연결된 사내 Notion의 읽기 전용 출처 기반 조사 | `$notion-domain-context "Notion에서 주문 취소 정책과 담당 조직의 근거를 찾아줘"` |
 
+### 관측·모니터링 · 1개
+
+| 스킬 | 용도 | 대화창 호출 예제 |
+|---|---|---|
+| [grafana-monitoring-report](../skills/grafana-monitoring-report/SKILL.md) | Grafana MCP를 읽기 전용으로 조회해 심각도별 보고서 작성·이전 보고서와 비교 | `/grafana-monitoring-report --scope-file .vulpora/grafana-monitor.json --out reports/grafana/` |
+
 ## 외부 도구가 필요한 스킬
 
 설치기는 스킬과 선언된 자산 의존성을 복사합니다. 데이터베이스 계정, MCP 인증, Docker,
@@ -227,6 +233,7 @@ SQL·mapping 작성과 리뷰는 제공된 코드·스키마·실행 계획을 �
 | 전문 에이전트가 필요한 통합 리뷰·`start-task` 위임 | 실제 런타임에서 발견된 에이전트와 사용 가능한 모델/effort 경로 | 설치 성공이나 route 계산만으로 작업이 실행된 것은 아닙니다. 필수 실행이 빠지면 `INCOMPLETE`/`BLOCKED`입니다. |
 | `nl-sql-query` | 별도 `nl-sql` MCP 빌드·등록, 대상 DB의 읽기 전용 계정, 비어 있지 않은 schema allowlist | PostgreSQL/MySQL/SQL Server 중 서버 인스턴스당 한 dialect를 사용합니다. SQL Server의 `explain_select`는 미지원입니다. |
 | `notion-domain-context` | Notion MCP 설정과 OAuth, 허용된 search/fetch 도구. Claude Code는 `notion-domain-researcher`도 필요 | 설정 완료·승인·인증·실제 검색 성공을 구분합니다. |
+| `grafana-monitoring-report` | 사용자가 직접 등록한 `vulpora-grafana` MCP(`mcp-grafana --disable-write`, Viewer service account). Claude Code는 `grafana-monitor`도 필요 | MCP 미연결·인증 실패·일부 수집 실패를 "이상 없음"과 구분합니다. 등록 절차는 스킬의 `setup-and-onboarding` KB에 있습니다. |
 | `e2e-scenario-author`, `e2e-runner` | 지원되는 Spring Boot/JVM 또는 NestJS 저장소, 실행 시 Docker와 Testcontainers 및 프로젝트 빌드 도구 | 공유 Compose 환경을 재사용하지 않습니다. 일반 실행은 임시 결과를 사용하며, 보고서 저장은 명시적으로 요청합니다. |
 | `playwright-e2e` | Playwright dependency·config·browser, Node Testcontainers, QA case ID·seed·cleanup·absence probe | 실행별 임시 앱과 데이터 정리 근거가 필요합니다. 기존 운영/공유 서버의 `baseURL`을 사용하지 않습니다. |
 | `e2e-report-renderer` | `.done` 표시가 있는 완료된 `test-report/e2e` runner JSON | 브라우저 E2E의 별도 JSON을 합치는 renderer는 아닙니다. 입력을 바꾸지 않고 HTML을 만듭니다. |

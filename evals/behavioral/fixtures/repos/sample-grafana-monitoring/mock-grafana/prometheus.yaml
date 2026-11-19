@@ -1,0 +1,13 @@
+schema: synthetic.grafana-prometheus.v1
+window: { from: "2026-11-19T00:00:00Z", to: "2026-11-19T01:00:00Z", step: 15s }
+baseline: { from: "2026-11-18T23:00:00Z", to: "2026-11-19T00:00:00Z", step: 15s }
+retrieved_at: 2026-11-19T01:00:14Z
+results:
+  - signal_id: http-5xx-ratio
+    aggregation: avg
+    window_value: 0.072
+    baseline_value: 0.004
+  - signal_id: p95-latency-seconds
+    aggregation: avg
+    window_value: 0.61
+    baseline_value: 0.42

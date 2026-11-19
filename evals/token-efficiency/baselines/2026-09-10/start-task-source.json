@@ -9,7 +9,7 @@
   },
   "measurement": "Exact encoding-specific source counts; not provider billing or observed runtime loads.",
   "discovery_serialization": "name: ID\ndescription: NORMALIZED_DESCRIPTION\n",
-  "scenario_contract_sha256": "e2f42d8166c4e38eeb08d166c8b39b8b3fd0f56d445f60825f55b335da8441f6",
+  "scenario_contract_sha256": "e5b5e531f068149dd3baa387c7848a6be92a6e4a3bdc91b454fbfd3a9527fcad",
   "totals": {
     "tokens": 81303,
     "body_tokens": 76764,

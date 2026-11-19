@@ -39,6 +39,7 @@ agent | search-relevance-evaluator | agents/search-relevance-evaluator.md | agen
 agent | nl-sql-guardian | agents/nl-sql-guardian.md | agents/nl-sql-guardian | - | -
 agent | index-migration-architect | agents/index-migration-architect.md | agents/index-migration-architect | - | -
 agent | notion-domain-researcher | agents/notion-domain-researcher.md | agents/notion-domain-researcher | - | -
+agent | grafana-monitor | agents/grafana-monitor.md | agents/grafana-monitor | - | -
 agent | application-architect | agents/application-architect.md | agents/application-architect | - | -
 agent | backend-test-author | agents/backend-test-author.md | agents/backend-test-author | skill:korean-dev-writer | -
 agent | data-modeling-reviewer | agents/data-modeling-reviewer.md | agents/data-modeling-reviewer | - | -
@@ -88,6 +89,7 @@ skill | mermaid-diagrams | skills/mermaid-diagrams | - | diagram-styler | -
 skill | mssql-code-authoring | skills/mssql-code-authoring | - | - | -
 skill | nl-sql-query | skills/nl-sql-query | - | - | -
 skill | notion-domain-context | skills/notion-domain-context | - | - | -
+skill | grafana-monitoring-report | skills/grafana-monitoring-report | - | agent:grafana-monitor | -
 skill | oop-design-review | skills/oop-design-review | - | - | -
 skill | opensearch-optimization | skills/opensearch-optimization | - | - | -
 skill | opensearch-code-authoring | skills/opensearch-code-authoring | - | opensearch-query-review opensearch-schema-review opensearch-optimization | -

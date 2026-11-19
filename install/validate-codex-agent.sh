@@ -19,7 +19,7 @@ case "$expected_id" in ''|*[!a-z0-9-]*) printf '%s\n' "$path: expected id must b
 case "$expected_id" in
   postgres-dba|code-refactor-agent|opensearch-expert|architecture-reviewer|\
   search-relevance-evaluator|nl-sql-guardian|index-migration-architect|\
-  notion-domain-researcher|application-architect|data-modeling-reviewer|\
+  notion-domain-researcher|grafana-monitor|application-architect|data-modeling-reviewer|\
   domain-driven-design-reviewer|requirement-dialogue|security-auditor|task-splitter|\
   ux-designer|design-reviewer)
     expected_sandbox=read-only

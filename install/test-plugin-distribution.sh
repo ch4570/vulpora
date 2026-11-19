@@ -49,8 +49,8 @@ repo_semver="$(awk -F. 'NF == 4 { print $1 "." $2 "." $3; exit }' "$REPO_ROOT/VE
 expected_agents="$(manifest_count agent)"
 expected_skills="$(manifest_count skill)"
 
-record 'release manifest fixes the plugin inventory at 29 agents and 66 skills' \
-  "[ '$expected_agents' = 29 ] && [ '$expected_skills' = 66 ]"
+record 'release manifest fixes the plugin inventory at 30 agents and 67 skills' \
+  "[ '$expected_agents' = 30 ] && [ '$expected_skills' = 67 ]"
 record 'release metadata points Claude at the complete repository-root plugin' \
   "[ -n '$repo_semver' ] \
    && grep -Fq '\"source\": \"./\"' '$REPO_ROOT/.claude-plugin/marketplace.json' \

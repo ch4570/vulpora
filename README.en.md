@@ -12,7 +12,7 @@ Vulpora gives **Codex and Claude Code** reusable specialist roles, task workflow
 Install the capabilities your project needs, invoke a skill, and carry work through implementation,
 review, and verification in your existing coding runtime.
 
-**14 packs · 29 agents · 66 skill entries · macOS / Linux · Apache-2.0**
+**14 packs · 30 agents · 67 skill entries · macOS / Linux · Apache-2.0**
 
 The fox and its many tails represent distinct specialties working toward one goal.
 The package, command, and project namespace are **`vulpora`**. [Name and artwork](docs/naming.md).
@@ -215,12 +215,12 @@ The [agent catalog](docs/catalog-guide.md#agent-catalog) lists all 29 specialist
 
 ## Skill catalog
 
-The manifest has **66 skill entries**. `codex-agent-runtime` is a disabled compatibility entry;
+The manifest has **67 skill entries**. `codex-agent-runtime` is a disabled compatibility entry;
 the handbook marks it explicitly instead of suggesting it as an execution path.
 
 <!-- SKILL_SUMMARY_START -->
 <details>
-<summary>Browse all 66 skill entries by category</summary>
+<summary>Browse all 67 skill entries by category</summary>
 
 | Area | Skills |
 |---|---|
@@ -233,6 +233,7 @@ the handbook marks it explicitly instead of suggesting it as an execution path.
 | QA and E2E · 6 | [e2e-scenario-author](skills/e2e-scenario-author/SKILL.md), [e2e-runner](skills/e2e-runner/SKILL.md), [playwright-e2e](skills/playwright-e2e/SKILL.md), [e2e-report-renderer](skills/e2e-report-renderer/SKILL.md), [e2e-test-workflow](skills/e2e-test-workflow/SKILL.md), [e2e-evidence-report](skills/e2e-evidence-report/SKILL.md) |
 | Documents, diagrams, and visual artifacts · 9 | [code-diagram-extract](skills/code-diagram-extract/SKILL.md), [schema-doc-extract](skills/schema-doc-extract/SKILL.md), [mermaid-diagrams](skills/mermaid-diagrams/SKILL.md), [diagram-styler](skills/diagram-styler/SKILL.md), [document-designer](skills/document-designer/SKILL.md), [markdown-publisher](skills/markdown-publisher/SKILL.md), [pdf-qa](skills/pdf-qa/SKILL.md), [visual-artifact-router](skills/visual-artifact-router/SKILL.md), [korean-dev-writer](skills/korean-dev-writer/SKILL.md) |
 | Evaluation, knowledge, retrospectives, and collaboration · 9 | [agent-eval](skills/agent-eval/SKILL.md), [skill-updater](skills/skill-updater/SKILL.md), [learn](skills/learn/SKILL.md), [retro](skills/retro/SKILL.md), [knowledge-audit](skills/knowledge-audit/SKILL.md), [harness-propose](skills/harness-propose/SKILL.md), [harness-refine](skills/harness-refine/SKILL.md), [git-flow](skills/git-flow/SKILL.md), [notion-domain-context](skills/notion-domain-context/SKILL.md) |
+| Observability · 1 | [grafana-monitoring-report](skills/grafana-monitoring-report/SKILL.md) |
 
 </details>
 <!-- SKILL_SUMMARY_END -->
@@ -264,8 +265,8 @@ The coding runtime executes work; the installer manages the catalog and its life
 ```text
 vulpora/                  # Current GitHub repository path
 ├── vulpora                 # Public CLI entry
-├── agents/                 # 28 role definitions, adapters, knowledge bundles
-├── skills/                 # 65 SKILL.md entries, scripts, references
+├── agents/                 # 30 role definitions, adapters, knowledge bundles
+├── skills/                 # 67 SKILL.md entries, scripts, references
 ├── install/                # Manifest, packs, installer, receipts, checks
 ├── .claude-plugin/         # Claude Code marketplace compatibility
 ├── mcp/nl-sql/             # Separately built database MCP server

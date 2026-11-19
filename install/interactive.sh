@@ -647,6 +647,7 @@ vulporael() {
     nl-sql-guardian) printf '자연어 SQL 안전 검증' ;;
     index-migration-architect) printf '인덱스 마이그레이션 설계' ;;
     notion-domain-researcher) printf 'Notion 도메인 조사' ;;
+    grafana-monitor) printf 'Grafana 모니터링 수집' ;;
     *) printf '%s' "$1" ;;
   esac
 }
