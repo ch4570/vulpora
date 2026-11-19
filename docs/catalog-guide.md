@@ -8,7 +8,7 @@ or select individual asset IDs. The installer resolves their declared dependenci
 
 | Start here | 한국어 | English |
 |---|---|---|
-| All 62 skills with invocation examples and prerequisites | [스킬 사용 가이드](skills.ko.md) | [Skill handbook](skills.en.md) |
+| All 63 skills with invocation examples and prerequisites | [스킬 사용 가이드](skills.ko.md) | [Skill handbook](skills.en.md) |
 | Folder structure, installation flow, and runtime architecture | [아키텍처 가이드](architecture.ko.md) | [Architecture guide](architecture.en.md) |
 
 The primary command is `vulpora`; `vulpora` remains a compatibility alias. Existing skill IDs,
@@ -65,6 +65,7 @@ definition-to-bundle mapping is in the manifest; bundle names need not equal age
 | Database and search | [postgres-dba](../agents/postgres-dba.md), [opensearch-expert](../agents/opensearch-expert.md), [search-relevance-evaluator](../agents/search-relevance-evaluator.md), [index-migration-architect](../agents/index-migration-architect.md), [nl-sql-guardian](../agents/nl-sql-guardian.md) |
 | Tests and QA | [qa-test-designer](../agents/qa-test-designer.md), [e2e-test-runner](../agents/e2e-test-runner.md), [test-runner](../agents/test-runner.md), [backend-test-author](../agents/backend-test-author.md) |
 | Documentation and context | [code-cartographer](../agents/code-cartographer.md), [schema-cartographer](../agents/schema-cartographer.md), [documentation-comment-author](../agents/documentation-comment-author.md), [notion-domain-researcher](../agents/notion-domain-researcher.md) |
+| Observability | [grafana-monitor](../agents/grafana-monitor.md) |
 | Agent evaluation | [agent-evaluator](../agents/agent-evaluator.md) |
 
 `test-runner` is a tool-oriented standalone agent and does not have a judgment KB bundle.
@@ -92,10 +93,11 @@ uses stable IDs without implying the same invocation syntax in both runtimes.
 | [product-ui-design](../skills/product-ui-design/SKILL.md) | Product-context design, implementation, review, and rendered-quality checks |
 | [visual-artifact-router](../skills/visual-artifact-router/SKILL.md) | Route document, diagram, and rendering work while preserving editable sources |
 | [notion-domain-context](../skills/notion-domain-context/SKILL.md) | Read-only context with source provenance from an explicitly configured Notion MCP |
+| [grafana-monitoring-report](../skills/grafana-monitoring-report/SKILL.md) | Severity-ranked monitoring report from read-only Grafana MCP evidence collected by `grafana-monitor` |
 | [mssql-code-authoring](../skills/mssql-code-authoring/SKILL.md) | T-SQL and migration work grounded in the installed SQL Server version |
 | [git-flow](../skills/git-flow/SKILL.md) | Optional GitLab-oriented branch and publication workflow, only when requested and applicable |
 
-For all 62 skill IDs and invocation examples, see the [Korean](skills.ko.md) or
+For all 63 skill IDs and invocation examples, see the [Korean](skills.ko.md) or
 [English](skills.en.md) handbook. Use `./vulpora list` to inspect the source catalog.
 The catalog includes `codex-agent-runtime`, a disabled compatibility contract that returns
 `AGENT_RUNTIME_ERROR:project_execution_disabled`; it does not execute agents.

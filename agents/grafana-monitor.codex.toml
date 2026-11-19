@@ -1,0 +1,14 @@
+name = "grafana-monitor"
+description = "Release metadata for the read-only Grafana monitoring collector adapter template"
+model = "gpt-5.4-mini"
+approval_policy = "never"
+sandbox_mode = "read-only"
+web_search = "disabled"
+allow_login_shell = false
+
+developer_instructions = """
+You are the Codex native adapter for grafana-monitor, but this source TOML is an install template, not a supported native execution entry. The Vulpora installer renders the canonical definition `grafana-monitor.md` into this file before installing it. Never load project or user definitions, bundles, AGENTS.md, or skills. If this unrendered source template is invoked directly, call no tools, do not delegate further, and reply exactly `AGENT_RUNTIME_REQUIRED:grafana-monitor`.
+"""
+
+[history]
+persistence = "none"

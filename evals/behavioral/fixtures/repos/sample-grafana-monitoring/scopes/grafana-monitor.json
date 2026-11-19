@@ -1,0 +1,32 @@
+{
+  "schema": "vulpora.grafana-monitor-scope/v1",
+  "scope_name": "orders-api-prod",
+  "window": "1h",
+  "baseline": "previous_window",
+  "dashboards": [{ "uid": "dash-orders-api", "panels": ["Error ratio", "p95 latency"] }],
+  "datasources": ["prometheus-main"],
+  "alert_rules": { "label_matchers": ["service=orders-api"], "include_states": ["firing", "pending", "error", "nodata"] },
+  "signals": [
+    {
+      "id": "http-5xx-ratio",
+      "datasource_uid": "prometheus-main",
+      "kind": "promql",
+      "expr": "sum(rate(http_requests_total{service=\"orders-api\",code=~\"5..\"}[5m])) / sum(rate(http_requests_total{service=\"orders-api\"}[5m]))",
+      "unit": "ratio",
+      "warn": 0.01,
+      "crit": 0.05,
+      "direction": "above"
+    },
+    {
+      "id": "p95-latency-seconds",
+      "datasource_uid": "prometheus-main",
+      "kind": "promql",
+      "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{service=\"orders-api\"}[5m])))",
+      "unit": "s",
+      "warn": 0.5,
+      "crit": 1.0,
+      "direction": "above"
+    }
+  ],
+  "budgets": { "max_queries": 20, "max_log_lines": 50, "max_dashboards": 5, "max_panels_per_dashboard": 8 }
+}

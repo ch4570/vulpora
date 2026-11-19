@@ -1,0 +1,12 @@
+interface:
+  display_name: "Grafana Monitoring Report"
+  short_description: "Severity-ranked Grafana monitoring report from read-only MCP evidence"
+  default_prompt: "Use $grafana-monitoring-report with the saved scope in .vulpora/grafana-monitor.json and return a severity-ranked monitoring report."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "vulpora-grafana"
+      description: "User-configured grafana/mcp-grafana server; run it with --disable-write and a Viewer service account"
+      transport: "stdio"
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,25 @@
+schema: synthetic.grafana-alerting.v1
+retrieved_at: 2026-11-19T01:00:08Z
+alerting_rules_read:
+  - rule_uid: rule-orders-5xx
+    title: Orders API 5xx ratio high
+    folder_uid: folder-orders
+    labels: { service: orders-api, severity: critical }
+    state: firing
+    active_since: 2026-11-19T00:41:00Z
+    annotations:
+      summary: 5xx ratio above 5% for 10 minutes.
+  - rule_uid: rule-orders-latency
+    title: Orders API p95 latency
+    folder_uid: folder-orders
+    labels: { service: orders-api, severity: warning }
+    state: pending
+    active_since: 2026-11-19T00:52:00Z
+    annotations:
+      summary: p95 latency above 500ms.
+  - rule_uid: rule-orders-disk
+    title: Orders DB disk usage
+    folder_uid: folder-orders
+    labels: { service: orders-api, severity: warning }
+    state: normal
+alerting_silences_read: []

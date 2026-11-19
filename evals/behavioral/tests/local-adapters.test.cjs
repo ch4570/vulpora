@@ -38,10 +38,10 @@ function sourceFixture(t) {
   return dir;
 }
 
-test('all 62 manifest skills inject their entire UTF-8 entry, including the final tail', () => {
+test('all 63 manifest skills inject their entire UTF-8 entry, including the final tail', () => {
   const rows = fs.readFileSync(path.join(root, 'install/manifest.txt'), 'utf8').split('\n')
     .map(line => line.split('|').map(value => value.trim())).filter(row => row[0] === 'skill');
-  assert.equal(rows.length, 62);
+  assert.equal(rows.length, 63);
   for (const [, asset, definition] of rows) {
     const context = loadContext({ root, asset, baseline: 'agent-only', kind: 'skill' });
     const original = fs.readFileSync(path.join(root, definition, 'SKILL.md'));

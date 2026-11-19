@@ -1,0 +1,13 @@
+schema: synthetic.grafana-datasources.v1
+retrieved_at: 2026-11-19T01:00:05Z
+list_datasources:
+  - uid: prometheus-main
+    type: prometheus
+    name: Prometheus main
+  - uid: loki-main
+    type: loki
+    name: Loki main
+check_datasources_health:
+  - uid: prometheus-main
+    status: OK
+    message: Successfully queried the Prometheus API.
