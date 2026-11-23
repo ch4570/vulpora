@@ -1,6 +1,6 @@
 # 접속 대상 관측과 모델 밖 차단 — E2E 격리 게이트 설계
 
-상태: **Proposed** (설계만, 구현 전)
+상태: **Accepted (방향 확정, 구현 전)** — 오너 결정 반영 2026-11-23
 작성일: 2026-11-23
 기준 커밋: `698b670` (작업 브랜치 `docs/ch4570/verification-gate-designs`)
 범위: E2E·통합 실행 경로(`e2e-test-workflow`, `e2e-runner`, `playwright-e2e`, `e2e-evidence-report`)와
@@ -9,6 +9,14 @@
 
 > 이 문서에 쓴 사고 3건은 오너가 알려 준 설명을 바탕으로 했고, 원본 실행 기록은 보지 못했다.
 > 저장소 규칙(STANDARD §3)에 따라 서비스 이름은 `<service>`로 바꿔 적었다.
+
+### 오너 결정 (2026-11-23)
+
+| 질문(9절) | 결정 | 이 문서에 반영한 곳 |
+|---|---|---|
+| 1. 공유 자원에 실제로 닿은 경우 | 새 판정 `ISOLATION_BREACH`를 둔다 | 6-2, 14절 PR E1 |
+| 2. 차단을 어디까지, 어떤 순서로 | 단계적: 관찰만 → macOS 차단 → 실행(런타임) 샌드박스 | 10절, 14절 |
+| 3~8 | 아직 답 없음. 14절의 PR 계획은 각 질문의 추천값을 기본으로 가정하고, 어느 PR이 어느 답에 걸리는지 표시했다 | 9절, 14-4 |
 
 ---
 
@@ -248,8 +256,13 @@ Docker 소켓을 쥔 쪽은 호스트에 닿는 컨테이너를 마음대로 띄
 
 **왜 실제 연결만 새 판정인가.** `BLOCKED`는 "돌릴 수 없었다, 고치고 다시 돌려라"라는 뜻이다. 차단된 시도까지는
 여기에 맞는다. 공유 자원에 실제로 닿은 경우는 다르다. 재실행보다 먼저 무엇이 어디에 쓰였는지 사람이 봐야 한다.
-같은 `BLOCKED`로 두면 사고 2처럼 아무도 모른 채 지나간다. 새 판정을 두지 않고 `BLOCKED`의 이유 코드로만
-다루는 선택지도 있다(9절 질문 1).
+같은 `BLOCKED`로 두면 사고 2처럼 아무도 모른 채 지나간다. 오너가 이 방식(새 판정)으로 결정했다.
+
+**1단계(관찰만)에서의 적용 범위.** 1단계에는 연결 차단이 없으므로 위 표의 행 중 일부만 판정을 바꾼다. 실제 접촉
+(`SHARED_ENDPOINT_CONTACT`)은 1단계부터 `ISOLATION_BREACH`다. 일어난 일을 기록하는 것이지 막는 것이 아니기 때문이다.
+나머지(`ENDPOINT_NOT_RUN_OWNED`, `PRESTART_ENDPOINT_NOT_OWNED`, `CLIENT_ENDPOINT_NOT_OWNED`,
+`ISOLATION_EVIDENCE_MISSING`, `OWNED_ENDPOINT_UNUSED`)는 1단계에서 경고로만 남기고, 2단계에서 표대로 판정에 반영한다.
+예외 하나를 14-1에 제안했다(실행 직전에 실제로 듣고 있는 공유 포트를 가리키는 설정은 1단계에서도 기동 거부).
 
 ### 6-3. 사고 보고 강제
 
@@ -349,13 +362,11 @@ Docker 소켓을 쥔 쪽은 호스트에 닿는 컨테이너를 마음대로 띄
 
 ## 9. 오너가 정할 질문
 
-1. **공유 자원에 실제로 닿은 경우를 새 판정으로 둘까요?**
-   - (A) 새 판정 `ISOLATION_BREACH`, 새 종료 코드 — **추천.** 재실행보다 사람의 확인이 먼저라는 뜻이 판정에 드러난다.
-   - (B) `BLOCKED`의 이유 코드로만 — 계약 변경이 작지만 사고 2처럼 묻힐 수 있다.
-2. **차단을 어디까지 갈까요?**
-   - (A) 1단계 관찰만 → 2단계 macOS 샌드박스 차단 → 3단계 런타임 샌드박스 — **추천.**
-   - (B) 1단계에서 바로 샌드박스 차단까지 — 빠르지만 거짓 양성을 재 볼 시간이 없다.
-   - (C) 관측·판정만 하고 차단은 하지 않음 — 피해는 막지 못하고 알기만 한다.
+1. ~~공유 자원에 실제로 닿은 경우를 새 판정으로 둘까요?~~ **결정: (A) 새 판정 `ISOLATION_BREACH`, 새 종료 코드 5.**
+2. ~~차단을 어디까지 갈까요?~~ **결정: (A) 1단계 관찰만 → 2단계 macOS 샌드박스 차단 → 3단계 런타임 샌드박스.**
+   - 남은 확인 하나: 14-1의 "실행 직전 LISTEN 중인 공유 포트를 가리키는 설정은 1단계에서도 기동 거부"를 1단계에
+     넣어도 되는지. 연결 차단이 아니라 기동 전 거부이고 거짓 양성이 거의 없지만, "관찰만"의 문자 그대로의 뜻에서는
+     한 걸음 나간 것이라 오너 확인을 받는다. 추천: 넣는다.
 3. **1단계 "관찰만" 기간을 얼마나 둘까요?** 추천: 오너 환경의 실제 E2E 실행 20회 또는 2주 중 먼저 오는 쪽. 그동안
    거짓 양성(쓰지 않는 설정, 텔레메트리 내보내기 주소 등)을 예외 파일로 정리한다.
 4. **오너 지정 공유 포트 목록을 둘까요?** 실행 직전 LISTEN 스냅샷만으로는 늦게 뜨는 서비스를 놓친다.
@@ -377,7 +388,7 @@ Docker 소켓을 쥔 쪽은 호스트에 닿는 컨테이너를 마음대로 띄
 
 | 단계 | 내용 | 판정 효과 | 규모(대략) |
 |---|---|---|---|
-| 1. 관찰과 기계 대조 | `environment` v2, 소유 대조(4-3), G1·G2 예제, 환경변수 허용 목록, `lsof` 관찰, `check-isolation.js`. 위반은 기록만 하고 판정은 `INCONCLUSIVE`까지만 | PASS 문장의 근거가 관측으로 바뀜 | 스크립트 3~4개 신규·수정(약 600~900줄)+시험, Java 예제 1개(약 200줄), 문서 6~8개. 1~2주 |
+| 1. 관찰과 기계 대조 | `environment` v2, 소유 대조(4-3), G1·G2 예제, 환경변수 허용 목록, `lsof` 관찰, `check-isolation.js`, 새 판정 `ISOLATION_BREACH`. 실제 접촉만 판정을 바꾸고 나머지 위반은 경고(6-2 끝) | PASS 문장의 근거가 관측으로 바뀜. 공유 접촉이 묻히지 않음 | PR 하나(14-1의 E1). 스크립트 3~4개 신규·수정(약 600~900줄)+시험, Java 예제 1개(약 200줄), 문서 6~8개. 1~2주 |
 | 2. macOS 차단 | `netguard-run`의 샌드박스, 영수증 필수, 6-2 판정표 전부 적용, `ISOLATION_BREACH` | 사고 1·2 유형을 실행 단계에서 막음 | 감싸는 스크립트와 정책 생성기, 판정 변경, 계약 v2. 1~2주 |
 | 3. 우회 방지 | 런타임 샌드박스 권장 설정, 공유 자원 자격증명 분리 안내(질문 8), Linux CI 대응(네트워크 네임스페이스 또는 `--internal` 네트워크) | 고의적 우회 대부분. Docker 소켓 경로는 자격증명 분리나 실행 장소 이전으로만 닫힘 | 설정 문서와 CI 템플릿. 런타임 기능 확인에 따라 다름 |
 | 4. 범위 확장 | `test-runner`, `test-authoring`, `backend-test-author`, pre-commit 훅에 선택 적용 | 좁은 통합 테스트도 같은 보장 | 훅 템플릿 수정, 문서 |
@@ -445,6 +456,120 @@ T1~T4, T8, T10, T11은 판정 스크립트 단위 시험으로도 만든다(가�
 - **Linux CI.** 3단계의 네트워크 네임스페이스·`--internal` 방식은 설계 방향만 적었다.
 - **이 머신의 JDK.** 기본 `java`는 21이고 25도 설치돼 있다. JFR 관측(O8)을 쓴다면 테스트가 실제로 어느 JDK에서
   도는지부터 확인해야 한다.
+
+---
+
+## 14. 구현 계획 (PR 단위)
+
+| PR | 단계 | 내용 | 앞선 PR | 오너 답이 필요한 질문 |
+|---|---|---|---|---|
+| **E1** | 1. 관찰만 | 격리 증거 기록, 소유 대조, 소켓 관찰, `ISOLATION_BREACH` 판정, Java 초기화 예제(관찰 모드) | 없음 | 2의 남은 확인(14-1 예외), 3(관찰 기간), 4(공유 포트 목록) |
+| E2 | 2. macOS 차단 | `netguard-run`(Seatbelt), 영수증 필수, 6-2 판정표 전체 적용, `contractVersion` 2(세 스킬 동시) | E1 + 관찰 기간 종료 | 3 |
+| E3 | 3. 실행 샌드박스 | 런타임 샌드박스 권장 설정 문서, Linux CI 대응, 공유 자원 자격증명 안내 | E2 | 7, 8 |
+| E4 | 4. 범위 확장 | `test-runner`, `test-authoring`, `backend-test-author`, pre-commit 훅 선택 적용 | E2 | 6 |
+
+E2~E4는 E1이 끝난 뒤 같은 형식으로 구체화한다. 아래는 E1만 파일 단위로 적는다.
+
+### 14-1. PR E1: 격리 관찰과 `ISOLATION_BREACH` (1단계)
+
+- 가칭 제목: `feat(e2e): record isolation evidence and add the ISOLATION_BREACH verdict (observe mode)`
+- 원칙: **기존 결과와 하위 호환.** `isolation`과 `environment` v2는 선택 필드로 들어오고, `contractVersion`은 1을 유지한다
+  (RUN-20에 따라 버전 올림은 세 스킬 동시 변경이므로 E2로 미룬다). SKILL.md의 frontmatter `description`은 바꾸지 않는다
+  (14-3의 탐색 토큰 예산).
+
+#### 판정과 우선순위
+
+```text
+ISOLATION_BREACH (exit 5) > BLOCKED (3) > INCONCLUSIVE (4) > PARTIAL (2) > PASS (0)
+```
+
+- `ISOLATION_BREACH`는 `isolation.sharedContacts`가 하나 이상일 때 나온다. 다른 이유 코드가 함께 있어도 맨 위다.
+- `--diagnostic-only`는 이 판정을 낮추지 못한다(RUN-18.2의 우회 조건을 그대로 두면 자동으로 그렇게 되지만, 시험으로 고정한다).
+- stderr는 기존 형식 그대로 `ERROR: verdict=ISOLATION_BREACH`.
+- 출력 JSON에 `isolation_verified`(불리언)와 `isolation_warnings[]`를 더한다. `humanSummary`에 다섯째 줄
+  `isolation: verified | not verified (<이유>) | BREACH (<포트 목록>)`을 더한다. **`isolation_verified`가 `true`가 아니면
+  보고서에 "공유 자원 접속 0"이라고 쓸 수 없다**는 규칙을 SKILL.md와 운영 계약에 넣는다(사고 2의 문장 문제).
+- 1단계에서 나머지 위반은 `isolation_warnings`로만 나온다(6-2 끝). 단 아래 "기동 전 예외"는 하니스가 기동을 거부하므로
+  결과적으로 `BLOCKED`가 된다.
+
+**기동 전 예외(오너 확인 필요, 추천: 넣는다).** 키 무관 스캔(O2)과 클라이언트 관측(O3)이 찾은 주소가 **실행 직전에 실제로
+듣고 있던 포트이면서 run 소유가 아니면** 1단계에서도 기동을 거부한다. 이 경우는 "쓰지 않는 설정" 같은 거짓 양성이 거의 없고
+(지금 살아 있는 공유 서비스를 정확히 가리킴), 사고 1·2가 정확히 이 모양이다. 듣고 있지 않은 포트를 가리키는 설정은 경고만 한다.
+
+#### 바꾸는 파일
+
+| 파일 | 변경 |
+|---|---|
+| `skills/e2e-runner/scripts/evaluate-run-verdict.js` | 선택 입력 `isolation`의 모양 검사(잘못되면 64), `sharedContacts` → `ISOLATION_BREACH`(exit 5), 우선순위 갱신, `isolation_verified`·`isolation_warnings`·`humanSummary` 다섯째 줄 |
+| `skills/e2e-runner/scripts/validate-run-result.js` | `environment.schemaVersion === 2`이면 `endpoints[]` 검사(`kind`, 루프백 `host`, 정수 `port`, `containerId`, `propertyKeys[]`). v1이나 없음은 오류가 아니라 `warnings[]`(새 출력 필드). `isolation`이 있으면 `receipt` 파일 존재와 `receiptSha256` 일치 확인 |
+| `skills/e2e-runner/scripts/assemble-run-result.js` | `--isolation <isolation.json>` 인자 추가(지금의 `--orphan-audit`과 같은 방식). 하니스 `environment`는 그대로 두되 v2면 정규화. Markdown 요약에 "격리: 확인됨 / 확인 안 됨 / 위반" 한 줄 |
+| 새 `skills/e2e-runner/scripts/snapshot-listeners.js` | `lsof -nP -iTCP -sTCP:LISTEN` 결과를 `{port, address, command, pid}` 목록으로 정규화. 듣는 프로세스 이름으로 "공유 자원 후보"(Docker 백엔드, DB·캐시 프로세스)와 "로컬 도구"(Gradle 데몬, IDE, JVM 디버거)를 나눔. 파싱 함수는 시험용으로 내보냄 |
+| 새 `skills/e2e-runner/scripts/observe-connections.js` | 테스트 명령을 자식으로 띄우고(`-- <command...>`), 환경변수 허용 목록만 넘기며(B1), 1초 간격으로 프로세스 트리의 TCP 연결(`lsof -nP -a -iTCP -p <pids>`)과 run 레이블 컨테이너의 게시 포트(`docker ps --filter label=...`, run 소유 컨테이너만)를 기록. 종료 시 `isolation-receipt.json`(모드 `observe`, LISTEN 스냅샷, 표본 수, 최대 공백, 도구 버전) 작성. 프로세스 트리에 테스트 JVM이 없으면(Gradle 데몬 재사용) 관측 공백으로 기록 |
+| 새 `skills/e2e-runner/scripts/check-isolation.js` | 영수증·관측 기록·`environment.json`·`audit-orphans` 스냅샷을 대조해 `isolation.json` 작성: `sharedContacts`(실행 전 LISTEN 중이던 공유 자원 후보 포트로의 연결, 루프백이 아닌 주소로의 연결), `ownedContacts`, `ownershipViolations`(4-3), `observerGaps`, `localToolContacts`(경고만) |
+| 새 `skills/e2e-runner/reference/examples/EndpointGuardInitializer.java` | G1·G2 예제. 관찰 모드에서는 발견 사항을 `prestart-findings.json`에 쓰고, 위 "기동 전 예외"만 기동 거부. 허용 예외 파일 읽기 |
+| `skills/e2e-runner/reference/kb/operating-contract.md` | RUN-7.1a(소유 대조), 7.1b(기동 전 스캔), 7.1c(클라이언트 관측), 7.1d(소켓 관찰과 영수증) 추가. RUN-17에 격리 줄, RUN-18.1 판정표에 `ISOLATION_BREACH` 행, RUN-18.2에 "격리 위반은 우회 불가". 기존 규칙 ID와 정지 조건은 바꾸지 않음(문서의 리뷰 훅 조건) |
+| `skills/e2e-runner/reference/kb/test-environment-and-data.md` | `environment.json` v2 예시, "`localhost`는 소유가 아니다", 리뷰 훅 한 줄 추가 |
+| `skills/e2e-runner/SKILL.md` | 체크포인트 목록에 `observe-connections.js`·`check-isolation.js` 두 줄. `description`은 그대로 |
+| `skills/e2e-test-workflow/SKILL.md` | 빠른 경로 3~4단계에 관찰 래퍼와 `--isolation` 추가, 6절 우선순위와 정규화에 `ISOLATION_BREACH`, 출력 계약에 사고 보고(6-3) |
+| `skills/e2e-scenario-author/reference/e2e-scenario-contract.md` §5 | `environment` v2와 `isolation`을 **선택 필드**로 기술(버전 1 유지) |
+| `agents/e2e-test-runner.md` | 판정 목록에 `ISOLATION_BREACH`와 "공유 자원 접속 0"을 쓰는 조건 한 줄 |
+| `skills/e2e-runner/tests/harness-pipeline.test.js` | 기존 시험(엔드포인트 없는 `environment`)은 **통과하되 경고가 나오는지**로 바꿈. 새 시험: v2 정상, v2에 루프백이 아닌 호스트 → 오류, `--isolation` 포함 조립, 위반 포함 조립 → 평가기가 `ISOLATION_BREACH` |
+| `skills/e2e-runner/tests/verdict-contract.test.js` | 우선순위(위반 + `BLOCKED` 이유가 같이 있어도 `ISOLATION_BREACH`), exit 5, stderr 형식, `--diagnostic-only` 불가, 잘못된 `isolation` → 64, `isolation` 없음 → 판정은 그대로이고 `isolation_verified: false` |
+| 새 `skills/e2e-runner/tests/isolation-gate.test.js` | 아래 "일부러 틀린 설정 시험"의 단위·실연결 시험 |
+| `evals/behavioral/cases/e2e-runner/isolation-breach-reported.yaml` | 관측 결과에 위반이 있을 때 에이전트가 "공유 접속 0"이라고 쓰지 않고 사고 보고를 내는지(`must_not_claim`) |
+
+E1에서 **바꾸지 않는 것**: `playwright-e2e`, `e2e-evidence-report`, `test-quality-review`, `backend-test-author`(E2·E4로 미룸),
+CI 워크플로, `install/manifest.txt`(새 스킬이 없고 스크립트는 기존 `e2e-runner` 안에 있음).
+
+#### 일부러 틀린 설정으로 게이트를 시험하는 방법
+
+오너의 공유 자원은 쓰지 않는다. "공유 자원" 역할은 시험이 직접 띄우는 **미끼 리스너**(Node `net.createServer`를
+`127.0.0.1:0`에 띄워 접속을 기록만 함)가 맡는다.
+
+| 층 | 시험 | 어디서 | 기대 |
+|---|---|---|---|
+| 단위 | 합성 `lsof` 출력·LISTEN 스냅샷·컨테이너 목록을 넣어 `check-isolation.js` 실행: (a) 미끼 포트로의 연결, (b) 정상 run 소유 포트만, (c) 루프백이 아닌 `192.0.2.10`, (d) Gradle 데몬 포트(로컬 도구), (e) 테스트 JVM 없음, (f) `environment`에 공유 포트를 run 소유로 적음 | CI(모든 OS) | (a)(c) `sharedContacts`, (b) 깨끗함, (d) 경고만, (e) `observerGaps`, (f) `ownershipViolations` |
+| 실연결 | 미끼 리스너를 띄운 뒤 `observe-connections.js -- node client.js`로 미끼에 연결→짧게 쓰기→닫기. 연결 유지 시간을 2초, 200ms, 20ms로 바꿔 반복 | CI(macOS, Linux). Docker 불필요, 시험이 만든 소켓만 씀 | 2초는 반드시 잡힘. 200ms·20ms는 놓침률을 기록만(1초 폴링의 한계를 수치로 남김. 2단계 차단의 근거) |
+| 판정 | 위 결과로 조립한 실행 결과를 `validate-run-result.js`·`evaluate-run-verdict.js`에 넣음 | CI | 위반 → `ISOLATION_BREACH`, exit 5 |
+| JVM·Spring(사고 재연) | `evals/behavioral/fixtures/repos/sample-spring`의 시험 사본에서 (1) Redis 호스트·포트를 미끼 포트로 둔 기본 설정, (2) 하니스는 다른 접두사 키에 run 소유 주소를 넣고 앱이 읽는 표준 키는 미끼를 가리키는 설정(사고 2), (3) 정상 설정 | 오너 머신, 오너 승인 아래. 공유 서비스를 끄고 미끼만 띄움. CI에서는 `NOT_RUN`으로 기록 | (1)(2) 기동 전 예외로 거부(`BLOCKED`) 또는 관찰이 미끼 접촉을 잡아 `ISOLATION_BREACH`. (3) PASS, 경고 0 |
+
+실연결 시험이 `lsof`를 찾지 못하면 조용히 건너뛰지 않고 이유를 적은 명시적 실패로 둔다. 표준 GitHub 우분투 러너에
+`lsof`가 있는지는 확인하지 못했으므로, 없으면 이 PR에서 CI의 apt 설치 줄에 추가한다(CI 수정이 필요해지는 유일한 경우).
+
+#### 저장소 기존 검사를 통과시키는 방법
+
+| 검사 | 영향 | 통과 방법 |
+|---|---|---|
+| `npm test`(`install/test-npm-package.sh`), 스킬별 `tests/` | 새 시험 추가 | 위 시험 전부 실행. 기존 정지 조건·규칙 ID 문자열을 지우지 않음 |
+| `npm run check:release`(`install/check-npm-package.sh`), `install/test-release-inventory.sh` | 새 스크립트·예제가 패키지에 들어감, 문서 링크 | 새 파일이 `skills/` 아래라 `package.json`의 `files`에 이미 포함. 문서의 로컬 링크는 패키지 안 경로만 사용 |
+| `install/test-public-release-neutrality.sh` | 예제·시험의 문자열 | 서비스 이름·사내 호스트·개인 경로 금지. 예제는 `Order`/`Member` 같은 일반 이름, 주소는 `127.0.0.1`과 RFC 5737 예약 주소만 |
+| `install/test-claude-skill-port.sh`, skill-updater 규칙 | SKILL.md 수정 | frontmatter는 `name`·`description`만, `description` 불변, 본문 500줄 미만, 새 링크는 스킬 안 경로. KB 수정 시 frontmatter(`title`, `source`, `last_fetched`, `skills`)와 `## 리뷰 훅` 유지, INDEX에서 찾을 수 있게 |
+| 토큰 예산(`install/test-token-load-coverage.sh`, `evals/token-efficiency/measure-skills.py --check`) | SKILL.md 본문 증가 | 늘어나는 내용은 운영 계약(reference)으로 보내고 SKILL.md에는 체크포인트 두 줄만. 측정이 기준선을 넘으면 기준선 갱신이 아니라 본문을 줄임 |
+| `install/test-qa-runner-contract.sh`, `skills/e2e-test-workflow/tests/contract.test.sh` | 에이전트·워크플로 문구를 grep | 기존 문구를 지우지 않고 추가만. 시험이 판정 목록을 고정하고 있으면 그 시험에 `ISOLATION_BREACH`를 더함 |
+| `evals/behavioral/run-behavioral-evals.sh --validate` | 새 행동 평가 케이스 | 필수 필드와 matcher 규칙(STANDARD §5) 준수 |
+
+#### 롤백과 위험
+
+- **롤백**: PR 병합 커밋 하나를 되돌리면 끝난다. 새 필드가 모두 선택 필드이고 `contractVersion`이 그대로라, 되돌린 뒤에도
+  그 사이에 만든 실행 결과는 기존 검증기를 통과한다(모르는 필드는 무시). 관찰 래퍼를 쓰던 하니스 호출은 래퍼 없이 원래 명령으로
+  돌아가면 된다.
+- **위험 1: 새 종료 코드 5.** 이 값을 모르는 호출자는 "알 수 없는 실패"로 처리한다. 실패 쪽으로 닫히므로 안전하지만,
+  종료 코드를 표로 매핑하는 CI 스크립트가 있다면 그쪽 수정이 필요하다.
+- **위험 2: 로컬 도구 연결의 거짓 위반.** 테스트 프로세스 트리가 실행 전부터 떠 있던 Gradle 데몬, IDE, 디버거 포트에 붙는 일은
+  정상이다. `snapshot-listeners.js`가 듣는 프로세스로 분류해 경고로만 남기지만, 분류 목록이 틀리면 거짓 `ISOLATION_BREACH`가
+  나온다. 관찰 기간에 분류 목록을 다듬는다.
+- **위험 3: 놓침.** 1초 폴링은 짧은 연결을 놓친다(실연결 시험으로 수치화). 1단계의 "공유 접촉 없음"은 "관찰 범위 안에서
+  없음"이고, 보고서 문구도 그렇게 쓴다.
+- **위험 4: Gradle 데몬.** 데몬을 재사용하면 테스트 JVM이 관찰 트리 밖에 있어 관측 공백이 된다. 1단계에서는 경고지만, 이 경고가
+  잦으면 "확인 안 됨" 결과가 쌓인다. 래퍼 사용 안내에 `--no-daemon`을 적는다.
+- **위험 5: 기동 전 예외의 오작동.** Java 예제가 대상 저장소의 설정 구조를 잘못 읽으면 정상 실행을 거부할 수 있다. 허용 예외
+  파일과 끄는 스위치(관찰 전용 모드)를 함께 둔다.
+
+### 14-2. E1 이후의 순서
+
+- 관찰 기간(9절 질문 3, 추천: 실제 실행 20회 또는 2주) 동안 경고·위반·관측 공백을 모은다. 이 기록이 E2의 예외 파일과 분류 목록이 된다.
+- E2는 `contractVersion` 2로 올리는 세 스킬 동시 변경이다(RUN-20). `playwright-e2e`, `e2e-evidence-report`, `test-quality-review`의
+  영수증 연결도 여기서 한다.
 
 ---
 
