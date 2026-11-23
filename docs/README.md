@@ -62,6 +62,8 @@ for the scope and dates of that evidence.
 - [Harness architecture comparison](agent-harness-oh-my-series-review.md)
 - [Agent-memory coordination agreement](agent-memory-coordination-agreement.md)
 - [Test-quality refactoring workflow plan](test-quality-refactoring-workflow-plan.md)
+- [E2E endpoint isolation gate design (한국어, proposed)](e2e-endpoint-isolation-gate-design.md)
+- [Review panel and red-team gate design (한국어, proposed)](review-panel-red-team-gate-design.md)
 - [Behavioral runtime metrics changes](behavioral-eval-runtime-metrics-changelog.md)
 - [Behavioral runtime metrics report](behavioral-eval-runtime-metrics-report.html)
 - [Historical SkillSpector report](security/skillspector-report.md)
