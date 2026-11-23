@@ -402,3 +402,61 @@ test('the wrapper passes the command exit code through and records an expected-p
   assert.deepEqual(observer.parseDockerPs('abc123abc123\ttestcontainers/ryuk:0.5\t0.0.0.0:55100->8080/tcp\t\nfeed12345678\tredis:7\t0.0.0.0:55001->6379/tcp, :::55001->6379/tcp\tvulpora.run=r1,x=y\nbeef12345678\tredis:7\t0.0.0.0:16379->6379/tcp\t\n', ['vulpora.run=r1'])
     .map((item) => `${item.kind}:${item.port}`), ['infrastructure:55100', 'run-owned:55001', 'run-owned:55001']);
 });
+
+// ---- Java example (G1 / G2) ---------------------------------------------------------------------------------------------
+
+const hasJdk = spawnSync('javac', ['-version']).status === 0 && spawnSync('java', ['-version']).status === 0;
+
+test('The Java guard refuses a decoy port, passes a run-owned one, and fails closed without listener evidence', {skip: hasJdk ? false : 'JDK unavailable'}, async (t) => {
+  const root = workspace(t);
+  const bait = await decoy(t);
+  const listenersFile = path.join(root, 'listeners.json');
+  assert.equal(node('snapshot-listeners.js', '--out', listenersFile).status, 0);
+  const driver = write(root, 'Driver.java', `import example.e2e.EndpointGuardInitializer;
+import java.util.Map;
+public class Driver { public static void main(String[] a) {
+  try {
+    if (a[0].equals("client")) EndpointGuardInitializer.checkClients(Map.of("redisConnectionFactory", a[1]));
+    else EndpointGuardInitializer.checkProperties(Map.of("spring.data.redis.url", a[1], "note", "line1\\nquote\\"back\\\\slash", "password", "hunter2"));
+  } catch (EndpointGuardInitializer.Refused refused) { System.out.println(refused.getMessage()); System.exit(3); }
+  catch (IllegalStateException other) { System.out.println(other.getMessage()); System.exit(9); }
+} }
+`);
+  const classes = path.join(root, 'classes');
+  const compiled = spawnSync('javac', ['-d', classes, path.resolve(__dirname, '../reference/examples/EndpointGuardInitializer.java'), driver], {encoding: 'utf8'});
+  assert.equal(compiled.status, 0, compiled.stderr);
+  const isolationDir = path.join(root, 'iso');
+  const runJava = (args, env = {}) => new Promise((resolve) => {
+    const child = spawn('java', ['-cp', classes, `-Dvulpora.scripts.dir=${scripts}`, `-Dvulpora.isolation.dir=${isolationDir}`, 'Driver', ...args],
+      {env: {...process.env, VULPORA_LISTENER_SNAPSHOT: listenersFile, ...env}});
+    let output = '';
+    child.stdout.on('data', (chunk) => { output += chunk; });
+    child.stderr.on('data', (chunk) => { output += chunk; });
+    child.on('close', (code) => resolve({code, output}));
+  });
+
+  const refused = await runJava(['prestart', `redis://127.0.0.1:${bait.port}`]);
+  assert.equal(refused.code, 3, refused.output);
+  assert.match(refused.output, /REFUSED \(PRESTART_ENDPOINT_NOT_OWNED\)/);
+  const findings = JSON.parse(fs.readFileSync(path.join(isolationDir, 'prestart-findings-prestart.json'), 'utf8'));
+  assert.equal(findings.refused, true);
+  assert.ok(!JSON.stringify(findings).includes('hunter2'));
+  assert.deepEqual(fs.readdirSync(isolationDir).filter((name) => name.startsWith('prestart-prestart-')), [], 'the temporary property file is deleted');
+
+  assert.equal((await runJava(['prestart', 'redis://127.0.0.1:1'])).code, 0);
+  const clientRefused = await runJava(['client', `127.0.0.1:${bait.port}`]);
+  assert.equal(clientRefused.code, 3);
+  assert.match(clientRefused.output, /CLIENT_ENDPOINT_NOT_OWNED/);
+
+  // owned through environment.json
+  const environment = write(root, 'environment.json', {schemaVersion: 2, endpoints: [{kind: 'redis', host: '127.0.0.1', port: bait.port, containerId: 'a'.repeat(12), propertyKeys: []}]});
+  assert.equal((await runJava(['prestart', `redis://127.0.0.1:${bait.port}`], {VULPORA_ISOLATION_ENVIRONMENT: environment})).code, 0);
+  // warn mode is explicit and recorded
+  const warn = await runJava(['prestart', `redis://127.0.0.1:${bait.port}`], {VULPORA_ISOLATION_PRESTART: 'warn'});
+  assert.equal(warn.code, 0, warn.output);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(isolationDir, 'prestart-findings-prestart.json'), 'utf8')).refusalSuppressed, true);
+  // no listener evidence: fail closed
+  const noEvidence = await runJava(['prestart', 'redis://127.0.0.1:1'], {VULPORA_LISTENER_SNAPSHOT: path.join(root, 'missing.json')});
+  assert.equal(noEvidence.code, 9, noEvidence.output);
+  assert.equal(bait.accepted.length, 0, 'the guard never connects to the decoy');
+});
