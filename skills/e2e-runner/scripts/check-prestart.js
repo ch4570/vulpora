@@ -39,8 +39,23 @@ function localAddresses() {
   return addresses;
 }
 
+// inet_aton-style spellings of an IPv4 address (`127.1`, `2130706433`, `0x7f.1`): 1 to 4 numeric parts.
+function legacyIpv4(name) {
+  const parts = name.split('.');
+  if (parts.length < 1 || parts.length > 4 || parts.some((part) => !/^(0x[0-9a-f]+|\d+)$/i.test(part))) return null;
+  const numbers = parts.map((part) => Number(part));
+  if (numbers.some((value) => !Number.isFinite(value))) return null;
+  const last = numbers[numbers.length - 1];
+  const head = numbers.slice(0, -1);
+  if (head.some((value) => value > 255) || last >= 256 ** (4 - head.length)) return null;
+  return head.reduce((total, value, index) => total + value * 256 ** (3 - index), 0) + last;
+}
+
 function isLocalHost(host, local = localAddresses()) {
-  const name = host.toLowerCase().replace(/^\[|\]$/g, '').replace(/%.*$/, '');
+  const name = host.toLowerCase().replace(/^\[|\]$/g, '').replace(/%.*$/, '').replace(/\.$/, '');
+  const legacy = legacyIpv4(name);
+  if (legacy !== null && (Math.floor(legacy / 2 ** 24) === 127 || legacy === 0)) return true;
+  if (/^(0:){5}ffff:7f[0-9a-f]{2}:[0-9a-f]{1,4}$/.test(name) || /^::ffff:7f[0-9a-f]{2}:[0-9a-f]{1,4}$/.test(name)) return true;
   if (LOCAL_NAMES.has(name) || name.endsWith('.localhost')) return true;
   if (/^127\.\d+\.\d+\.\d+$/.test(name) || name === '::1' || name === '0.0.0.0' || name === '::' || name === '0:0:0:0:0:0:0:1') return true;
   if (/^::ffff:127\./i.test(name)) return true;
@@ -58,7 +73,8 @@ function flatten(value, prefix = '', out = {}) {
   return out;
 }
 
-const URL_PATTERN = /([a-z][a-z0-9+.-]*):\/\/(?:[^\/\s@?#]*@)?(\[[0-9a-f:.]+\]|[A-Za-z0-9._-]+)(?::(\d{1,5}))?/gi;
+// The userinfo may contain an unencoded '@' (a password); the greedy match ends at the last '@' of the authority.
+const URL_PATTERN = /([a-z][a-z0-9+.-]*):\/\/(?:[^\/\s?#]*@)?(\[[0-9a-f:.]+\]|[A-Za-z0-9._-]+)(?::(\d{1,5}))?/gi;
 const HOSTPORT_PATTERN = /(?<![\w.\/@-])(\[[0-9a-f:.]+\]|(?:\d{1,3}\.){3}\d{1,3}|[A-Za-z][A-Za-z0-9-]*(?:\.[A-Za-z0-9-]+)*):(\d{2,5})(?![\w:])/gi;
 
 function validPort(port) { return Number.isInteger(port) && port > 0 && port <= 65535; }
@@ -101,7 +117,8 @@ function extractCandidates(flat) {
   for (const [prefix, bucket] of byPrefix) {
     if (bucket.host && bucket.port) {
       const hostValue = flat[bucket.host];
-      if (!/[:/]/.test(hostValue)) add(bucket.host, hostValue, Number(flat[bucket.port]), 'host-and-port-keys', true);
+      // `server.address` + `server.port` is the application's own bind, not a client endpoint.
+      if (!/[:/]/.test(hostValue) && !OWN_BIND_PORT.test(bucket.port)) add(bucket.host, hostValue, Number(flat[bucket.port]), 'host-and-port-keys', true);
     } else if (bucket.port && !bucket.host && !OWN_BIND_PORT.test(bucket.port)) {
       // A port key with no host key: the client falls back to its default host, which is this machine.
       add(bucket.port, 'localhost', Number(flat[bucket.port]), 'port-key-default-host', false);
@@ -232,6 +249,7 @@ function main(argv) {
     const findings = scanProperties({properties, listeners: snapshot.listeners, ownedPorts, exceptions: accepted, rejectedExceptions: rejected,
       phase: options.phase, mode: options.mode});
     findings.listenerSnapshotAt = snapshot.takenAt ?? null;
+    if (options.now !== undefined) findings.nowOverride = new Date(options.now).toISOString(); // a clock override is part of the record
     const text = `${JSON.stringify(findings, null, 2)}\n`;
     if (options.out) fs.writeFileSync(options.out, text); else process.stdout.write(text);
     if (findings.refused) { process.stderr.write(`${refusalMessage(findings)}\n`); return 3; }

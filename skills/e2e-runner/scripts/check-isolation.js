@@ -91,7 +91,7 @@ function verifyOwnership({environment, baselineIds, labels, dockerFixture}) {
     if (!id) { fail(error ? 'container could not be inspected' : 'container not found'); continue; }
     if (baselineIds && baselineIds.some((existing) => idMatches(existing, id))) { fail('container existed before the run'); continue; }
     const container = info.get(id);
-    const missing = labels.filter((label) => { const [key, value] = label.split('='); return container.labels[key] !== value; });
+    const missing = labels.filter((label) => { const at = label.indexOf('='); return container.labels[label.slice(0, at)] !== label.slice(at + 1); });
     if (missing.length > 0) { fail(`container lacks run label ${missing.join(', ')}`); continue; }
     if (!container.ports.includes(endpoint.port)) { fail('port is not published by that container'); continue; }
     verified.push(base);
@@ -181,7 +181,12 @@ function main(argv) {
     for (const violation of ownership.violations) warn('ENDPOINT_NOT_RUN_OWNED', violation.reason, {kind: violation.kind, port: violation.port, containerId: violation.containerId});
 
     const sharedPorts = new Set([...(receipt.policy?.sharedPorts || []), ...options.sharedPorts]);
-    const ownedPorts = [...(receipt.ownedPorts || []).filter((entry) => entry.kind === 'run-owned'),
+    // A labelled container that already existed before the run (stale, or a non-unique label) is not run-owned.
+    const preExisting = (entry) => Boolean(baseline && Array.isArray(baseline.ids) && baseline.ids.some((existing) => idMatches(existing, entry.containerId)));
+    for (const entry of (receipt.ownedPorts || []).filter((item) => item.kind === 'run-owned' && preExisting(item))) {
+      warn('OWNED_PORT_CONTAINER_PRE_EXISTING', `container ${String(entry.containerId).slice(0, 12)} published port ${entry.port} but existed before the run`, {port: entry.port});
+    }
+    const ownedPorts = [...(receipt.ownedPorts || []).filter((entry) => entry.kind === 'run-owned' && !preExisting(entry)),
       ...ownership.verified.map((entry) => ({port: entry.port, containerId: entry.containerId}))];
     const classified = classifyConnections({receipt, snapshot, ownedPorts, sharedPorts, allowRemote: options.allowRemote});
 
@@ -201,9 +206,14 @@ function main(argv) {
       if (findings.refused) for (const violation of findings.violations) prestartRefusals.push({code: violation.code, key: violation.key, host: violation.host, port: violation.port});
       if (findings.refusalSuppressed) warn('PRESTART_REFUSAL_SUPPRESSED', `the ${findings.phase} scan ran in warn mode; start would have been refused`);
       for (const entry of findings.exceptionsApplied || []) { exceptionsApplied.push({...entry, phase: findings.phase}); warn('PRESTART_EXCEPTION_APPLIED', `${entry.id} (owner ${entry.owner}, expires ${entry.expires}) allowed ${entry.host}:${entry.port}`, {id: entry.id}); }
+      if (findings.scanned && findings.scanned.properties === 0) warn('PRESTART_SCAN_EMPTY', `the ${findings.phase} scan saw no values, so it proves nothing`);
+      if (findings.nowOverride) warn('PRESTART_CLOCK_OVERRIDDEN', `the ${findings.phase} scan used a clock override (${findings.nowOverride})`);
       for (const warning of findings.warnings || []) if (warning.code !== 'PRESTART_REFUSAL_SUPPRESSED') warnings.push({...warning, phase: findings.phase});
     }
-    if (options.prestart.length === 0) warn('PRESTART_SCAN_MISSING', 'no pre-start scan findings were provided');
+    for (const phase of ['prestart', 'client']) {
+      const present = options.prestart.filter((file) => { try { return readJson(file, 'prestart findings').phase === phase; } catch { return false; } });
+      if (present.length === 0) warn(phase === 'prestart' ? 'PRESTART_SCAN_MISSING' : 'CLIENT_SCAN_MISSING', `no ${phase} scan findings were provided`);
+    }
 
     if (receipt.observation && receipt.observation.samples === 0) warn('NO_SAMPLES', 'the observed tree was never sampled');
     const verified = unverified.length === 0 && classified.shared.length === 0 && prestartRefusals.length === 0;
@@ -224,7 +234,7 @@ function main(argv) {
       prestartRefusals,
       exceptionsApplied,
       warnings,
-      scope: `Observed by polling ${receipt.observation?.pollIntervalMs ?? '?'} ms apart (longest gap ${receipt.observation?.maxGapMs ?? '?'} ms); a connection shorter than the interval can be missed. "No shared contact" means none within what was observed.`,
+      scope: `Only listeners of the current user were visible to the pre-run snapshot, and only TCP was observed (a Unix-socket or UDP path is not covered). Observed by polling ${receipt.observation?.pollIntervalMs ?? '?'} ms apart (longest gap ${receipt.observation?.maxGapMs ?? '?'} ms); a connection shorter than the interval can be missed. "No shared contact" means none within what was observed.`,
     };
     fs.writeFileSync(options.out, `${JSON.stringify(isolation, null, 2)}\n`);
     process.stdout.write(`${JSON.stringify({isolation: options.out, verified, sharedContacts: classified.shared.length, prestartRefusals: prestartRefusals.length, warnings: warnings.length})}\n`);

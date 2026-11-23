@@ -213,6 +213,8 @@ If `lsof` is unusable the wrapper does not run the command (`ISOLATION_GUARD_UNA
 `--allow-unobserved` is given, which records an observer gap. Run Gradle with `--no-daemon`: a reused daemon starts the
 test JVM outside the observed tree, which is recorded as an observer gap. Dependency downloads from a non-loopback address
 count as shared contacts; resolve dependencies before the observed run or use the build tool's offline mode.
+Known blind spots, stated so a report does not overclaim: `lsof` shows only the current user's processes; only TCP is observed (not Unix sockets or UDP);
+an address spelled as a DNS name that resolves to this machine is only a warning; a short connection can fall between polls.
 Only `isolation_verified: true` permits the words "no shared-resource contact". Anything else (missing record, observer
 gap, unproven endpoint, unattributed contact, applied exception) is "isolation not verified" and the report MUST say that instead.
 

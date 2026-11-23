@@ -353,3 +353,32 @@ public class Main { public static void main(String[] a) throws Exception {
   const verdict = JSON.parse(node('evaluate-run-verdict.js', path.join(root, 'report/java-run.json')).stdout);
   assert.equal(verdict.verdict, 'PASS', JSON.stringify(verdict.reasons));
 });
+
+test('Assembly refuses an isolation record with a missing shape or an escaping receipt path, and the validator rejects a record that disagrees with its receipt', t => {
+  const {root} = workspace(t);
+  const noContacts = isolationRecord(root);
+  const doc = JSON.parse(fs.readFileSync(noContacts, 'utf8'));
+  delete doc.sharedContacts;
+  fs.writeFileSync(noContacts, JSON.stringify(doc));
+  assert.equal(assemble(root, V2_ENVIRONMENT, noContacts).assembled.status, 64);
+
+  const escape = workspace(t);
+  const record = isolationRecord(escape.root);
+  const parsed = JSON.parse(fs.readFileSync(record, 'utf8'));
+  parsed.receipt.path = '../outside.json';
+  fs.writeFileSync(record, JSON.stringify(parsed));
+  fs.writeFileSync(path.join(escape.root, 'outside.json'), '{}');
+  const escaped = assemble(escape.root, V2_ENVIRONMENT, record).assembled;
+  assert.equal(escaped.status, 64);
+  assert.match(escaped.stderr, /inside the isolation record directory/);
+
+  // a record that says verified over a genuine receipt that recorded a gap and unattributed connections
+  const forged = workspace(t);
+  const receiptText = JSON.stringify({schema: 'vulpora.isolation-receipt/v1', observation: {samples: 5}, observerGaps: [{kind: 'POLL_GAP'}], connections: [{remotePort: 1}]});
+  const built = assemble(forged.root, V2_ENVIRONMENT, isolationRecord(forged.root, {observation: {samples: 5}}, receiptText));
+  assert.equal(built.assembled.status, 0, built.assembled.stderr);
+  const {errors} = JSON.parse(node('validate-run-result.js', built.runPath).stdout);
+  for (const pattern of [/observerGaps does not match the receipt/, /verified is true although the receipt records observer gaps/, /none were attributed/]) {
+    assert.ok(errors.some((message) => pattern.test(message)), `${pattern}: ${errors.join(' | ')}`);
+  }
+});

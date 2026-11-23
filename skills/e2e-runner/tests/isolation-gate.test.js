@@ -207,7 +207,10 @@ function check(t, {connections = [], snapshot = SHARED, environment, docker, bas
   const args = ['--receipt', write(root, 'isolation-receipt.json', base), '--out', path.join(root, 'isolation.json'), '--label', 'vulpora.run=r1', '--baseline', write(root, 'baseline.json', baseline), ...extraArgs];
   if (environment) args.push('--environment', write(root, 'environment.json', environment));
   if (docker) args.push('--docker-inspect', write(root, 'docker.json', docker));
-  if (prestartFindings) args.push('--prestart', write(root, 'prestart.json', prestart.scanProperties({properties: {}, listeners: []})));
+  if (prestartFindings) {
+    // both scans ran and saw values (an empty scan proves nothing)
+    for (const phase of ['prestart', 'client']) args.push('--prestart', write(root, `${phase}.json`, prestart.scanProperties({properties: {'app.url': 'http://localhost:55001'}, listeners: [], ownedPorts: [55001], phase})));
+  }
   const result = node('check-isolation.js', ...args);
   assert.equal(result.status, 0, result.stderr);
   return {root, isolation: JSON.parse(fs.readFileSync(path.join(root, 'isolation.json'), 'utf8'))};
@@ -294,6 +297,7 @@ test('check-isolation: missing or tampered evidence leaves the run unverified in
   // pre-start scan never ran
   const noScan = check(t, {connections: [connection(55001)], environment: ownedEnvironment, docker: ownedDocker, prestartFindings: false});
   assert.ok(noScan.isolation.warnings.some((item) => item.code === 'PRESTART_SCAN_MISSING'));
+  assert.ok(noScan.isolation.warnings.some((item) => item.code === 'CLIENT_SCAN_MISSING'));
   // a declared endpoint nobody used
   const unused = check(t, {connections: [], environment: ownedEnvironment, docker: ownedDocker});
   assert.ok(unused.isolation.warnings.some((item) => item.code === 'OWNED_ENDPOINT_UNUSED'));
@@ -459,4 +463,49 @@ public class Driver { public static void main(String[] a) {
   const noEvidence = await runJava(['prestart', 'redis://127.0.0.1:1'], {VULPORA_LISTENER_SNAPSHOT: path.join(root, 'missing.json')});
   assert.equal(noEvidence.code, 9, noEvidence.output);
   assert.equal(bait.accepted.length, 0, 'the guard never connects to the decoy');
+});
+
+// ---- fixes from review ----------------------------------------------------------------------------------------------------
+
+test('review: odd URL and host spellings are still recognised as this machine', () => {
+  const refuses = (value) => prestart.scanProperties({properties: {'x.url': value}, listeners: SHARED.listeners}).refused;
+  assert.equal(refuses('redis://:p@ss@localhost:7101'), true, 'an unencoded @ in a password must not hide the host');
+  assert.equal(refuses('redis://127.1:7101'), true);
+  assert.equal(refuses('redis://localhost.:7101'), true);
+  assert.equal(refuses('redis://2130706433:7101'), true);
+  assert.equal(refuses('redis://[::ffff:7f00:1]:7101'), true);
+  assert.equal(refuses('redis://[0:0:0:0:0:ffff:7f00:1]:7101'), true);
+  assert.equal(refuses('redis://10.255.255.1:7101'), false, 'a different network is only a warning');
+  assert.equal(prestart.scanProperties({properties: {server: {address: '127.0.0.1', port: 7101}}, listeners: SHARED.listeners}).refused, false, 'the application\'s own bind');
+});
+
+test('review: a data service with a debug agent is shared, an editor helper is local, code-server is not', () => {
+  assert.equal(listeners.classifyListener({command: 'java', args: '-agentlib:jdwp=transport=dt_socket kafka.Kafka'}).category, 'shared-resource');
+  assert.equal(listeners.classifyListener({command: 'java', args: '-agentlib:jdwp=transport=dt_socket app.jar'}).category, 'local-tool');
+  assert.equal(listeners.classifyListener({command: 'java', args: 'org.gradle.launcher.daemon.bootstrap.GradleDaemon'}).category, 'local-tool');
+  assert.equal(listeners.classifyListener({command: 'code'}).category, 'local-tool');
+  assert.equal(listeners.classifyListener({command: 'code-server'}).category, 'unknown');
+});
+
+test('review: a pre-existing labelled container is not run-owned, label values may contain =, empty scans are flagged, clock overrides are recorded', (t) => {
+  const stale = 'f'.repeat(64);
+  const out = check(t, {connections: [connection(55555)], environment: ownedEnvironment, docker: ownedDocker, baseline: {labels: ['vulpora.run=r1'], ids: [stale]},
+    receiptOverrides: {ownedPorts: [{port: 55555, containerId: stale, image: 'redis:7', kind: 'run-owned'}]}});
+  assert.deepEqual(out.isolation.sharedContacts, [], 'no listener snapshot entry for 55555, so it is unattributed rather than owned');
+  assert.ok(out.isolation.warnings.some((item) => item.code === 'OWNED_PORT_CONTAINER_PRE_EXISTING'));
+  assert.deepEqual(out.isolation.ownedContacts, []);
+  assert.equal(out.isolation.verified, false);
+  const eq = check(t, {connections: [connection(55001)], environment: ownedEnvironment, docker: {containers: {['a'.repeat(64)]: {labels: {'vulpora.run': 'r=1'}, ports: [55001]}}}, extraArgs: []});
+  assert.ok(eq.isolation.ownershipViolations.length > 0, 'a label that does not match is a violation');
+  const empty = prestart.scanProperties({properties: {}, listeners: []});
+  assert.equal(empty.scanned.properties, 0);
+  const root = workspace(t);
+  const base = check(t, {environment: ownedEnvironment, docker: ownedDocker, prestartFindings: false});
+  const result = node('check-isolation.js', '--receipt', path.join(base.root, 'isolation-receipt.json'), '--out', path.join(root, 'i.json'), '--label', 'vulpora.run=r1',
+    '--prestart', write(root, 'p.json', {...empty, nowOverride: '2020-01-01T00:00:00.000Z'}), '--prestart', write(root, 'c.json', {...empty, phase: 'client'}));
+  assert.equal(result.status, 0, result.stderr);
+  const codes = JSON.parse(fs.readFileSync(path.join(root, 'i.json'), 'utf8')).warnings.map((item) => item.code);
+  assert.ok(codes.includes('PRESTART_SCAN_EMPTY') && codes.includes('PRESTART_CLOCK_OVERRIDDEN'), codes.join());
+  const clocked = node('check-prestart.js', '--properties', write(root, 'props.json', {a: 1}), '--listeners', write(root, 'l.json', SHARED), '--now', '2020-01-01T00:00:00Z', '--out', path.join(root, 'f.json'));
+  assert.equal(JSON.parse(fs.readFileSync(path.join(root, 'f.json'), 'utf8')).nowOverride, '2020-01-01T00:00:00.000Z', String(clocked.status));
 });

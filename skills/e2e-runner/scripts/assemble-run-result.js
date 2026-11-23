@@ -123,16 +123,25 @@ function normalizeEnvironment(environment) {
 function embedIsolation(file) {
   const isolation = readJson(file);
   if (isolation.schema !== 'vulpora.isolation/v1') fail('isolation must come from check-isolation.js');
-  const source = path.resolve(path.dirname(file), isolation.receipt?.path || '');
-  if (!isolation.receipt?.path || !fs.existsSync(source)) fail('isolation receipt is missing');
+  for (const key of ['sharedContacts', 'ownershipViolations', 'prestartRefusals', 'warnings']) {
+    if (isolation[key] !== undefined && !Array.isArray(isolation[key])) fail(`isolation.${key} must be an array`);
+  }
+  if (!Array.isArray(isolation.sharedContacts) || typeof isolation.verified !== 'boolean') fail('isolation needs verified (boolean) and sharedContacts (array)');
+  const base = path.resolve(path.dirname(file));
+  const source = path.resolve(base, isolation.receipt?.path || '');
+  if (!isolation.receipt?.path || !source.startsWith(`${base}${path.sep}`)) fail('isolation receipt must be a file inside the isolation record directory');
+  if (!fs.existsSync(source)) fail('isolation receipt is missing');
   const receiptText = fs.readFileSync(source);
   if (crypto.createHash('sha256').update(receiptText).digest('hex') !== isolation.receipt.sha256) fail('isolation receipt does not match its recorded sha256');
   fs.mkdirSync(path.join(outDir, 'isolation'), {recursive: true});
   fs.writeFileSync(path.join(outDir, 'isolation', 'isolation-receipt.json'), receiptText);
   try {
     const receipt = JSON.parse(receiptText.toString('utf8'));
-    const snapshot = path.resolve(path.dirname(source), receipt.listenerSnapshot?.path || '');
-    if (receipt.listenerSnapshot?.path && fs.existsSync(snapshot)) fs.copyFileSync(snapshot, path.join(outDir, 'isolation', path.basename(receipt.listenerSnapshot.path)));
+    const name = receipt.listenerSnapshot?.path ? path.basename(receipt.listenerSnapshot.path) : null;
+    const snapshot = name ? path.join(path.dirname(source), name) : null;
+    if (snapshot && fs.existsSync(snapshot) && crypto.createHash('sha256').update(fs.readFileSync(snapshot)).digest('hex') === receipt.listenerSnapshot.sha256) {
+      fs.copyFileSync(snapshot, path.join(outDir, 'isolation', name));
+    }
   } catch { /* an unreadable receipt was already rejected by the hash check above only if altered; the validator re-reads it */ }
   return maskValue({...isolation, receipt: {path: 'isolation/isolation-receipt.json', sha256: isolation.receipt.sha256}}, maskKeys);
 }

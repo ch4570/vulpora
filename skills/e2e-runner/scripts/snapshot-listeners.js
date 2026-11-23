@@ -61,19 +61,23 @@ function parseSocketName(name) {
 }
 
 const SHARED_COMMANDS = /^(com\.docker|docker|vpnkit|orbstack|colima|limactl|qemu|rancher|rdctl|podman|gvproxy|postgres|redis|mysqld|mongod|memcached|localstack|minio|kafka|opensearch|elasticsearch|rabbit|beam\.smp|clickhouse|nats|etcd|consul|vault|ssh|kubectl)/i;
-const LOCAL_TOOL_COMMANDS = /^(idea|webstorm|pycharm|goland|rider|clion|phpstorm|datagrip|studio|code|cursor|electron|rapportd|controlce|controlcenter|sharingd|airplay|identityse|mdnsresponder|trustd|nsurlsess)/i;
-const LOCAL_TOOL_ARGS = /GradleDaemon|org\.gradle\.launcher\.daemon|KotlinCompileDaemon|jdwp|JetBrains|\bmvnd\b|language-server|jdtls/i;
+const LOCAL_TOOL_COMMANDS = /^(idea|webstorm|pycharm|goland|rider|clion|phpstorm|datagrip|studio|cursor|electron|rapportd|controlce|controlcenter|sharingd|airplay|identityse|mdnsresponder|trustd|nsurlsess)/i;
+const EDITOR_COMMAND = /^code( helper.*)?$/i; // `code-server` is a network service, not the editor
+// Build-tool and IDE daemons are recognised by name first; a debug agent or language server is only a weak hint, so a data service wins over it.
+const STRONG_LOCAL_ARGS = /GradleDaemon|org\.gradle\.launcher\.daemon|KotlinCompileDaemon|JetBrains|\bmvnd\b/i;
+const WEAK_LOCAL_ARGS = /jdwp|language-server|jdtls/i;
 const SHARED_ARGS = /kafka|opensearch|elasticsearch|zookeeper|cassandra/i;
 
 // Process names are a heuristic. A wrong "local-tool" entry hides a contact as a warning; a missing one
 // turns a harmless contact into a breach. Both are expected to be tuned during the observation period.
 function classifyListener({command = '', args = ''}) {
   if (/^(java|javaw)$/i.test(command)) {
-    if (LOCAL_TOOL_ARGS.test(args)) return {category: 'local-tool', rule: 'java-build-or-ide-process'};
+    if (STRONG_LOCAL_ARGS.test(args)) return {category: 'local-tool', rule: 'java-build-or-ide-process'};
     if (SHARED_ARGS.test(args)) return {category: 'shared-resource', rule: 'java-data-service'};
+    if (WEAK_LOCAL_ARGS.test(args)) return {category: 'local-tool', rule: 'java-debug-or-language-server'};
     return {category: 'unknown', rule: 'java-unclassified'};
   }
-  if (LOCAL_TOOL_COMMANDS.test(command)) return {category: 'local-tool', rule: 'known-local-tool'};
+  if (LOCAL_TOOL_COMMANDS.test(command) || EDITOR_COMMAND.test(command)) return {category: 'local-tool', rule: 'known-local-tool'};
   if (SHARED_COMMANDS.test(command)) return {category: 'shared-resource', rule: 'known-shared-resource'};
   return {category: 'unknown', rule: 'unclassified'};
 }

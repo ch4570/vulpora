@@ -132,6 +132,18 @@ if (isolation !== undefined) {
       else if (!fs.existsSync(absolute)) error(`isolation receipt does not exist: ${receiptPath}`);
       else if (require('node:crypto').createHash('sha256').update(fs.readFileSync(absolute)).digest('hex') !== isolation.receipt.sha256) error('isolation receipt does not match its recorded sha256');
     }
+    // The record must agree with the receipt it names, so a hand-edited record over a genuine receipt is caught.
+    try {
+      const receipt = JSON.parse(fs.readFileSync(path.resolve(path.dirname(runPath), receiptPath), 'utf8'));
+      const gaps = Array.isArray(receipt.observerGaps) ? receipt.observerGaps.length : 0;
+      if ((isolation.observerGaps || []).length !== gaps) error('isolation.observerGaps does not match the receipt');
+      if (JSON.stringify(isolation.observation ?? null) !== JSON.stringify(receipt.observation ?? null)) error('isolation.observation does not match the receipt');
+      if (isolation.verified === true && gaps > 0) error('isolation.verified is true although the receipt records observer gaps');
+      const remoteOrUnknown = (receipt.connections || []).length;
+      if (isolation.verified === true && remoteOrUnknown > 0 && !(isolation.ownedContacts || []).length && !(isolation.infrastructureContacts || []).length && !(isolation.localToolContacts || []).length) {
+        error('isolation.verified is true although the receipt has connections and none were attributed');
+      }
+    } catch { /* an unreadable receipt was already reported by the hash check */ }
     for (const violation of Array.isArray(isolation.ownershipViolations) ? isolation.ownershipViolations : []) {
       warn(`environment endpoint ${violation.kind ?? '?'}:${violation.port ?? '?'} is not proven run-owned (${violation.reason ?? 'unknown reason'})`);
     }
