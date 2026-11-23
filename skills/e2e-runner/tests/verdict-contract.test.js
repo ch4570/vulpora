@@ -219,6 +219,89 @@ try {
     input.execution.slowTestExclusions.push({ id: 'E2E-MISSING', reason: 'budget' });
   });
 
+  // ---- RUN-7.1d isolation input -------------------------------------------------------------
+  const cleanIsolation = () => ({ verified: true, sharedContacts: [], prestartRefusals: [], warnings: [] });
+  const breach = () => ({
+    ...cleanIsolation(), verified: false,
+    sharedContacts: [{ remoteAddress: '127.0.0.1', remotePort: 16379, process: { pid: 42, command: 'java' }, firstSeen: '2026-11-23T00:00:01Z', lastSeen: '2026-11-23T00:00:03Z' }],
+  });
+
+  // Without isolation input the verdict is unchanged but the report may not claim isolation.
+  const noIsolation = expectVerdict('isolation-absent', () => {}, 'PASS', 0);
+  assert.equal(noIsolation.output.isolation_verified, false);
+  assert.deepEqual(noIsolation.output.isolation_warnings.map((warning) => warning.code), ['ISOLATION_EVIDENCE_MISSING']);
+  assert.equal(noIsolation.output.humanSummary.length, 5);
+  assert.equal(noIsolation.output.humanSummary[4], 'isolation: not verified (ISOLATION_EVIDENCE_MISSING)');
+
+  const verified = expectVerdict('isolation-verified', (input) => { input.isolation = cleanIsolation(); }, 'PASS', 0);
+  assert.equal(verified.output.isolation_verified, true);
+  assert.equal(verified.output.humanSummary[4], 'isolation: verified');
+
+  const unverified = expectVerdict('isolation-unverified-keeps-verdict', (input) => {
+    input.isolation = { ...cleanIsolation(), verified: false, unverifiedReasons: ['observer gap: no test JVM in the observed tree'],
+      warnings: [{ code: 'OBSERVER_GAP' }] };
+  }, 'PASS', 0);
+  assert.equal(unverified.output.isolation_verified, false);
+  assert.equal(unverified.output.humanSummary[4], 'isolation: not verified (observer gap: no test JVM in the observed tree)');
+
+  // A real contact is a new verdict with its own exit code, and the exit code is never 0.
+  const breached = expectVerdict('isolation-breach', (input) => { input.isolation = breach(); }, 'ISOLATION_BREACH', 5);
+  assert.deepEqual(breached.output.reasons.map((reason) => `${reason.code} ${reason.remoteAddress}:${reason.remotePort}`), ['SHARED_ENDPOINT_CONTACT 127.0.0.1:16379']);
+  assert.equal(breached.output.isolation_verified, false);
+  assert.equal(breached.output.humanSummary[4], 'isolation: BREACH (127.0.0.1:16379)');
+
+  // Priority: the breach outranks BLOCKED, INCONCLUSIVE, and PARTIAL, and keeps them visible.
+  const outranks = expectVerdict('isolation-breach-outranks', (input) => {
+    input.isolation = breach();
+    input.execution.supportedStack = false;
+    input.lifecycle.cleanup.status = 'FAIL';
+    input.selection.collectedCount += 1;
+    input.testCases.push({ id: 'E2E-SEARCH', priority: 'P1', selected: true, executed: true, status: 'FAIL', detail: 'ranking mismatch' });
+  }, 'ISOLATION_BREACH', 5);
+  assert.deepEqual(outranks.output.secondaryReasons.map((reason) => reason.code).sort(),
+    ['CLEANUP_NOT_PASS', 'NON_P0_NOT_PASS', 'UNSUPPORTED_STACK']);
+
+  // Neither --diagnostic-only nor a payload field can lower a breach (RUN-18.2).
+  const diagnosticBreach = expectVerdict('isolation-breach-diagnostic', (input) => {
+    input.isolation = breach();
+    input.testCases[0].status = 'FAIL';
+  }, 'ISOLATION_BREACH', 5, ['--diagnostic-only']);
+  assert.equal(diagnosticBreach.output.qualifying_pass, false);
+  expectVerdict('isolation-breach-payload-mode', (input) => { input.isolation = breach(); input.mode = 'diagnostic-only'; }, 'ISOLATION_BREACH', 5);
+
+  // Pre-start refusal (owner decision 3): nothing ran, so it is BLOCKED and outranks INCONCLUSIVE.
+  const refused = expectVerdict('isolation-prestart-refused', (input) => {
+    input.isolation = { ...cleanIsolation(), verified: false, prestartRefusals: [
+      { code: 'PRESTART_ENDPOINT_NOT_OWNED', key: 'spring.data.redis.host', host: 'localhost', port: 16379 }] };
+    input.testCases[0].executed = false;
+    input.testCases[0].status = 'SKIPPED';
+  }, 'BLOCKED', 3);
+  assert.deepEqual(refused.output.reasons, [{ code: 'PRESTART_ENDPOINT_NOT_OWNED', key: 'spring.data.redis.host', host: 'localhost', port: 16379 }]);
+  assert.equal(refused.output.humanSummary[4], 'isolation: not verified (start refused: localhost:16379)');
+  const clientRefused = expectVerdict('isolation-client-refused', (input) => {
+    input.isolation = { ...cleanIsolation(), prestartRefusals: [{ code: 'CLIENT_ENDPOINT_NOT_OWNED', host: '127.0.0.1', port: 4566 }] };
+  }, 'BLOCKED', 3);
+  assert.equal(clientRefused.output.reasons[0].code, 'CLIENT_ENDPOINT_NOT_OWNED');
+
+  // A breach beats a refusal; a diagnostic run cannot lower a refusal either.
+  expectVerdict('isolation-breach-beats-refusal', (input) => {
+    input.isolation = { ...breach(), prestartRefusals: [{ code: 'PRESTART_ENDPOINT_NOT_OWNED', host: 'localhost', port: 5432 }] };
+  }, 'ISOLATION_BREACH', 5);
+  expectVerdict('isolation-refusal-diagnostic', (input) => {
+    input.isolation = { ...cleanIsolation(), prestartRefusals: [{ code: 'PRESTART_ENDPOINT_NOT_OWNED', host: 'localhost', port: 5432 }] };
+    input.testCases[0].status = 'FAIL';
+  }, 'BLOCKED', 3, ['--diagnostic-only']);
+
+  // Malformed isolation input is a usage error (64), never a silent pass.
+  expectInvalid('isolation-not-object', (input) => { input.isolation = 'clean'; });
+  expectInvalid('isolation-verified-missing', (input) => { input.isolation = { sharedContacts: [] }; });
+  expectInvalid('isolation-contacts-not-array', (input) => { input.isolation = { verified: true, sharedContacts: {} }; });
+  expectInvalid('isolation-contact-no-port', (input) => { input.isolation = { verified: false, sharedContacts: [{ remoteAddress: '127.0.0.1' }] }; });
+  expectInvalid('isolation-refusal-unknown-code', (input) => {
+    input.isolation = { ...cleanIsolation(), prestartRefusals: [{ code: 'WHATEVER' }] };
+  });
+  expectInvalid('isolation-warning-without-code', (input) => { input.isolation = { ...cleanIsolation(), warnings: [{}] }; });
+
   const aliasInput = path.join(work, 'diagnostic-alias.json');
   fs.writeFileSync(aliasInput, `${JSON.stringify(baseRun())}\n`);
   const alias = spawnSync(process.execPath, [evaluator, aliasInput, '--diagnostic'], { encoding: 'utf8' });

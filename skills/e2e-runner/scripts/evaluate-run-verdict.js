@@ -57,6 +57,39 @@ if (!isObject(run.lifecycle)
   failInput('lifecycle.cleanup, teardown, orphanAudit, and absenceProbes are required');
 }
 
+// Optional isolation input (RUN-7.1d). It is produced by check-isolation.js from observations the
+// model does not write. Absent input never changes a verdict; it only leaves `isolation_verified` false.
+const PRESTART_REFUSAL_CODES = new Set(['PRESTART_ENDPOINT_NOT_OWNED', 'CLIENT_ENDPOINT_NOT_OWNED']);
+const isolation = run.isolation === undefined ? null : run.isolation;
+if (isolation !== null) {
+  if (!isObject(isolation)) failInput('isolation must be an object');
+  if (typeof isolation.verified !== 'boolean') failInput('isolation.verified must be a boolean');
+  if (!Array.isArray(isolation.sharedContacts)) failInput('isolation.sharedContacts must be an array');
+  for (const contact of isolation.sharedContacts) {
+    if (!isObject(contact) || typeof contact.remoteAddress !== 'string' || contact.remoteAddress.length === 0
+      || !Number.isInteger(contact.remotePort) || contact.remotePort < 0 || contact.remotePort > 65535) {
+      failInput('each isolation.sharedContacts entry needs a remoteAddress string and an integer remotePort');
+    }
+  }
+  for (const field of ['prestartRefusals', 'warnings']) {
+    if (isolation[field] !== undefined && !Array.isArray(isolation[field])) failInput(`isolation.${field} must be an array`);
+  }
+  for (const refusal of isolation.prestartRefusals || []) {
+    if (!isObject(refusal) || !PRESTART_REFUSAL_CODES.has(refusal.code)) {
+      failInput(`each isolation.prestartRefusals entry needs a code of ${[...PRESTART_REFUSAL_CODES].join(' or ')}`);
+    }
+  }
+  for (const warning of isolation.warnings || []) {
+    if (!isObject(warning) || typeof warning.code !== 'string' || warning.code.length === 0) {
+      failInput('each isolation.warnings entry needs a non-empty code');
+    }
+  }
+  if (isolation.unverifiedReasons !== undefined
+    && (!Array.isArray(isolation.unverifiedReasons) || isolation.unverifiedReasons.some((reason) => typeof reason !== 'string'))) {
+    failInput('isolation.unverifiedReasons must be an array of strings');
+  }
+}
+
 const allowedPriorities = new Set(['P0', 'P1', 'P2', 'P3']);
 const allowedCaseStatuses = new Set(['PASS', 'FAIL', 'SKIPPED', 'FAILED-DEPENDENCY', 'PROBE-ERROR']);
 const allowedLifecycleStatuses = new Set(['PASS', 'FAIL', 'NOT_RUN']);
@@ -125,7 +158,31 @@ const blockedReasons = [];
 const inconclusiveReasons = [];
 const partialReasons = [];
 
+const breachReasons = [];
+if (isolation !== null) {
+  // A real connection to a shared endpoint outranks every other outcome (RUN-18.1).
+  for (const contact of isolation.sharedContacts) {
+    breachReasons.push({
+      code: 'SHARED_ENDPOINT_CONTACT',
+      remoteAddress: contact.remoteAddress,
+      remotePort: contact.remotePort,
+      ...(contact.process ? { process: contact.process } : {}),
+      ...(contact.firstSeen ? { firstSeen: contact.firstSeen, lastSeen: contact.lastSeen ?? null } : {}),
+    });
+  }
+}
+
 if (!run.execution.supportedStack) blockedReasons.push({ code: 'UNSUPPORTED_STACK' });
+// Pre-start refusal: the harness declined to start against a live shared endpoint. Nothing was touched,
+// so this is a configuration defect (BLOCKED), not a breach.
+for (const refusal of (isolation && isolation.prestartRefusals) || []) {
+  blockedReasons.push({
+    code: refusal.code,
+    ...(refusal.key !== undefined ? { key: refusal.key } : {}),
+    ...(refusal.host !== undefined ? { host: refusal.host } : {}),
+    ...(refusal.port !== undefined ? { port: refusal.port } : {}),
+  });
+}
 if (run.selection.collectedCount === 0) blockedReasons.push({ code: 'ZERO_COLLECTED_TESTS' });
 if (selectedCases.length === 0) inconclusiveReasons.push({ code: 'ZERO_SELECTED_CASES' });
 if (selectedCases.length > 0 && executedCases.length === 0) inconclusiveReasons.push({ code: 'ZERO_EXECUTED_CASES' });
@@ -185,7 +242,13 @@ if (run.lifecycle.absenceProbes.length === 0) {
 let verdict = 'PASS';
 let exitCode = 0;
 let reasons = [];
-if (blockedReasons.length > 0) {
+let secondaryReasons = [];
+if (breachReasons.length > 0) {
+  verdict = 'ISOLATION_BREACH';
+  exitCode = 5;
+  reasons = breachReasons;
+  secondaryReasons = [...blockedReasons, ...inconclusiveReasons, ...partialReasons];
+} else if (blockedReasons.length > 0) {
   verdict = 'BLOCKED';
   exitCode = 3;
   reasons = blockedReasons;
@@ -199,7 +262,9 @@ if (blockedReasons.length > 0) {
   reasons = partialReasons;
 }
 
+// `--diagnostic-only` can never lower a breach: it only relaxes an INCONCLUSIVE caused by P0 failures.
 const diagnosticP0Bypass = diagnosticOnly
+  && breachReasons.length === 0
   && blockedReasons.length === 0
   && partialReasons.length === 0
   && inconclusiveReasons.length > 0
@@ -211,11 +276,32 @@ for (const testCase of run.testCases.filter((candidate) => !candidate.selected))
   notSelected.set(reason, [...(notSelected.get(reason) || []), testCase.id]);
 }
 
+const isolationVerified = isolation !== null && isolation.verified === true
+  && isolation.sharedContacts.length === 0 && (isolation.prestartRefusals || []).length === 0;
+const isolationWarnings = isolation === null
+  ? [{ code: 'ISOLATION_EVIDENCE_MISSING', detail: 'no isolation input; "no shared-resource contact" must not be claimed' }]
+  : [...(isolation.warnings || [])];
+function isolationLine() {
+  if (breachReasons.length > 0) {
+    return `isolation: BREACH (${breachReasons.map((reason) => `${reason.remoteAddress}:${reason.remotePort}`).join(', ')})`;
+  }
+  if (isolationVerified) return 'isolation: verified';
+  const refused = (isolation && isolation.prestartRefusals) || [];
+  const why = refused.length > 0
+    ? `start refused: ${refused.map((refusal) => `${refusal.host ?? '?'}:${refusal.port ?? '?'}`).join(', ')}`
+    : (isolation && isolation.unverifiedReasons && isolation.unverifiedReasons[0])
+      || (isolationWarnings[0] && isolationWarnings[0].code) || 'no isolation evidence';
+  return `isolation: not verified (${why})`;
+}
+
 const output = {
   verdict,
   exit_code: diagnosticP0Bypass ? 0 : exitCode,
   mode: diagnosticOnly ? 'diagnostic-only' : 'normal',
   qualifying_pass: verdict === 'PASS',
+  // Only `true` allows a report to say "no shared-resource contact". Observation scope still applies.
+  isolation_verified: isolationVerified,
+  isolation_warnings: isolationWarnings,
   selection: {
     collected: run.selection.collectedCount,
     selected: selectedCases.length,
@@ -233,10 +319,12 @@ const output = {
     `failed: ${executedCases.filter((testCase) => testCase.status === 'FAIL').length}`,
     `excluded: ${run.testCases.length - selectedCases.length}`,
     `not verified: ${selectedCases.length - executedCases.length} unexecuted, ${inconclusiveReasons.filter((reason) => ['NO_ASSERTION', 'PASS_CONTRADICTS_ASSERTION'].includes(reason.code)).length} PASS without proof`,
+    isolationLine(),
   ],
   notSelected: [...notSelected].sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
     .map(([reason, caseIds]) => ({ reason, count: caseIds.length, caseIds })),
   reasons,
+  ...(secondaryReasons.length > 0 ? { secondaryReasons } : {}),
 };
 
 process.stdout.write(`${JSON.stringify(output, null, 2)}\n`);
