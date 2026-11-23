@@ -1,0 +1,12 @@
+diff --git a/src/main/java/example/inventory/ItemRepository.java b/src/main/java/example/inventory/ItemRepository.java
+index bbae4ca..ff9c82e 100644
+--- a/src/main/java/example/inventory/ItemRepository.java
++++ b/src/main/java/example/inventory/ItemRepository.java
+@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
+ 
+ public interface ItemRepository extends JpaRepository<Item, Long> {
+     @Lock(LockModeType.PESSIMISTIC_WRITE)
++    @org.springframework.data.jpa.repository.QueryHints(@jakarta.persistence.QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000"))
+     @Query("select i from Item i where i.id = :id")
+     Optional<Item> findForUpdate(Long id);
+ }

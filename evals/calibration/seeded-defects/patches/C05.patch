@@ -1,0 +1,11 @@
+diff --git a/src/main/java/example/inventory/StockService.java b/src/main/java/example/inventory/StockService.java
+index d008842..7a2080f 100644
+--- a/src/main/java/example/inventory/StockService.java
++++ b/src/main/java/example/inventory/StockService.java
+@@ -16,5 +16,6 @@ public class StockService {
+     public void reserve(long itemId, int quantity) {
+         Item item = items.findForUpdate(itemId).orElseThrow();
+         item.decrease(quantity);
++        org.slf4j.LoggerFactory.getLogger(StockService.class).info("reserved {}", itemId);
+     }
+ }
