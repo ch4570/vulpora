@@ -23,10 +23,10 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",
-    "dotenv": "^18.0.9",
+    "dotenv": "^18.0.10",
     "pg": "^8.23.1",
     "mysql2": "^3.24.6",
-    "mssql": "^12.7.11",
+    "mssql": "^12.7.16",
     "zod": "^4.6.7"
   },
   "devDependencies": {
