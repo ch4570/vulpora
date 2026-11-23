@@ -54,10 +54,14 @@ this path; the full workflow below applies only when authoring, browser, report,
 2. Regenerate the inventory read-only and run `validate-catalog.js <catalog> <contract> <inventory>`. Deviations in
    `known-deviations.json` proceed without asking; only an unregistered mismatch is stale.
 3. `export-catalog-plan.js`, `audit-orphans.js snapshot`, run the repository harness (or `e2e-runner`) once with
-   `dockerEnvironment`, then `audit-orphans.js audit --baseline`.
-4. `assemble-run-result.js … --orphan-audit`, `validate-run-result.js --require-done`, `evaluate-run-verdict.js`.
-5. Report the evaluator's four `humanSummary` lines (passed, failed, excluded, not verified), the verdict, and the
-   known deviations. Nothing else is required for a run-only answer.
+   `dockerEnvironment` through `observe-connections.js … -- <command>` (Gradle with `--no-daemon`), then
+   `audit-orphans.js audit --baseline`. A start the harness refuses before the context is up is `BLOCKED`, not a retry.
+4. `check-isolation.js`, then `assemble-run-result.js … --orphan-audit --isolation`, `validate-run-result.js
+   --require-done`, `evaluate-run-verdict.js`.
+5. Report the evaluator's five `humanSummary` lines (passed, failed, excluded, not verified, isolation), the verdict,
+   and the known deviations. Write "no shared-resource contact" only when `isolation_verified` is `true`, and then as
+   "none within what was observed"; otherwise write "isolation not verified" with the reason. Nothing else is required
+   for a run-only answer.
 
 ## Repository harness adapter
 
@@ -144,10 +148,17 @@ Keep component outputs intact and compute one `test_verdict` with this precedenc
 
 `BLOCKED > INCONCLUSIVE > PARTIAL > PASS`
 
+`ISOLATION_BREACH` (exit 5) outranks all of them: the isolation record shows a real connection to a shared endpoint.
+
 Use the following normalization:
 
-- `BLOCKED`: a requested stack or lane is unsupported, a required component or QA handoff is unavailable, or zero
-  requested tests are collected.
+- `ISOLATION_BREACH`: `isolation.sharedContacts` is not empty. Stop, produce the incident report required by
+  `e2e-runner` RUN-17 (window, process, remote address, the scenarios and their `Mutates` that ran, a request for a
+  person to decide on cleaning the shared side, cause and prevention), and never connect to the shared resource to
+  check or clean it. `--diagnostic-only` cannot lower it.
+
+- `BLOCKED`: a requested stack or lane is unsupported, a required component or QA handoff is unavailable, zero
+  requested tests are collected, or the harness refused to start against an already-listening, non-run-owned port.
 - `INCONCLUSIVE`: zero selected or executed cases, a selected P0 case did not pass, a non-P0 gap lacks detail, or
   cleanup, teardown, absence-probe, runtime-proof, or orphan-audit evidence is missing or not `PASS`.
 - `PARTIAL`: execution occurred and the only gaps are documented non-P0 non-PASS cases or documented exclusions.
@@ -182,7 +193,8 @@ Return one concise workflow handoff containing:
 4. API/integration and browser case counts with original component artifact paths, plus the catalog total, the
    unselected count grouped by reason (`notSelected`), and discovery `excluded_sources`; never report only the
    executed count
-5. combined environment owner, runtime proof, cleanup, absence-probe, teardown, and orphan-audit evidence
+5. combined environment owner, runtime proof, cleanup, absence-probe, teardown, and orphan-audit evidence, plus
+   `isolation_verified` with its observation scope (poll interval) and any `isolation_warnings`
 6. `test_verdict` and `workflow_status` with reason codes
 7. persisted JSON, Markdown, browser artifacts, and HTML paths only when they actually exist
 8. product, test, infrastructure, and coverage gaps with focused rerun commands

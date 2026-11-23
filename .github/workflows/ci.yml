@@ -72,7 +72,7 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update
-          sudo apt-get install --yes ripgrep poppler-utils util-linux fontconfig fonts-noto-cjk
+          sudo apt-get install --yes ripgrep poppler-utils util-linux fontconfig fonts-noto-cjk lsof
           test -n "$(fc-list :lang=ko family)"
           fc-match 'sans-serif:lang=ko'
           test -x /opt/google/chrome/chrome

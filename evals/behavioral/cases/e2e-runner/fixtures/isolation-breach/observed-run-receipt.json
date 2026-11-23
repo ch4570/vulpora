@@ -1,0 +1,22 @@
+{
+  "runId": "run-77",
+  "primary": {"executed": 3, "pass": 3, "fail": 0},
+  "cleanup": {
+    "teardown": "attempted",
+    "absenceProbe": {"resource": "orders:test:run-77", "remaining": 0},
+    "orphanAudit": {"kind": "container", "remaining": 0}
+  },
+  "isolation": {
+    "verified": false,
+    "observationPollMs": 1000,
+    "sharedContacts": [
+      {"remoteAddress": "127.0.0.1", "remotePort": 6390, "process": {"pid": 4242, "command": "java"},
+       "firstSeen": "2026-11-23T10:00:03Z", "lastSeen": "2026-11-23T10:00:09Z", "samples": 6,
+       "listener": {"command": "redis-server", "category": "shared-resource"}}
+    ],
+    "scenariosInWindow": [
+      {"id": "E2E-V1-ORDERS-POST-HAPPY", "mutates": "orders cache"},
+      {"id": "E2E-V1-ORDERS-GET-HAPPY", "mutates": "-"}
+    ]
+  }
+}

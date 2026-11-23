@@ -178,6 +178,44 @@ The owner must prove the profile-specific Testcontainers client and executor: Ja
 Gradle/Maven fixture for `spring-jvm`, or the Node Testcontainers package and an explicit non-watch E2E executor for
 `node-nestjs`. Record selected image tags and positive non-Ryuk container-start evidence before PASS.
 
+**RUN-7.1a (Run-owned proof by Docker state) — MUST.** "Run-owned" is a fact Docker can confirm, not a sentence the
+harness writes. The harness records `environment.json` with `schemaVersion: 2`; each `endpoints[]` entry has `kind`,
+a loopback `host` (`localhost`, `127.x.x.x`, `::1`; `localhost` is an address, not proof of ownership), an integer `port`,
+the run-owned `containerId`, and the `propertyKeys` that were set. `node scripts/check-isolation.js` accepts an endpoint
+only when its container was absent from the pre-run `audit-orphans.js snapshot`, carries every run label, and publishes
+that exact host port (read-only `docker inspect` of the run's own container). An endpoint that fails is an ownership
+violation. It never grants `flushDb` (RUN-7.3) or a DB-verification target.
+
+**RUN-7.1b (Pre-start endpoint scan; refusal) — MUST.** Before the application context starts, run
+`node scripts/check-prestart.js` (the `EndpointGuardInitializer` example calls it) over **every property value of every
+property source**, not over the keys the harness set. A value that points at this machine on a port that was already
+listening before the run (the wrapper's pre-run snapshot) and that is not run-owned **refuses the start** (exit 3,
+`PRESTART_ENDPOINT_NOT_OWNED`, verdict `BLOCKED`): nothing shared has been touched. Values for ports that are not
+listening, and non-loopback hosts, are recorded as warnings only. The scan stores key names, hosts, and ports, never values.
+The one bypass is `docs/e2e-scenarios/isolation-exceptions.json` (`vulpora.isolation-exceptions/v1`), written by a person:
+each entry needs `id`, `match.host` and/or `match.port`, `reason`, `owner`, and an unexpired `expires`. An agent MUST NOT
+add, extend, or edit an entry, and MUST NOT pass `--mode warn` to get past a refusal; both are recorded in the isolation
+record and leave `isolation_verified` false.
+
+**RUN-7.1c (Client-object observation) — MUST.** Right after the context is up and before the first scenario, read the
+endpoint each created client object will use (database pool, Redis connection factory, object-store client, broker
+client) and run the same scan with `--phase client` (`CLIENT_ENDPOINT_NOT_OWNED`, `BLOCKED`). A client built later on
+demand is not seen here; RUN-7.1d covers it.
+
+**RUN-7.1d (Socket observation and receipt) — MUST.** Run the test command through
+`node scripts/observe-connections.js --out <dir> --run-label <k=v> -- <command>`. It passes only an allow-listed
+environment (no `SPRING_*`, `AWS_*`, proxy, or database variables unless named with `--pass-env`; names are recorded,
+values never), takes the pre-run listener snapshot, polls the command's process tree's TCP connections (default 1 s),
+and writes `isolation-receipt.json`. Then `node scripts/check-isolation.js` produces the `isolation` verdict input and
+`assemble-run-result.js --isolation` embeds it. This stage observes; it blocks nothing. A connection shorter than the poll
+interval can be missed, so a clean record means "no shared contact within what was observed" and the report MUST say so.
+If `lsof` is unusable the wrapper does not run the command (`ISOLATION_GUARD_UNAVAILABLE`, exit 71) unless
+`--allow-unobserved` is given, which records an observer gap. Run Gradle with `--no-daemon`: a reused daemon starts the
+test JVM outside the observed tree, which is recorded as an observer gap. Dependency downloads from a non-loopback address
+count as shared contacts; resolve dependencies before the observed run or use the build tool's offline mode.
+Only `isolation_verified: true` permits the words "no shared-resource contact". Anything else (missing record, observer
+gap, unproven endpoint, unattributed contact, applied exception) is "isolation not verified" and the report MUST say that instead.
+
 **RUN-7.2 (Fixture selection/bootstrap) — MUST.** Prefer a candidate whose fixture graph proves container
 construction/import, dynamic binding, wait strategy, and lifecycle owner. When no fixture exists, an explicit E2E
 request authorizes the smallest test-scope Testcontainers dependency and harness; production dependencies,
@@ -346,9 +384,14 @@ normative. Malformed or internally inconsistent verdict input is a process error
 
 ## H. Phase 7 — User report
 
-**RUN-17 (Terminal summary) — MUST.** On exit, print the computed verdict (`PASS`, `PARTIAL`, `BLOCKED`, or
-`INCONCLUSIVE`), selected/collected/executed counts, the five scenario numbers (`pass / fail / skipped /
-failed-dependency / probe-error`), runtime-proof/cleanup/absence-probe/orphan verdicts, and artifact mode. Print a run
+**RUN-17 (Terminal summary) — MUST.** On exit, print the computed verdict (`PASS`, `PARTIAL`, `BLOCKED`,
+`INCONCLUSIVE`, or `ISOLATION_BREACH`), selected/collected/executed counts, the five scenario numbers (`pass / fail / skipped /
+failed-dependency / probe-error`), runtime-proof/cleanup/absence-probe/orphan verdicts, the isolation line
+(`isolation: verified | not verified (<reason>) | BREACH (<host:port list>)`), and artifact mode. On `ISOLATION_BREACH` the
+report MUST also carry the time window, process, remote address and port, and connection count from the receipt; the
+scenarios that ran in that window with their `Mutates` declarations; a request for a **person's** decision on cleaning the
+shared side (the runner and the agent never connect to a shared resource to check or delete); and a cause class with a
+prevention item. Print a run
 directory only in explicit report mode. Suggest `e2e-report-renderer` only when a settled report exists. No other
 terminal noise.
 
@@ -376,23 +419,26 @@ and no JSON or Markdown is written. The `RULE-ID` is the rule that fired (e.g. `
 **RUN-18 (Exit signal) — MUST.** See `RUN-18.1` for the exit-code matrix.
 
 **RUN-18.1 (False-green-safe exit matrix) — MUST.** Evaluate the verdicts in precedence order
-`BLOCKED > INCONCLUSIVE > PARTIAL > PASS` and use these exit codes:
+`ISOLATION_BREACH > BLOCKED > INCONCLUSIVE > PARTIAL > PASS` and use these exit codes:
 
 | Verdict | Code | Required meaning |
 |---|---:|---|
 | `PASS` | `0` | At least one case was collected, selected, and executed; every executed case and selected P0 case passed; cleanup, teardown, every named absence probe, and orphan audit passed. |
 | `PARTIAL` | `2` | Execution occurred and the only gaps are documented selected non-P0 non-PASS results or documented slow-test exclusions. |
-| `BLOCKED` | `3` | The stack is unsupported or zero tests were collected. |
+| `BLOCKED` | `3` | The stack is unsupported, zero tests were collected, or the start was refused because a configuration or client endpoint pointed at an already-listening, non-run-owned port (`PRESTART_ENDPOINT_NOT_OWNED`, `CLIENT_ENDPOINT_NOT_OWNED`). |
 | `INCONCLUSIVE` | `4` | Zero cases were selected; zero cases executed after selection; a selected P0 did not pass; a selected non-P0 gap is undocumented; or cleanup, teardown, absence-probe, or orphan-audit evidence is missing or did not pass. |
+| `ISOLATION_BREACH` | `5` | The isolation record lists at least one shared contact: a real connection to a port that was already listening before the run (not run-owned, not a known local tool) or to a non-loopback address. It outranks every other outcome, keeps the lower reasons visible as `secondaryReasons`, and requires the incident report in `RUN-17`. A caller that does not know code 5 sees a non-zero, non-success exit and fails closed. |
 
 Every ordinary non-zero verdict writes exactly `ERROR: verdict=<VERDICT>` followed by one newline to stderr. `PASS`
-writes nothing to stderr. Read-only usage/input errors and SIGINT remain process errors rather than run verdicts.
+writes nothing to stderr. The output also carries `isolation_verified` (boolean) and `isolation_warnings[]`; an `isolation`
+input that is absent leaves the verdict unchanged and `isolation_verified` false, and a malformed one is a usage error (64). Read-only usage/input errors and SIGINT remain process errors rather than run verdicts.
 
 **RUN-18.2 (Diagnostic-only exception) — MUST.** `--diagnostic-only` is the sole verdict bypass. It MAY return exit
 `0` only when the computed verdict is `INCONCLUSIVE` solely because an executed selected P0 result is non-PASS and
 there are no other partial, blocked, or inconclusive conditions. The JSON MUST still show
 `verdict="INCONCLUSIVE"`, `qualifying_pass=false`, and `mode="diagnostic-only"`. Diagnostic-only MUST NOT relax
-zero-selected, zero-executed, cleanup, teardown, absence-probe, or orphan-audit failures. No alias or report field enables this mode.
+zero-selected, zero-executed, cleanup, teardown, absence-probe, or orphan-audit failures, and it MUST NOT lower an
+`ISOLATION_BREACH` or a pre-start refusal. No alias or report field enables this mode.
 
 ---
 
@@ -463,6 +509,7 @@ separately. A cleanup failure makes the scenario `FAIL` even when the primary pa
 - [ ] Terminal summary prints selection/execution and five scenario numbers; startup failures use the dedicated line format (`RUN-17`, `RUN-17.1`)
 - [ ] Every non-PASS verdict includes bounded test and infrastructure remediation (`RUN-17.2`)
 - [ ] Exit/stderr matches the false-green-safe matrix and any diagnostic bypass is exact and narrow (`RUN-18.1`, `RUN-18.2`)
+- [ ] Endpoint ownership came from Docker state, the pre-start and client scans ran before the first scenario, the command ran through the observer, and "no shared-resource contact" appears only when `isolation_verified` is true (`RUN-7.1a`-`RUN-7.1d`)
 - [ ] Subset runs record requested+autoIncluded (`RUN-19.1`)
 - [ ] Idempotency enforcement passed (`RUN-21`); `notes.md` not parsed (`RUN-22`)
 - [ ] Contract version on disk matches runner-supported version (`RUN-20`)
