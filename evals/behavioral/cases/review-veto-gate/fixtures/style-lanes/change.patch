@@ -1,0 +1,6 @@
+diff --git a/src/main/java/example/StockService.java b/src/main/java/example/StockService.java
+--- a/src/main/java/example/StockService.java
++++ b/src/main/java/example/StockService.java
+@@ -10,3 +10,3 @@
+-    @Transactional(isolation = Isolation.SERIALIZABLE)
++    @Transactional(isolation = Isolation.READ_COMMITTED)

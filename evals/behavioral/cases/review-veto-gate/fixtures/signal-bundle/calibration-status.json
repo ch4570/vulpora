@@ -1,0 +1,8 @@
+{
+  "schema": "vulpora.calibration-status/v1",
+  "tiers": {
+    "concurrency": {
+      "state": "valid"
+    }
+  }
+}

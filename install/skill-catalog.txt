@@ -67,3 +67,4 @@ test-quality-review | 테스트 품질 리뷰 | 기존 테스트의 contract·or
 test-refactoring | 테스트 리팩터링 | 검증된 품질 finding만 test·fixture 범위에서 탐지력을 보존하거나 강화하도록 개선합니다.
 test-quality-refactoring-workflow | 테스트 품질·리팩터링 워크플로 | 품질 리뷰부터 test-only 개선과 negative proof 재검증까지 하나의 판정으로 조정합니다.
 visual-artifact-router | 시각 산출물 라우팅 | 문서·PDF·다이어그램 요청을 생성·렌더·시각 검증 단계로 조합합니다.
+review-veto-gate | 리뷰 후처리 신호 게이트 | 리뷰 결과를 재현 과제와 합의 거부 후보 신호로 정리합니다. 판정은 바꾸지 않습니다.

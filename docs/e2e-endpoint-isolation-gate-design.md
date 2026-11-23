@@ -580,6 +580,28 @@ CI 워크플로, `install/manifest.txt`(새 스킬이 없고 스크립트는 기
 - E2는 `contractVersion` 2로 올리는 세 스킬 동시 변경이다(RUN-20). `playwright-e2e`, `e2e-evidence-report`, `test-quality-review`의
   영수증 연결도 여기서 한다.
 
+### 14-5. E1 구현에서 설계와 달라진 곳 (2026-11-23)
+
+구현하면서 설계 문장과 다르게 정한 것을 모았다. 이유를 함께 적는다.
+
+| 설계 | 구현 | 이유 |
+|---|---|---|
+| 14-1: 기동 전 거부를 Java 초기화 예제가 한다 | 규칙은 Node 스크립트 `check-prestart.js` 하나에 있고, Java 예제 `EndpointGuardInitializer`는 값을 모아 이 스크립트를 부른다. 거부는 종료 코드 3과 `BLOCKED`(`PRESTART_ENDPOINT_NOT_OWNED`, 클라이언트 단계는 `CLIENT_ENDPOINT_NOT_OWNED`) | 같은 규칙을 Java와 Node에 두 번 쓰면 어긋난다. Node 쪽은 스프링 없이 시험된다. 스프링 연결 코드는 JDK만으로 컴파일되는 예제라 주석 속 조각으로 두었다 |
+| 6-2: 공유 자원 후보만 위반 | LISTEN 목록에 있던 포트 중 **로컬 도구(Gradle 데몬, IDE 등)로 분류되지 않은 것은 모두 공유 접촉**이다. 분류는 `shared-resource`, `local-tool`, `unknown` 셋이고 `unknown`도 위반이다 | 이름으로 알아보지 못하는 프로세스를 통과시키면 구멍이 된다. E2의 "실행 직전 LISTEN 포트는 모두 남의 것" 규칙과도 맞는다. 분류가 틀리면 거짓 위반이 나는 위험(위험 2)은 그대로 있고 관찰 기간에 다듬는다 |
+| T6: 늦게 뜬 공유 서비스는 목록이 없어도 연결 후 `ISOLATION_BREACH` | 오너 지정 포트(`observe-connections.js --shared-port`)가 있으면 위반, 없으면 어디에도 속하지 않는 접촉(`UNATTRIBUTED_CONTACT`)으로 기록하고 `isolation_verified`를 false로 둔다 | 실행 중에 뜬 포트의 주인은 소켓만으로 알 수 없다. 테스트가 쓰는 Ryuk 같은 보조 컨테이너를 위반으로 오인할 수 있어서 Ryuk 이미지는 따로 알아본다. 오너 지정 목록의 저장 위치(질문 4)가 아직 없어 `vulpora.config.json`은 건드리지 않고 명령줄 인자로만 받는다 |
+| 14-1: `validate-run-result.js`가 소유 대조까지 | 형태 위반(루프백이 아닌 호스트, 정수가 아닌 포트, `containerId` 없음, 영수증 해시 불일치)은 **오류(exit 1)**, Docker 상태와의 소유 대조 실패는 **경고**(`warnings[]`)와 판정 쪽 `isolation_verified: false` | 6-2의 1단계 적용 범위("나머지 위반은 경고")를 따랐다. E2에서 오류로 올린다 |
+| 6-4: 허용 예외 파일 | 위치는 인자(`--exceptions`)이고 권장 경로는 `docs/e2e-scenarios/isolation-exceptions.json`. 항목은 `id`, `match`(호스트·포트 중 하나 이상), `reason`, `owner`, `expires` 필수, 만료·누락은 무시하고 거부를 유지한다. 적용된 예외는 결과에 기록되고 `isolation_verified`를 false로 만든다 | 오너 결정 3의 "허용 목록을 사람이 명시하고 기록"을 구현한 모양이다 |
+| 위험 5: 끄는 스위치 | `--mode warn`(Java는 `-Dvulpora.isolation.prestart=warn`)이 있다. 기본값이 아니고, 쓰면 `PRESTART_REFUSAL_SUPPRESSED`가 기록되고 `isolation_verified`가 false가 된다 | 스위치가 조용한 우회가 되지 않게 흔적을 남긴다 |
+| 14-1: 래퍼는 도구가 없어도 관찰 공백으로 진행 | `lsof`를 쓸 수 없으면 **명령을 실행하지 않는다**(exit 71, `ISOLATION_GUARD_UNAVAILABLE`). `--allow-unobserved`를 줄 때만 공백으로 기록하고 실행한다 | 기동 전 거부도 LISTEN 목록에 기대므로 목록이 없으면 안전하게 닫는다 |
+| 6-2 / 위험 | 루프백이 아닌 주소 접촉은 위반이다. 의존성 내려받기도 이에 걸린다 | 설계 그대로다. 실행 전에 의존성을 받아 두거나 오프라인 모드로 돌려야 한다. 사람이 허용한 주소는 `check-isolation.js --allow-remote`로 기록하며 허용도 `isolation_verified`를 false로 둔다 |
+| 14-1: 평가기 출력 | `isolation_verified`, `isolation_warnings`, 다섯째 줄 외에 위반 때 `secondaryReasons`(아래 우선순위에 가려진 사유)를 낸다 | 사고 보고에 가려진 사유가 필요하다 |
+| 11절: JVM·Spring 사고 재연(`sample-spring` 시험 사본) | 하지 않았다(`NOT_RUN`). 대신 JDK만으로 컴파일한 Java 가드를 미끼 포트로 시험했다 | 이번 작업은 앱·서버를 띄우지 않는다 |
+| 14-1: `audit-orphans.js` 수정 | 수정하지 않았다 | 스냅샷이 이미 전체 컨테이너 ID(`--no-trunc`)를 남긴다 |
+
+**`ISOLATION_BREACH`와 기존 판정 우선순위의 호환.** 기존 시험이 고정한 `BLOCKED > INCONCLUSIVE > PARTIAL > PASS`와 그 종료 코드
+(3, 4, 2, 0)와 stderr 형식, `--diagnostic-only`의 좁은 조건은 그대로이고 그 위에 `ISOLATION_BREACH`(5)만 얹었다. `isolation` 입력이
+없는 결과는 판정이 바뀌지 않는다. 이를 모르는 호출자는 5를 0이 아닌 알 수 없는 실패로 본다.
+
 ---
 
 ## 부록 A. 문서·매뉴얼로 확인한 사실

@@ -1,0 +1,82 @@
+{
+  "schema": "vulpora.review-workflow-result/v1",
+  "workflow": "backend-code-review-workflow",
+  "revision": "abc123",
+  "baseline": "main",
+  "verdict": "WARNING",
+  "lanes": [
+    {
+      "id": "L1",
+      "name": "java-reviewer",
+      "status": "COMPLETED",
+      "requestedModel": "standard",
+      "observedModel": "standard",
+      "evidenceBundleSha256": "sha-L1",
+      "forkTurns": "none"
+    },
+    {
+      "id": "L2",
+      "name": "security-auditor",
+      "status": "COMPLETED",
+      "requestedModel": "standard",
+      "observedModel": "standard",
+      "evidenceBundleSha256": "sha-L2",
+      "forkTurns": "none"
+    },
+    {
+      "id": "L3",
+      "name": "repro-refuter",
+      "status": "COMPLETED",
+      "requestedModel": "standard",
+      "observedModel": "standard",
+      "evidenceBundleSha256": "sha-L3",
+      "forkTurns": "none"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F1",
+      "lane": "L1",
+      "location": {
+        "path": "src/main/java/example/StockService.java",
+        "line": 12,
+        "symbol": "reserve"
+      },
+      "cause_key": "lost-update",
+      "severity": "HIGH",
+      "confidence": "inferred",
+      "claim": "read-modify-write without a lock",
+      "contract_source": {
+        "kind": "acceptance",
+        "ref": "AC-4 stock never goes negative"
+      },
+      "repro_attempt": "NOT_RUN: not-executable-kind"
+    },
+    {
+      "id": "F2",
+      "lane": "L2",
+      "location": {
+        "path": "src/main/java/example/StockService.java",
+        "line": 12,
+        "symbol": "reserve"
+      },
+      "cause_key": "lost-update",
+      "severity": "HIGH",
+      "confidence": "inferred",
+      "claim": "read-modify-write without a lock",
+      "contract_source": {
+        "kind": "acceptance",
+        "ref": "AC-4 stock never goes negative"
+      },
+      "repro_attempt": "NOT_RUN: not-executable-kind"
+    }
+  ],
+  "refutations": [
+    {
+      "lane": "L3",
+      "finding": "F1",
+      "outcome": "NOT_REFUTED",
+      "basis": "the lock was removed in the diff at line 12"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "location": "src/main/java/example/StockService.java:12",
+  "cause": "the pessimistic lock was removed, so two requests can both read the same stock",
+  "contract_source": "AC-4 stock never goes negative"
+}
