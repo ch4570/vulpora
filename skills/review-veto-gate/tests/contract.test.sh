@@ -28,8 +28,8 @@ for kb in "$SKILL_DIR"/reference/kb/*.md; do
   grep -Fq "($name)" "$SKILL_DIR/reference/kb/INDEX.md"
 done
 
-# The post-processing step is wired into all five review workflows without adding a pass.
-for workflow in java-spring-review-workflow kotlin-spring-review-workflow backend-code-review-workflow architecture-review-workflow security-scan-workflow; do
+# The post-processing step is wired into four review workflows (not the security scan workflow, whose installed set is pinned to its canonical auditor) without adding a pass.
+for workflow in java-spring-review-workflow kotlin-spring-review-workflow backend-code-review-workflow architecture-review-workflow; do
   workflow_skill="$ROOT/skills/$workflow/SKILL.md"
   grep -Fq '`review-veto-gate`' "$workflow_skill"
   grep -Fq 'not a pass' "$workflow_skill"
@@ -45,4 +45,8 @@ for agent in java-reviewer kotlin-spring-reviewer security-auditor architecture-
 done
 
 node --test "$SKILL_DIR/tests/review-gate.test.js" >/dev/null
-printf '{"outcome":"pass","skill":"review-veto-gate","verdict_impact":"none","veto_mode_refused":true,"workflows_wired":5}\n'
+# The security workflow keeps its exact dependency binding: it must not depend on the gate.
+! grep -Fq 'review-veto-gate' "$ROOT/skills/security-scan-workflow/SKILL.md"
+grep -Eq '^skill \| security-scan-workflow \| skills/security-scan-workflow \| - \| agent:security-auditor \| -$' "$ROOT/install/manifest.txt"
+
+printf '{"outcome":"pass","skill":"review-veto-gate","verdict_impact":"none","veto_mode_refused":true,"workflows_wired":4}\n'

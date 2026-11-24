@@ -20,7 +20,7 @@ and surfaces the rest as signals. Read [principles](reference/principles.md) for
 ## When to use
 
 - A review workflow (`java-spring-review-workflow`, `kotlin-spring-review-workflow`, `backend-code-review-workflow`,
-  `architecture-review-workflow`, `security-scan-workflow`) finished and its owner can list lanes and findings.
+  `architecture-review-workflow`) finished and its owner can list lanes and findings.
 - You need to know which `[inferred]` concurrency, transaction, authorization, destructive-data, money, or
   public-API claims should become reproduction tasks, or whether a defect would meet the consensus-veto conditions.
 

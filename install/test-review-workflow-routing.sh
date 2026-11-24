@@ -64,8 +64,7 @@ for workflow in \
   architecture-review-workflow \
   backend-code-review-workflow \
   java-spring-review-workflow \
-  kotlin-spring-review-workflow \
-  security-scan-workflow; do
+  kotlin-spring-review-workflow; do
   grep -Fq '`review-veto-gate`' "$ROOT/skills/$workflow/SKILL.md"
   grep -Fq 'not a pass' "$ROOT/skills/$workflow/SKILL.md"
   grep -Eq "^skill \\| $workflow \\|.*\\breview-veto-gate\\b" "$ROOT/install/manifest.txt"

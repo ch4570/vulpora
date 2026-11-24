@@ -186,16 +186,6 @@ For operational deletion, a reachable job/test hook and proven shared target can
 trigger without an attacker. Medium/low confidence remains conditional and names missing proof.
 Do not infer CRITICAL impact from the operation name or an unverified production assumption.
 
-## Post-review signals
-
-After reconciliation, write the lanes and findings as `vulpora.review-workflow-result/v1` and run `review-veto-gate`
-(`shadow` or `signal` mode). This is not a pass: it adds no mandatory lane, never changes the verdict above, and
-appends one signal bundle (reproduced, consensus-veto candidates, refuted, not reproduced, signals) to the end of the
-report. Findings carry `cause_key`, `contract_source`, and `repro_attempt`. For a change that touches concurrency,
-transactions, authorization, destructive data, money, or a public API, one extra `frugal/low` refuter lane may start
-after the passes finished (explicit model, `fork_turns: none`, the diff and one claim only). A lane that returned
-`ROUTE_UNAVAILABLE` counts toward nothing.
-
 ## Output and completion
 
 Return one redacted report in the user's language with mode/scope/revisions, coverage table, pass

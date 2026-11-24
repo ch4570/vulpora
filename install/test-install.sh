@@ -115,7 +115,7 @@ record 'backend review workflow resolves its complete typed agent and skill clos
 record 'security scan workflow installs only its required security auditor and skill' \
   "assert_resolution security-scan-workflow \
      'security-auditor' \
-     'security-scan-workflow review-veto-gate'"
+     'security-scan-workflow'"
 record 'E2E test workflow resolves its exact author, runner, browser, and renderer closure' \
   "assert_resolution e2e-test-workflow \
      '' \
