@@ -74,16 +74,20 @@ CI 파이프라인은 **프로세스 종료코드**로 합/불을 판정한다. 
 |------|------:|------|
 | `PASS` | `0` | 수집·선택·실행이 각각 1건 이상이며 실행 건과 선택 P0가 모두 PASS, cleanup·teardown·absence probe·orphan audit도 PASS |
 | `PARTIAL` | `2` | 실행은 있었고 문서화된 selected non-P0 미통과 또는 slow-test 제외만 존재 |
-| `BLOCKED` | `3` | 미지원 stack 또는 수집된 테스트 0건 |
+| `BLOCKED` | `3` | 미지원 stack, 수집된 테스트 0건, 또는 기동 전 거부(이미 LISTEN 중인 run 소유가 아닌 포트를 가리키는 설정: `PRESTART_ENDPOINT_NOT_OWNED`, `CLIENT_ENDPOINT_NOT_OWNED`) |
 | `INCONCLUSIVE` | `4` | 선택/실행 0건, 선택 P0 미통과, 문서화되지 않은 non-P0 공백, cleanup·teardown·absence probe·orphan audit 누락/실패 |
+| `ISOLATION_BREACH` | `5` | 격리 기록에 공유 자원 접촉이 하나라도 있음. 다른 모든 판정보다 우선하며 사고 보고가 필요하다(`RUN-17`) |
 
 - 실패가 0이라는 사실만으로 PASS가 되지 않는다. 선택·실행·P0·cleanup·teardown·absence probe·orphan audit의 양성 증거가
   모두 있어야 한다. `probeError`도 문서화된 non-P0 공백이면 PARTIAL, P0 또는 증거 공백이면
   INCONCLUSIVE다(`RUN-9.1`, `RUN-18.1`).
-- 판정 우선순위는 `BLOCKED > INCONCLUSIVE > PARTIAL > PASS`이다.
+- 판정 우선순위는 `ISOLATION_BREACH > BLOCKED > INCONCLUSIVE > PARTIAL > PASS`이다.
+- **종료 코드 5를 모르는 호출자.** 0~4만 매핑하는 CI 스크립트는 5를 "알 수 없는 실패"로 처리해야 한다(0이 아니므로 실패 쪽으로 닫힌다).
+  `0/2/3/4`만 허용하는 `case` 문이라면 `5)` 줄을 추가하고, 이 코드를 PARTIAL이나 재시도 대상으로 매핑하지 않는다.
+  `BLOCKED`(3)의 새 원인 `PRESTART_ENDPOINT_NOT_OWNED`·`CLIENT_ENDPOINT_NOT_OWNED`는 기동 전 거부이며 공유 자원에 닿지 않았다.
 - 일반 non-zero verdict의 stderr는 정확히 `ERROR: verdict=<VERDICT>\n` 한 줄이다.
 - `--diagnostic-only`는 실행된 선택 P0의 non-PASS만 단독 원인일 때에만 exit 0을 허용하며,
-  verdict=INCONCLUSIVE와 qualifying_pass=false는 유지한다.
+  verdict=INCONCLUSIVE와 qualifying_pass=false는 유지한다. `ISOLATION_BREACH`와 기동 전 거부는 낮추지 못한다.
 
 ## 리뷰 훅
 - [ ] 빌드/기동/테스트가 **빌드시스템 자동감지**로 정해지는가(특정 도구 하드코딩 없음).
@@ -92,5 +96,5 @@ CI 파이프라인은 **프로세스 종료코드**로 합/불을 판정한다. 
 - [ ] 산출물을 CI 아티팩트로 **`when: always`** 보존하는가(실패 시에도).
 - [ ] 보존 아티팩트의 PII가 마스킹돼 있는가(공유 경로 위험).
 - [ ] PASS에 수집·선택·실행·P0·cleanup·teardown·absence probe·orphan audit의 양성 증거가 모두 있는가.
-- [ ] PARTIAL/BLOCKED/INCONCLUSIVE가 각각 2/3/4이며 stderr가 정확한가.
+- [ ] PARTIAL/BLOCKED/INCONCLUSIVE/ISOLATION_BREACH가 각각 2/3/4/5이며 stderr가 정확한가.
 - [ ] `--diagnostic-only`가 선택/실행 0건이나 lifecycle 실패를 우회하지 않는가.

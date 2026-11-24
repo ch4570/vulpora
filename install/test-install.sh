@@ -107,11 +107,11 @@ record "all-skills resolves $expected_skills skills and only their typed agent d
 record 'architecture workflow resolves its complete typed agent and skill closure' \
   "assert_resolution architecture-review-workflow \
      'architecture-reviewer application-architect domain-driven-design-reviewer code-cartographer' \
-     'architecture-review-workflow'"
+     'architecture-review-workflow review-veto-gate'"
 record 'backend review workflow resolves its complete typed agent and skill closure' \
   "assert_resolution backend-code-review-workflow \
      'security-auditor' \
-     'backend-code-review-workflow kotlin-spring-review refactoring-catalog design-pattern-apply oop-design-review'"
+     'backend-code-review-workflow kotlin-spring-review refactoring-catalog design-pattern-apply oop-design-review review-veto-gate'"
 record 'security scan workflow installs only its required security auditor and skill' \
   "assert_resolution security-scan-workflow \
      'security-auditor' \
@@ -133,11 +133,11 @@ record 'dead code exploration installs its self-contained skill without extra ag
 record 'Kotlin Spring review workflow resolves its complete skill suite without unrelated agents' \
   "assert_resolution kotlin-spring-review-workflow \
      '' \
-     'kotlin-spring-review-workflow kotlin-spring-review oop-design-review design-pattern-apply refactoring-catalog'"
+     'kotlin-spring-review-workflow kotlin-spring-review oop-design-review design-pattern-apply refactoring-catalog review-veto-gate'"
 record 'Java Spring review workflow resolves one exact agent and two exact skill passes' \
   "assert_resolution java-spring-review-workflow \
      'java-reviewer' \
-     'java-spring-review-workflow oop-design-review design-pattern-apply'"
+     'java-spring-review-workflow oop-design-review design-pattern-apply review-veto-gate'"
 record 'OpenSearch workflow resolves its complete typed agent and skill closure' \
   "assert_resolution opensearch-review-workflow \
      'opensearch-expert' \

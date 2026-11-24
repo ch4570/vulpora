@@ -122,6 +122,16 @@ Prefer the smallest behavior-preserving action supported by evidence. Never inve
 Never approve a partial run or a model-routing mismatch. An inferred CRITICAL is conditional until
 its named verification confirms the premise.
 
+## Post-review signals
+
+After reconciliation, write the lanes and findings as `vulpora.review-workflow-result/v1` and run `review-veto-gate`
+(`shadow` or `signal` mode). This is not a pass: it adds no mandatory lane, never changes the verdict above, and
+appends one signal bundle (reproduced, consensus-veto candidates, refuted, not reproduced, signals) to the end of the
+report. Findings carry `cause_key`, `contract_source`, and `repro_attempt`. For a change that touches concurrency,
+transactions, authorization, destructive data, money, or a public API, one extra `frugal/low` refuter lane may start
+after the passes finished (explicit model, `fork_turns: none`, the diff and one claim only). A lane that returned
+`ROUTE_UNAVAILABLE` counts toward nothing.
+
 ## Output contract
 
 Return one report containing:

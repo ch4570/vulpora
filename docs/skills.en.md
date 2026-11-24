@@ -2,7 +2,7 @@
 
 [한국어](skills.ko.md) · English · [README](../README.md)
 
-This handbook covers the purpose and invocation of all **67 skills** in the installation manifest.
+This handbook covers the purpose and invocation of all **68 skills** in the installation manifest.
 One entry, `codex-agent-runtime`, is a disabled compatibility contract. Each skill name links to its
 actual `SKILL.md`, which defines the inputs, procedure, and expected output.
 
@@ -139,7 +139,7 @@ Neither mode operates on shared services to prove a flaw. Unverified coverage st
 |---|---|---|
 | [security-scan-workflow](../skills/security-scan-workflow/SKILL.md) | Analyze security and shared-resource effects; fix and verify when authorized | `$security-scan-workflow "Analyze diverse vulnerabilities and fix shared-resource risks with isolated regressions"` |
 
-### Code, design, and test quality review · 12
+### Code, design, and test quality review · 13
 
 Supply target files, modules, or a diff range and baseline for consolidated reviews. Review-only
 requests do not authorize code changes. Workflows that dispatch specialists require those agents
@@ -151,6 +151,7 @@ and an explicit model route to be available in the current runtime.
 | [backend-code-review-workflow](../skills/backend-code-review-workflow/SKILL.md) | Reconcile Kotlin/Spring, refactoring, patterns, OOP, and security reviews | `$backend-code-review-workflow "Review this branch's backend changes against main"` |
 | [java-spring-review-workflow](../skills/java-spring-review-workflow/SKILL.md) | Run and reconcile Java/Spring, OOP, and design-pattern review passes | `$java-spring-review-workflow "Review the payment module's Java changes against main"` |
 | [kotlin-spring-review-workflow](../skills/kotlin-spring-review-workflow/SKILL.md) | Consolidate Kotlin/Spring, OOP, pattern, and refactoring findings | `$kotlin-spring-review-workflow "Review the current order-module diff"` |
+| [review-veto-gate](../skills/review-veto-gate/SKILL.md) | Turn review findings into reproduction tasks and consensus-veto signals without changing the verdict | `$review-veto-gate "Add the signal bundle to the finished backend review"` |
 | [kotlin-spring-review](../skills/kotlin-spring-review/SKILL.md) | Review Kotlin/Spring correctness, structure, transactions, and JPA usage | `$kotlin-spring-review "Review the transaction boundaries in OrderService.kt"` |
 | [oop-design-review](../skills/oop-design-review/SKILL.md) | Assess SOLID, GRASP, cohesion, and encapsulation | `$oop-design-review "Review responsibility allocation across the payment policy classes"` |
 | [design-pattern-apply](../skills/design-pattern-apply/SKILL.md) | Assess whether a pattern fits a real axis of change and how to apply it | `$design-pattern-apply "Assess whether these shipping policy branches need Strategy"` |

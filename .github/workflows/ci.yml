@@ -45,7 +45,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     # Source and extracted-tarball lifecycle gates each exercise the complete
     # catalog. Keep both checks without a tight cutoff on slower macOS runners.
-    timeout-minutes: 45
+    # main's macOS runs already took 2,120-2,695 s of the former 2,700 s limit, so
+    # normal runner variance (and any added test) cancelled the job; 60 min leaves headroom.
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -72,7 +74,7 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update
-          sudo apt-get install --yes ripgrep poppler-utils util-linux fontconfig fonts-noto-cjk
+          sudo apt-get install --yes ripgrep poppler-utils util-linux fontconfig fonts-noto-cjk lsof
           test -n "$(fc-list :lang=ko family)"
           fc-match 'sans-serif:lang=ko'
           test -x /opt/google/chrome/chrome

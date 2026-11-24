@@ -146,6 +146,12 @@ QA 설계부터 실행 결과까지 다음 체인을 끊김 없이 보존한다.
   또는 zero collected 때문에 유효한 실행을 시작하지 못했다.
 - `INCONCLUSIVE`: zero selected/executed, 선택 P0 non-PASS, 문서화되지 않은 non-P0 gap, 또는
   cleanup/teardown/absence-probe/orphan-audit 실패로 PASS 여부를 확정할 수 없다.
+- `ISOLATION_BREACH`: 격리 기록(`isolation.sharedContacts`)에 공유 자원으로의 실제 연결이 있다(종료 코드 5, 다른
+  모든 판정보다 우선, `--diagnostic-only`로 낮출 수 없음). 사고 보고(시각 구간·프로세스·원격 주소·그 구간의 시나리오와
+  `Mutates`)를 내고, 공유 쪽 정리는 **사람의 결정**으로 넘긴다. 공유 자원에 접속해 확인하거나 지우지 않는다.
+  기동 전에 이미 LISTEN 중인 run 소유가 아닌 포트를 가리키는 설정은 시작 자체를 거부하며 `BLOCKED`다.
+  보고서에 "공유 자원 접속 0"이라고 쓰려면 평가기 출력의 `isolation_verified`가 `true`여야 하고, 그때도 "관찰 범위
+  안에서"라고 적는다. 아니면 "격리 확인 안 됨"과 그 이유를 적는다.
 
 ## 협업 (핸드오프)
 
@@ -163,7 +169,8 @@ QA 설계부터 실행 결과까지 다음 체인을 끊김 없이 보존한다.
 ## 요약
 - 대상: <시나리오 셋 / 카탈로그 범위>
 - 환경: <빌드시스템·프레임워크 자동감지 결과 / 실행 모드>
-- 결론: <PASS / PARTIAL / BLOCKED / INCONCLUSIVE> + 한 줄 사유
+- 결론: <PASS / PARTIAL / BLOCKED / INCONCLUSIVE / ISOLATION_BREACH> + 한 줄 사유
+- 격리: <verified | not verified (이유) | BREACH (host:port)>
 
 ## 실행 결과
 - collected / executed / pass / fail / skipped / failed-dependency / probe-error: <수치>

@@ -123,6 +123,17 @@ Each result requires `id`, `status`, `target`, `dataset`, `dependsOn`, `actual`,
 Every executed result records `assertions[]`: one `{kind, expected, actual, passed}` entry per comparison, including
 the status (`kind: "status"`) whenever `Expected` names one. A `PASS` with no comparison, a failed comparison, or a
 status comparison whose expected and actual differ is not proof; the verdict evaluator reports it `INCONCLUSIVE`.
+
+Two **optional** root additions describe isolation (both stay inside `contractVersion: 1`; an older result without them
+remains valid and only warns):
+
+- `environment` with `schemaVersion: 2` adds `endpoints[]`: one entry per run-owned endpoint with `kind`, a loopback
+  `host`, an integer `port`, the run-owned `containerId`, and `propertyKeys[]`. `localhost` alone proves nothing;
+  `check-isolation.js` compares each entry with Docker state.
+- `isolation` (`vulpora.isolation/v1`, produced by `check-isolation.js`, never by the harness) records `verified`,
+  `sharedContacts[]`, `ownershipViolations[]`, `prestartRefusals[]`, `warnings[]`, and the sha256-pinned `receipt` file
+  copied beside the result. A non-empty `sharedContacts[]` makes the verdict `ISOLATION_BREACH` (exit 5); a non-empty
+  `prestartRefusals[]` makes it `BLOCKED`. Only `isolation.verified: true` supports "no shared-resource contact".
 Repository-suite tests whose assertions live in framework code declare `assertionSource: "framework"` instead.
 `generatedAt` and `wallTimeMs` are optional; consumers fall back to `finishedAt` and `finishedAt - startedAt`.
 

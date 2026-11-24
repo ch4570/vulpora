@@ -85,12 +85,17 @@ function writeBody(root, id, value) {
   return `${id}.txt`;
 }
 
-function observations(root, results) {
+// A v1 environment (no endpoints) is still accepted, but it can prove nothing about ownership.
+const V1_ENVIRONMENT = {owner: 'repository-harness', images: ['postgres:16']};
+const V2_ENVIRONMENT = {schemaVersion: 2, owner: 'repository-harness', images: ['redis:7'], endpoints: [
+  {kind: 'redis', host: '127.0.0.1', port: 55001, containerId: 'a'.repeat(64), propertyKeys: ['spring.data.redis.port', 'spring.data.redis.host']}]};
+
+function observations(root, results, environment = V1_ENVIRONMENT) {
   const file = path.join(root, 'out', 'observations.json');
   fs.mkdirSync(path.dirname(file), {recursive: true});
   fs.writeFileSync(file, JSON.stringify({
     schema: 'vulpora.e2e-harness-observations/v1', runId: 'run-1', startedAt: '2026-11-02T00:00:00Z',
-    finishedAt: '2026-11-02T00:00:05Z', environment: {owner: 'repository-harness', images: ['postgres:16']}, results,
+    finishedAt: '2026-11-02T00:00:05Z', environment, results,
     lifecycle: {cleanup: {status: 'PASS'}, teardown: {status: 'PASS'}, orphanAudit: {status: 'PASS'},
       absenceProbes: [{id: 'clients-empty', status: 'PASS'}]},
   }));
@@ -116,10 +121,136 @@ test('Assembled results catch the business-rule bug and the 204/404 mismatch, an
   assert.deepEqual(run.notSelected, [{reason: 'held by author: export needs an object-store stub', count: 1, caseIds: ['E2E-V1-EXPORT-HAPPY']}]);
   assert.match(fs.readFileSync(path.join(root, 'report/raw/E2E-V1-CLIENTS-POST-HAPPY.json'), 'utf8'), /"apiKey": "\*\*\*"/);
   assert.ok(fs.existsSync(path.join(root, 'report', 'run-1.done')));
-  assert.equal(node('validate-run-result.js', runPath, '--require-done').status, 0);
+  const validated = node('validate-run-result.js', runPath, '--require-done');
+  assert.equal(validated.status, 0);
+  // E1: a result whose environment declares no endpoints still validates, but says it proves nothing about ownership.
+  const {warnings} = JSON.parse(validated.stdout);
+  assert.ok(warnings.some((message) => /no schemaVersion 2 endpoints/.test(message)), warnings.join('\n'));
+  assert.ok(warnings.some((message) => /no isolation record/.test(message)), warnings.join('\n'));
   const verdict = JSON.parse(node('evaluate-run-verdict.js', runPath).stdout);
   assert.equal(verdict.verdict, 'INCONCLUSIVE');
+  assert.equal(verdict.isolation_verified, false, 'an environment with no endpoints cannot support "no shared-resource contact"');
   assert.deepEqual(verdict.notSelected[0].caseIds, ['E2E-V1-EXPORT-HAPPY']);
+});
+
+// ---- environment v2 and the isolation record (RUN-7.1a, RUN-7.1d) ----------------------------------------------------
+
+function greenResults(root) {
+  return {
+    'E2E-V1-BOARD-HAPPY': {executed: true, httpStatus: 200, latencyMs: 4, bodyFile: writeBody(root, 'board', {refreshTargets: [{site: 'SITE-A'}]})},
+    'E2E-V1-CLIENTS-POST-HAPPY': {executed: true, httpStatus: 201, latencyMs: 3, bodyFile: writeBody(root, 'post', {id: 1}), teardown: {status: 'PASS'}},
+    'E2E-V1-CLIENTS-BY-ID-GET-HAPPY': {executed: true, httpStatus: 200, latencyMs: 2, bodyFile: writeBody(root, 'get', {name: 'c1'}), vars: {'prev.ID': '1'}},
+    'E2E-V1-PING-HAPPY': {executed: true, httpStatus: 204, latencyMs: 1, bodyFile: writeBody(root, 'ping', '')},
+  };
+}
+
+// A hand-built isolation record plus its receipt. check-isolation.js has its own tests; here only the plumbing matters.
+function isolationRecord(root, overrides = {}, receiptText = '{"schema":"vulpora.isolation-receipt/v1"}\n') {
+  const dir = path.join(root, 'iso');
+  fs.mkdirSync(dir, {recursive: true});
+  fs.writeFileSync(path.join(dir, 'isolation-receipt.json'), receiptText);
+  const sha256 = require('node:crypto').createHash('sha256').update(receiptText).digest('hex');
+  const file = path.join(dir, 'isolation.json');
+  fs.writeFileSync(file, JSON.stringify({schema: 'vulpora.isolation/v1', mode: 'observe', verified: true, unverifiedReasons: [], receipt: {path: 'isolation-receipt.json', sha256},
+    sharedContacts: [], ownedContacts: [], ownershipViolations: [], verifiedOwnedEndpoints: [{kind: 'redis', port: 55001, containerId: 'a'.repeat(64)}],
+    prestartRefusals: [], warnings: [], ...overrides}));
+  return file;
+}
+
+function assemble(root, environment, isolationFile) {
+  const file = observations(root, greenResults(root), environment);
+  const args = [path.join(root, 'plan.json'), file, path.join(root, 'report')];
+  if (isolationFile) args.push('--isolation', isolationFile);
+  const assembled = node('assemble-run-result.js', ...args);
+  return {assembled, runPath: path.join(root, 'report', 'run-1.json')};
+}
+
+test('A v2 environment with a verified isolation record assembles, validates clean, and reports isolation as verified', t => {
+  const {root} = workspace(t);
+  const {assembled, runPath} = assemble(root, V2_ENVIRONMENT, isolationRecord(root));
+  assert.equal(assembled.status, 0, assembled.stderr);
+  const run = JSON.parse(fs.readFileSync(runPath, 'utf8'));
+  assert.deepEqual(run.environment.endpoints[0].propertyKeys, ['spring.data.redis.host', 'spring.data.redis.port'], 'endpoints are normalized');
+  assert.equal(run.isolation.receipt.path, 'isolation/isolation-receipt.json');
+  assert.ok(fs.existsSync(path.join(root, 'report/isolation/isolation-receipt.json')));
+  assert.match(fs.readFileSync(path.join(root, 'report/run-1.md'), 'utf8'), /- 격리: 확인됨/);
+  const validated = JSON.parse(node('validate-run-result.js', runPath, '--require-done').stdout);
+  assert.deepEqual([validated.valid, validated.errors, validated.warnings], [true, [], []]);
+  const evaluated = node('evaluate-run-verdict.js', runPath);
+  assert.equal(evaluated.status, 0, evaluated.stdout);
+  const verdict = JSON.parse(evaluated.stdout);
+  assert.deepEqual([verdict.verdict, verdict.isolation_verified], ['PASS', true]);
+  assert.equal(verdict.humanSummary[4], 'isolation: verified');
+});
+
+test('A shared contact in the isolation record turns an otherwise green run into ISOLATION_BREACH (exit 5)', t => {
+  const {root} = workspace(t);
+  const breach = isolationRecord(root, {verified: false, sharedContacts: [{remoteAddress: '127.0.0.1', remotePort: 7101, category: 'shared-resource', process: {pid: 4, command: 'java'}}]});
+  const {assembled, runPath} = assemble(root, V2_ENVIRONMENT, breach);
+  assert.equal(assembled.status, 0, assembled.stderr);
+  assert.match(fs.readFileSync(path.join(root, 'report/run-1.md'), 'utf8'), /- 격리: 위반 \(127\.0\.0\.1:7101\)/);
+  assert.equal(node('validate-run-result.js', runPath, '--require-done').status, 0, 'a breach is a verdict, not a malformed result');
+  const evaluated = node('evaluate-run-verdict.js', runPath);
+  assert.equal(evaluated.status, 5);
+  assert.equal(evaluated.stderr, 'ERROR: verdict=ISOLATION_BREACH\n');
+  assert.equal(JSON.parse(evaluated.stdout).verdict, 'ISOLATION_BREACH');
+  assert.equal(node('evaluate-run-verdict.js', runPath, '--diagnostic-only').status, 5);
+});
+
+test('A pre-start refusal in the isolation record makes the run BLOCKED', t => {
+  const {root} = workspace(t);
+  const refused = isolationRecord(root, {verified: false, prestartRefusals: [{code: 'PRESTART_ENDPOINT_NOT_OWNED', key: 'spring.data.redis.host', host: 'localhost', port: 7101}]});
+  const {runPath} = assemble(root, V2_ENVIRONMENT, refused);
+  const evaluated = node('evaluate-run-verdict.js', runPath);
+  assert.equal(evaluated.status, 3);
+  assert.equal(JSON.parse(evaluated.stdout).reasons[0].code, 'PRESTART_ENDPOINT_NOT_OWNED');
+});
+
+test('The validator rejects a v2 environment that is not run-owned by shape, and a swapped or edited receipt', t => {
+  const {root} = workspace(t);
+  const bad = {...V2_ENVIRONMENT, endpoints: [
+    {kind: 'db', host: 'db.dev.example.test', port: 5432, containerId: 'a'.repeat(64), propertyKeys: []},
+    {kind: 'redis', host: 'host.docker.internal', port: 55001, containerId: 'a'.repeat(64), propertyKeys: []},
+    {kind: 's3', host: '127.0.0.1', port: 70000, containerId: 'abc', propertyKeys: 'x'}]};
+  const {assembled, runPath} = assemble(root, bad);
+  assert.equal(assembled.status, 0, assembled.stderr);
+  const {valid, errors} = JSON.parse(node('validate-run-result.js', runPath).stdout);
+  assert.equal(valid, false);
+  for (const pattern of [/endpoints\[0\]\.host must be a loopback address/, /endpoints\[1\]\.host must be a loopback address/, /endpoints\[2\]\.port must be an integer port/,
+    /endpoints\[2\]\.containerId must be the run-owned container id/, /endpoints\[2\]\.propertyKeys must be an array of strings/]) {
+    assert.ok(errors.some((message) => pattern.test(message)), String(pattern));
+  }
+
+  // tampering after assembly: the receipt copy no longer matches the recorded hash
+  const good = workspace(t);
+  const built = assemble(good.root, V2_ENVIRONMENT, isolationRecord(good.root));
+  assert.equal(built.assembled.status, 0, built.assembled.stderr);
+  fs.writeFileSync(path.join(good.root, 'report/isolation/isolation-receipt.json'), '{"schema":"vulpora.isolation-receipt/v1","edited":true}\n');
+  const tampered = JSON.parse(node('validate-run-result.js', built.runPath).stdout);
+  assert.ok(tampered.errors.some((message) => /does not match its recorded sha256/.test(message)));
+  // a record whose receipt hash does not match is refused at assembly
+  const swapped = workspace(t);
+  const record = isolationRecord(swapped.root);
+  fs.writeFileSync(path.join(swapped.root, 'iso/isolation-receipt.json'), '{"other":1}\n');
+  assert.equal(assemble(swapped.root, V2_ENVIRONMENT, record).assembled.status, 64);
+});
+
+test('An isolation record that names an unproven endpoint, or one that is not from check-isolation, never reads as verified', t => {
+  const {root} = workspace(t);
+  const record = isolationRecord(root, {verified: false, unverifiedReasons: ['ENDPOINT_NOT_RUN_OWNED: container lacks run label'],
+    ownershipViolations: [{kind: 'redis', port: 55001, containerId: 'a'.repeat(64), reason: 'container lacks run label'}], verifiedOwnedEndpoints: []});
+  const {runPath} = assemble(root, V2_ENVIRONMENT, record);
+  const validated = JSON.parse(node('validate-run-result.js', runPath).stdout);
+  assert.equal(validated.valid, true);
+  assert.ok(validated.warnings.some((message) => /redis:55001 is not proven run-owned \(container lacks run label\)/.test(message)), validated.warnings.join('\n'));
+  const verdict = JSON.parse(node('evaluate-run-verdict.js', runPath).stdout);
+  assert.deepEqual([verdict.verdict, verdict.isolation_verified], ['PASS', false]);
+  assert.match(verdict.humanSummary[4], /^isolation: not verified \(ENDPOINT_NOT_RUN_OWNED/);
+
+  const forged = workspace(t);
+  const notFromChecker = isolationRecord(forged.root);
+  fs.writeFileSync(notFromChecker, JSON.stringify({verified: true, sharedContacts: []}));
+  assert.equal(assemble(forged.root, V2_ENVIRONMENT, notFromChecker).assembled.status, 64);
 });
 
 test('A dependent that ran after a failed parent counts as FAILED-DEPENDENCY', t => {
@@ -221,4 +352,33 @@ public class Main { public static void main(String[] a) throws Exception {
   assert.equal(node('validate-run-result.js', path.join(root, 'report/java-run.json'), '--require-done').status, 0);
   const verdict = JSON.parse(node('evaluate-run-verdict.js', path.join(root, 'report/java-run.json')).stdout);
   assert.equal(verdict.verdict, 'PASS', JSON.stringify(verdict.reasons));
+});
+
+test('Assembly refuses an isolation record with a missing shape or an escaping receipt path, and the validator rejects a record that disagrees with its receipt', t => {
+  const {root} = workspace(t);
+  const noContacts = isolationRecord(root);
+  const doc = JSON.parse(fs.readFileSync(noContacts, 'utf8'));
+  delete doc.sharedContacts;
+  fs.writeFileSync(noContacts, JSON.stringify(doc));
+  assert.equal(assemble(root, V2_ENVIRONMENT, noContacts).assembled.status, 64);
+
+  const escape = workspace(t);
+  const record = isolationRecord(escape.root);
+  const parsed = JSON.parse(fs.readFileSync(record, 'utf8'));
+  parsed.receipt.path = '../outside.json';
+  fs.writeFileSync(record, JSON.stringify(parsed));
+  fs.writeFileSync(path.join(escape.root, 'outside.json'), '{}');
+  const escaped = assemble(escape.root, V2_ENVIRONMENT, record).assembled;
+  assert.equal(escaped.status, 64);
+  assert.match(escaped.stderr, /inside the isolation record directory/);
+
+  // a record that says verified over a genuine receipt that recorded a gap and unattributed connections
+  const forged = workspace(t);
+  const receiptText = JSON.stringify({schema: 'vulpora.isolation-receipt/v1', observation: {samples: 5}, observerGaps: [{kind: 'POLL_GAP'}], connections: [{remotePort: 1}]});
+  const built = assemble(forged.root, V2_ENVIRONMENT, isolationRecord(forged.root, {observation: {samples: 5}}, receiptText));
+  assert.equal(built.assembled.status, 0, built.assembled.stderr);
+  const {errors} = JSON.parse(node('validate-run-result.js', built.runPath).stdout);
+  for (const pattern of [/observerGaps does not match the receipt/, /verified is true although the receipt records observer gaps/, /none were attributed/]) {
+    assert.ok(errors.some((message) => pattern.test(message)), `${pattern}: ${errors.join(' | ')}`);
+  }
 });

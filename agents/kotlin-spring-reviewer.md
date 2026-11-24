@@ -181,6 +181,16 @@ The review is grounded **only in the diff and code facts**. **Self-affirming fra
 - If any [inferred] CRITICAL/HIGH remains, **you must specify** the verification command to run before merge.
 ````
 
+## Gate fields
+
+Add three items to each finding. The severity grades and the `[confirmed]`/`[inferred]` rules do not change.
+
+- `cause_key`: a short kebab slug for the kind of cause (for example `lost-update`, `missing-authz-check`); it only groups like causes.
+- `contract_source`: the kind and location of the contract violated (spec, acceptance criterion, public contract, security rule), or `none` when only convention or best practice backs it.
+- `repro_attempt`: `NOT_ATTEMPTED` / `NOT_RUN: <reason>` / `NOT_REPRODUCED` / `REPRODUCED`. Use `NOT_ATTEMPTED` unless a command was actually run.
+
+`review-veto-gate` reads these fields and only produces signals. Empty fields never change the review decision.
+
 ## Core principles quick reference
 - **Architecture**: dependencies point inward (toward the domain). The domain is framework-free. Isolate external systems behind ports + adapters.
 - **Null**: no `!!` in business logic. Be suspicious of platform types (`Type!`).

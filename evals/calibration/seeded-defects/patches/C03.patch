@@ -1,0 +1,12 @@
+diff --git a/src/main/java/example/inventory/PriceCalculator.java b/src/main/java/example/inventory/PriceCalculator.java
+index 563262a..c0bd35b 100644
+--- a/src/main/java/example/inventory/PriceCalculator.java
++++ b/src/main/java/example/inventory/PriceCalculator.java
+@@ -4,6 +4,7 @@ import java.math.BigDecimal;
+ import java.math.RoundingMode;
+ 
+ public class PriceCalculator {
++    // Totals are rounded once, after multiplying.
+     public BigDecimal total(BigDecimal unitPrice, int quantity) {
+         return unitPrice.multiply(BigDecimal.valueOf(quantity)).setScale(2, RoundingMode.HALF_UP);
+     }

@@ -3,7 +3,9 @@
 
 // Gate for any run result, whether produced by assemble-run-result.js or by a repository
 // harness directly: CONTRACT.md §5 shape, per-status fields, recorded comparisons, masking,
-// the RUN-16.7 verdict input, and (with --require-done) a `.done` marker written last.
+// the RUN-16.7 verdict input, the RUN-7.1a environment endpoints and RUN-7.1d isolation record, and (with
+// --require-done) a `.done` marker written last. `warnings` lists what could not be proven without failing the
+// contract (an older result with no endpoints or no isolation record stays valid).
 // Exit 0 = valid, 1 = contract violations (listed), 64 = usage.
 //
 // usage: validate-run-result.js <run.json> [--require-done] [--mask-key <key>]...
@@ -93,6 +95,68 @@ if (run.summary && typeof run.summary === 'object') {
   }
 }
 
+// Environment (RUN-7.1a). schemaVersion 2 declares the run-owned endpoints; everything else is accepted for
+// compatibility but cannot prove ownership, so it only warns.
+const warnings = [];
+const warn = (message) => warnings.push(message);
+const LITERAL_LOOPBACK = (host) => typeof host === 'string' && (host === 'localhost' || host === '::1' || host === '[::1]' || /^127\.\d+\.\d+\.\d+$/.test(host));
+const environment = run.environment;
+if (environment && typeof environment === 'object' && environment.schemaVersion === 2) {
+  if (!Array.isArray(environment.endpoints)) error('environment.endpoints must be an array when environment.schemaVersion is 2');
+  else {
+    environment.endpoints.forEach((endpoint, index) => {
+      const at = `environment.endpoints[${index}]`;
+      if (!endpoint || typeof endpoint !== 'object') { error(`${at} must be an object`); return; }
+      if (typeof endpoint.kind !== 'string' || endpoint.kind.length === 0) error(`${at}.kind must be a non-empty string`);
+      if (!LITERAL_LOOPBACK(endpoint.host)) error(`${at}.host must be a loopback address (localhost, 127.x.x.x, ::1); a run-owned endpoint is never a remote or Docker-alias host`);
+      if (!Number.isInteger(endpoint.port) || endpoint.port < 1 || endpoint.port > 65535) error(`${at}.port must be an integer port`);
+      if (typeof endpoint.containerId !== 'string' || endpoint.containerId.length < 12) error(`${at}.containerId must be the run-owned container id (at least 12 characters)`);
+      if (!Array.isArray(endpoint.propertyKeys) || endpoint.propertyKeys.some((key) => typeof key !== 'string')) error(`${at}.propertyKeys must be an array of strings`);
+    });
+    if (environment.endpoints.length === 0) warn('environment declares no endpoints: nothing was proven run-owned');
+  }
+} else {
+  warn('environment has no schemaVersion 2 endpoints: endpoint ownership cannot be checked and "no shared-resource contact" must not be claimed');
+}
+
+// Isolation record (RUN-7.1d): the receipt must exist next to the result and match its hash.
+const isolation = run.isolation;
+if (isolation !== undefined) {
+  if (!isolation || typeof isolation !== 'object') error('isolation must be an object');
+  else {
+    const receiptPath = isolation.receipt?.path;
+    if (typeof receiptPath !== 'string' || typeof isolation.receipt?.sha256 !== 'string') error('isolation.receipt needs path and sha256');
+    else {
+      const absolute = path.resolve(path.dirname(runPath), receiptPath);
+      if (!absolute.startsWith(`${path.dirname(runPath)}${path.sep}`)) error('isolation.receipt.path must stay inside the run output directory');
+      else if (!fs.existsSync(absolute)) error(`isolation receipt does not exist: ${receiptPath}`);
+      else if (require('node:crypto').createHash('sha256').update(fs.readFileSync(absolute)).digest('hex') !== isolation.receipt.sha256) error('isolation receipt does not match its recorded sha256');
+    }
+    // The record must agree with the receipt it names, so a hand-edited record over a genuine receipt is caught.
+    try {
+      const receipt = JSON.parse(fs.readFileSync(path.resolve(path.dirname(runPath), receiptPath), 'utf8'));
+      const gaps = Array.isArray(receipt.observerGaps) ? receipt.observerGaps.length : 0;
+      if ((isolation.observerGaps || []).length !== gaps) error('isolation.observerGaps does not match the receipt');
+      if (JSON.stringify(isolation.observation ?? null) !== JSON.stringify(receipt.observation ?? null)) error('isolation.observation does not match the receipt');
+      if (isolation.verified === true && gaps > 0) error('isolation.verified is true although the receipt records observer gaps');
+      const remoteOrUnknown = (receipt.connections || []).length;
+      if (isolation.verified === true && remoteOrUnknown > 0 && !(isolation.ownedContacts || []).length && !(isolation.infrastructureContacts || []).length && !(isolation.localToolContacts || []).length) {
+        error('isolation.verified is true although the receipt has connections and none were attributed');
+      }
+    } catch { /* an unreadable receipt was already reported by the hash check */ }
+    for (const violation of Array.isArray(isolation.ownershipViolations) ? isolation.ownershipViolations : []) {
+      warn(`environment endpoint ${violation.kind ?? '?'}:${violation.port ?? '?'} is not proven run-owned (${violation.reason ?? 'unknown reason'})`);
+    }
+    const proven = new Set((Array.isArray(isolation.verifiedOwnedEndpoints) ? isolation.verifiedOwnedEndpoints : []).map((entry) => `${entry.kind}|${entry.port}|${entry.containerId}`));
+    for (const endpoint of Array.isArray(environment?.endpoints) ? environment.endpoints : []) {
+      const violated = (isolation.ownershipViolations || []).some((entry) => entry.kind === endpoint.kind && entry.port === endpoint.port && entry.containerId === endpoint.containerId);
+      if (!proven.has(`${endpoint.kind}|${endpoint.port}|${endpoint.containerId}`) && !violated) warn(`environment endpoint ${endpoint.kind}:${endpoint.port} was not checked by check-isolation.js`);
+    }
+  }
+} else {
+  warn('no isolation record: the run is "isolation not verified"');
+}
+
 // Masking applies to the JSON and every raw body it references.
 for (const at of findUnmasked(run, maskKeys)) error(`unmasked sensitive value at ${at}`);
 for (const result of results) {
@@ -119,5 +183,5 @@ if (requireDone) {
 }
 
 const valid = errors.length === 0;
-process.stdout.write(`${JSON.stringify({valid, errors, verdict: verdict.status === 64 ? null : JSON.parse(verdict.stdout || 'null')?.verdict ?? null}, null, 2)}\n`);
+process.stdout.write(`${JSON.stringify({valid, errors, warnings, verdict: verdict.status === 64 ? null : JSON.parse(verdict.stdout || 'null')?.verdict ?? null}, null, 2)}\n`);
 process.exit(valid ? 0 : 1);

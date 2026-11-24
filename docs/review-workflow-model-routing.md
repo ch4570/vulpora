@@ -88,3 +88,21 @@ Tier escalation은 evidence verifier가 해당 pass의 증거를 기각하거나
 세 lane 중 하나라도 실패·timeout·stale·route mismatch면 workflow는 `INCOMPLETE`다. Primary는 child finding의
 실제 location과 command evidence를 다시 확인하고, 같은 location/symbol과 같은 root cause일 때만 중복을
 합친다. 의견 충돌은 consensus로 꾸미지 않고 dissent로 보존한다.
+
+## Review gate lanes (`review-veto-gate`)
+
+[`review-veto-gate`](../skills/review-veto-gate/SKILL.md)는 리뷰 워크플로의 종합 뒤에 도는 후처리이고 mandatory pass가
+아니다. 설계 근거와 단계는 [심사단 합의 게이트와 red team](review-panel-red-team-gate-design.md)에 있다.
+
+| 자리 | profile | 오너 모델 규칙 안의 모델 | 비고 |
+|---|---|---|---|
+| 반증 레인(refuter) | `frugal/low`, 필요하면 `standard` | haiku, 보정이 나쁘면 sonnet | 위험 변경에서만. 워크플로의 세 pass가 끝난 뒤 시작하므로 active child 상한은 그대로다. `fork_turns: none`, 명시 모델 |
+| 공격자(breaker) | `standard/medium` | sonnet | R3에서 켠다. R1은 과제 목록만 만든다 |
+| 명세 테스트 작성자 | `standard/medium` | sonnet | 승인된 수용 기준이 있을 때만(R3) |
+| 재실행·집계·판정 | 모델 없음 | — | 결정적 스크립트 |
+
+- 오너 결정: 보안·되돌릴 수 없는 데이터 위험의 `frontier` 바닥 자리는 **`ROUTE_UNAVAILABLE`로 두고 사람 검토**로 넘긴다.
+  그 자리의 결함은 합의 레인 수에 들어가지 않는다.
+- 오너 결정: 다른 회사 모델은 섞지 않는다. 독립성은 입력과 역할 분리에서만 나온다.
+- 상한에 닿은 과제는 더 비싼 모델을 쓸 이유가 아니라 `NOT_RUN: budget-cap`이다.
+- R1에서 이 레인들은 판정을 바꾸지 않는다. 신호와 그림자 장부만 남긴다.

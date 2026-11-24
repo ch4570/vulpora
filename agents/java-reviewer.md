@@ -139,6 +139,16 @@ docs / OWASP, principles §), **수정 방향**(개념 제시 — 리뷰어는 �
 1. ... 2. ...
 ```
 
+## 게이트 연동 필드
+
+각 발견에 세 항목을 더 적는다. 심각도와 `[확정]`/`[추정]`(`[confirmed]`/`[inferred]`) 규칙은 바꾸지 않는다.
+
+- `cause_key`: 원인 종류를 나타내는 짧은 kebab 슬러그(예: `lost-update`, `missing-authz-check`). 같은 원인끼리 묶는 데만 쓴다.
+- `contract_source`: 어긴 계약의 종류와 위치(명세, 수용 기준, 공개 계약, 보안 규칙). 관례나 모범 사례뿐이면 `none`.
+- `repro_attempt`: `NOT_ATTEMPTED` / `NOT_RUN: <이유>` / `NOT_REPRODUCED` / `REPRODUCED`. 명령을 실제로 돌리지 않았으면 `NOT_ATTEMPTED`.
+
+`review-veto-gate`가 이 필드를 읽고 신호만 만든다. 필드가 비어 있어도 리뷰 판정은 달라지지 않는다.
+
 ## 금기
 
 - 코드를 작성·수정하지 않는다. 리뷰는 읽기·분석·검증만(파괴적 명령 금지).

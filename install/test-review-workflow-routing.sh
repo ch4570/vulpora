@@ -59,4 +59,18 @@ grep -Fq 'lane-specific evidence capsule' "$BACKEND_WORKFLOW"
 grep -Fq '`NOT_APPLICABLE`' "$BACKEND_WORKFLOW"
 grep -Fq 'The workflow owner and reconciliation default to `standard/medium`' "$BACKEND_WORKFLOW"
 
+# The post-review gate is a dependency, never a pass: the Java workflow keeps exactly three mandatory passes.
+for workflow in \
+  architecture-review-workflow \
+  backend-code-review-workflow \
+  java-spring-review-workflow \
+  kotlin-spring-review-workflow; do
+  grep -Fq '`review-veto-gate`' "$ROOT/skills/$workflow/SKILL.md"
+  grep -Fq 'not a pass' "$ROOT/skills/$workflow/SKILL.md"
+  grep -Eq "^skill \\| $workflow \\|.*\\breview-veto-gate\\b" "$ROOT/install/manifest.txt"
+done
+grep -Fq 'adds no mandatory lane' "$JAVA_WORKFLOW"
+grep -Fq 'ROUTE_UNAVAILABLE' "$ROUTING_DOC"
+grep -Fq 'review-veto-gate' "$ROUTING_DOC"
+
 printf '{"outcome":"pass","workflow":"java-spring-review-workflow","parallel_passes":3,"explicit_model_routing":true,"primary_inheritance":false,"java_spring_review_hardened":true}\n'

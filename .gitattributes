@@ -24,3 +24,6 @@ vulpora text eol=lf
 # Historical scanner payloads are preserved privately, outside public source
 # release archives. The npm files allowlist excludes the same raw directory.
 docs/security/raw export-ignore
+
+# Planted-defect patches keep the single-space blank context lines a unified diff requires.
+evals/calibration/seeded-defects/patches/*.patch -whitespace

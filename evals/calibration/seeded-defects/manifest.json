@@ -1,0 +1,126 @@
+{
+  "schema": "vulpora.calibration-set/v0",
+  "base": "base",
+  "baseDescription": "A small generic inventory service. Patches apply to it with `git apply`.",
+  "visibility": "all cases here are visible; hidden cases are kept by the set owner outside this repository",
+  "targets": {
+    "seededPerTier": 20,
+    "controlsPerTier": 40
+  },
+  "cases": [
+    {
+      "id": "S01",
+      "kind": "seeded",
+      "tier": "concurrency",
+      "patch": "patches/S01.patch",
+      "plantedDefect": {
+        "causeKey": "lost-update",
+        "path": "src/main/java/example/inventory/ItemRepository.java"
+      },
+      "note": "remove the pessimistic lock from the read used for the decrement"
+    },
+    {
+      "id": "S02",
+      "kind": "seeded",
+      "tier": "concurrency",
+      "patch": "patches/S02.patch",
+      "plantedDefect": {
+        "causeKey": "lost-update",
+        "path": "src/main/java/example/inventory/Item.java"
+      },
+      "note": "drop the version column that guards concurrent updates"
+    },
+    {
+      "id": "S03",
+      "kind": "seeded",
+      "tier": "concurrency",
+      "patch": "patches/S03.patch",
+      "plantedDefect": {
+        "causeKey": "transaction-boundary",
+        "path": "src/main/java/example/inventory/StockService.java"
+      },
+      "note": "split read and decrement into two transactions (check-then-act)"
+    },
+    {
+      "id": "S04",
+      "kind": "seeded",
+      "tier": "concurrency",
+      "patch": "patches/S04.patch",
+      "plantedDefect": {
+        "causeKey": "weaker-isolation",
+        "path": "src/main/java/example/inventory/StockService.java"
+      },
+      "note": "lower the transaction isolation level"
+    },
+    {
+      "id": "S05",
+      "kind": "seeded",
+      "tier": "authorization",
+      "patch": "patches/S05.patch",
+      "plantedDefect": {
+        "causeKey": "missing-authz-check",
+        "path": "src/main/java/example/inventory/ItemController.java"
+      },
+      "note": "remove the role check on the delete endpoint"
+    },
+    {
+      "id": "S06",
+      "kind": "seeded",
+      "tier": "money",
+      "patch": "patches/S06.patch",
+      "plantedDefect": {
+        "causeKey": "rounding-error",
+        "path": "src/main/java/example/inventory/PriceCalculator.java"
+      },
+      "note": "change the rounding of an amount from half-up to truncation"
+    },
+    {
+      "id": "C01",
+      "kind": "control",
+      "tier": "none",
+      "patch": "patches/C01.patch",
+      "plantedDefect": null,
+      "note": "rename a parameter"
+    },
+    {
+      "id": "C02",
+      "kind": "control",
+      "tier": "none",
+      "patch": "patches/C02.patch",
+      "plantedDefect": null,
+      "note": "extract a validation helper"
+    },
+    {
+      "id": "C03",
+      "kind": "control",
+      "tier": "none",
+      "patch": "patches/C03.patch",
+      "plantedDefect": null,
+      "note": "add a comment"
+    },
+    {
+      "id": "C04",
+      "kind": "control",
+      "tier": "concurrency",
+      "patch": "patches/C04.patch",
+      "plantedDefect": null,
+      "note": "add a query hint and keep the lock"
+    },
+    {
+      "id": "C05",
+      "kind": "control",
+      "tier": "concurrency",
+      "patch": "patches/C05.patch",
+      "plantedDefect": null,
+      "note": "keep the transaction and lock, add a log line"
+    },
+    {
+      "id": "C06",
+      "kind": "control",
+      "tier": "authorization",
+      "patch": "patches/C06.patch",
+      "plantedDefect": null,
+      "note": "rename the endpoint method and keep the role check"
+    }
+  ]
+}

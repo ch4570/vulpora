@@ -29,6 +29,29 @@ Docker CLI success proves only that the CLI can reach a daemon. PASS additionall
 startup evidence from the selected test process. Remote Docker contexts, reused containers, existing app processes,
 non-local browser base URLs, and shared auth state are untrusted unless an explicit test-only ownership contract exists.
 
+## Endpoint ownership is proven by Docker, not written down
+
+`localhost` is an address, not ownership: the shared local Redis (a different port on `localhost`) is also `localhost`.
+A harness that records its environment writes `environment.json` with `schemaVersion: 2`, one entry per endpoint it
+created, and the scripts check each entry against Docker state (`RUN-7.1a`):
+
+```json
+{
+  "schemaVersion": 2,
+  "owner": "repository-harness",
+  "images": ["redis:7"],
+  "endpoints": [
+    {"kind": "redis", "host": "127.0.0.1", "port": 55001, "containerId": "<run-owned container id>",
+     "propertyKeys": ["spring.data.redis.host", "spring.data.redis.port"]}
+  ]
+}
+```
+
+The harness-set `propertyKeys` are informational. What the application actually resolves is what the pre-start scan
+(`RUN-7.1b`) and client observation (`RUN-7.1c`) read, because a mistyped key still resolves to the application's
+default, which is usually the shared service. A result without endpoints still validates but warns and cannot show
+`isolation_verified: true`.
+
 ## Capability-complete bootstrap
 
 Do not translate a service name into a generic image. Derive and pin the actual capability:
@@ -66,3 +89,4 @@ in `if (isDockerAvailable())` yields the low-level `BLOCKED_FALSE_GREEN` diagnos
 - [ ] External sinks and browser/application URLs are run-owned test endpoints.
 - [ ] Case cleanup and final orphan audit both succeeded.
 - [ ] Runtime positive proof, not Docker CLI status alone, supports PASS.
+- [ ] `environment.json` is schemaVersion 2 with loopback hosts and container ids that `check-isolation.js` confirmed; "no shared-resource contact" appears only with `isolation_verified: true`.

@@ -1,0 +1,28 @@
+diff --git a/src/main/java/example/inventory/StockService.java b/src/main/java/example/inventory/StockService.java
+index d008842..be87767 100644
+--- a/src/main/java/example/inventory/StockService.java
++++ b/src/main/java/example/inventory/StockService.java
+@@ -12,9 +12,20 @@ public class StockService {
+         this.items = items;
+     }
+ 
+-    @Transactional(isolation = Isolation.READ_COMMITTED)
+     public void reserve(long itemId, int quantity) {
+-        Item item = items.findForUpdate(itemId).orElseThrow();
+-        item.decrease(quantity);
++        Item item = load(itemId);
++        if (item.getStock() >= quantity) {
++            apply(itemId, quantity);
++        }
++    }
++
++    @Transactional(readOnly = true)
++    Item load(long itemId) {
++        return items.findById(itemId).orElseThrow();
++    }
++
++    @Transactional
++    void apply(long itemId, int quantity) {
++        items.findById(itemId).orElseThrow().decrease(quantity);
+     }
+ }

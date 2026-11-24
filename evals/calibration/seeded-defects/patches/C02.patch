@@ -1,0 +1,19 @@
+diff --git a/src/main/java/example/inventory/Item.java b/src/main/java/example/inventory/Item.java
+index 7bca8f1..9ff1376 100644
+--- a/src/main/java/example/inventory/Item.java
++++ b/src/main/java/example/inventory/Item.java
+@@ -15,9 +15,13 @@ public class Item {
+     public int getStock() { return stock; }
+ 
+     public void decrease(int quantity) {
++        requireEnough(quantity);
++        stock -= quantity;
++    }
++
++    private void requireEnough(int quantity) {
+         if (stock < quantity) {
+             throw new IllegalStateException("insufficient stock");
+         }
+-        stock -= quantity;
+     }
+ }

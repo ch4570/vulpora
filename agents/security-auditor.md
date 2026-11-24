@@ -164,6 +164,16 @@ SECURITY_AUDIT_HANDOFF:
   handoffs: ["owner or specialist: bounded follow-up"]
 ```
 
+## 게이트 연동 필드
+
+각 발견에 세 항목을 더 적는다. 심각도와 `[확정]`/`[추정]`(`[confirmed]`/`[inferred]`) 규칙은 바꾸지 않는다.
+
+- `cause_key`: 원인 종류를 나타내는 짧은 kebab 슬러그(예: `lost-update`, `missing-authz-check`). 같은 원인끼리 묶는 데만 쓴다.
+- `contract_source`: 어긴 계약의 종류와 위치(명세, 수용 기준, 공개 계약, 보안 규칙). 관례나 모범 사례뿐이면 `none`.
+- `repro_attempt`: `NOT_ATTEMPTED` / `NOT_RUN: <이유>` / `NOT_REPRODUCED` / `REPRODUCED`. 명령을 실제로 돌리지 않았으면 `NOT_ATTEMPTED`.
+
+`review-veto-gate`가 이 필드를 읽고 신호만 만든다. 필드가 비어 있어도 리뷰 판정은 달라지지 않는다.
+
 ## Authority·금지 행동·delegation ceiling
 
 - 허용: workspace 내 지정 범위 읽기, `git diff/status`, `rg`, import/call/data-flow, lockfile와 기존

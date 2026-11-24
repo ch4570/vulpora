@@ -4,6 +4,17 @@ Vulpora의 사용자 관점 변경 사항을 기록합니다.
 
 ## [Unreleased]
 
+- E2E 실행에 **격리 확인 1단계(관찰)** 를 넣었습니다. `e2e-runner`에 `observe-connections.js`(테스트 명령을 환경변수 허용 목록으로
+  실행하고 프로세스 트리의 TCP 연결을 기록), `check-isolation.js`(Docker 상태로 run 소유 확인과 격리 기록 작성),
+  `check-prestart.js`(기동 전 설정 값 검사)와 Java 예제 `EndpointGuardInitializer`를 추가했습니다.
+  **새로 생긴 동작: 실행 직전에 이미 LISTEN 중인 포트(공유 DB·Redis·객체 저장소 등)를 가리키는 설정이 있으면 앱을 띄우기 전에
+  기동을 거부(`BLOCKED`)합니다.** 우회는 사람이 쓴 `isolation-exceptions.json`(소유자·사유·만료일)뿐이고 사용 기록이 남습니다.
+  실제로 공유 자원에 연결된 실행은 새 판정 `ISOLATION_BREACH`(종료 코드 5, 가장 높은 우선순위, `--diagnostic-only`로 낮출 수 없음)입니다.
+  종료 코드를 0~4만 매핑하는 CI 스크립트는 5를 실패로 처리해야 합니다. 결과에 `isolation` 기록이 없으면 판정은 그대로이고
+  `isolation_verified`가 false라서 "공유 자원 접속 0"이라고 쓸 수 없습니다. 차단(샌드박스)은 아직 없습니다.
+- `review-veto-gate` 스킬을 추가했습니다. 네 리뷰 워크플로(java-spring, kotlin-spring, backend-code, architecture)의 종합 뒤에 결함 기록, 재현 과제 목록, 합의 거부 후보 신호를
+  남기는 후처리이며 **리뷰 판정은 바꾸지 않습니다**(`veto` 모드는 없음). 리뷰어 에이전트는 `cause_key`, `contract_source`,
+  `repro_attempt` 필드를 추가로 냅니다. `security-scan-workflow`는 설치 의존성이 정식 `security-auditor` 하나로 고정된 계약이라 이 스킬을 붙이지 않았습니다.
 - `grafana-monitoring-report` 스킬과 읽기 전용 `grafana-monitor` 에이전트를 추가했습니다. 저장된 scope
   (`.vulpora/grafana-monitor.json`)나 인자로 받은 범위를 Grafana MCP(`vulpora-grafana`)로 수집하고,
   Critical/Warning/Info 순 보고서, 이전 보고서 대비 변화, 데이터 공백, 다음 확인 항목을 만듭니다.

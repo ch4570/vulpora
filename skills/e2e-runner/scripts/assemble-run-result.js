@@ -7,8 +7,12 @@
 // historically got wrong: status/body comparison, masking, priorities, coverage gaps,
 // and writing the `.done` marker last.
 //
-// usage: assemble-run-result.js <plan.json> <observations.json> <out-dir> [--orphan-audit <audit.json>] [--mask-key <key>]...
+// usage: assemble-run-result.js <plan.json> <observations.json> <out-dir> [--orphan-audit <audit.json>] [--isolation <isolation.json>] [--mask-key <key>]...
+//
+// --isolation embeds the check-isolation.js output as `isolation` (RUN-7.1d) and copies the wrapper's receipt next to the
+// run result so the validator can re-hash it. A harness `environment` with schemaVersion 2 is normalized to the known endpoint fields.
 
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const {ExpectedError, evaluateExpected} = require('./expected-assertions');
@@ -23,12 +27,14 @@ const args = process.argv.slice(2);
 const maskKeys = [];
 const positional = [];
 let orphanAuditPath = null;
+let isolationPath = null;
 for (let index = 0; index < args.length; index += 1) {
   if (args[index] === '--mask-key') maskKeys.push(args[++index] || fail('--mask-key requires a value'));
   else if (args[index] === '--orphan-audit') orphanAuditPath = args[++index] || fail('--orphan-audit requires a value');
+  else if (args[index] === '--isolation') isolationPath = args[++index] || fail('--isolation requires a value');
   else positional.push(args[index]);
 }
-if (positional.length !== 3) fail('usage: assemble-run-result.js <plan.json> <observations.json> <out-dir> [--orphan-audit <audit.json>] [--mask-key <key>]...');
+if (positional.length !== 3) fail('usage: assemble-run-result.js <plan.json> <observations.json> <out-dir> [--orphan-audit <audit.json>] [--isolation <isolation.json>] [--mask-key <key>]...');
 const [planPath, observationsPath, outDir] = positional;
 const readJson = (file) => { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return fail(`unreadable JSON: ${file}`); } };
 const plan = readJson(planPath);
@@ -99,6 +105,48 @@ for (const scenario of plan.scenarios) {
   testCases.push(testCase);
 }
 
+// environment schemaVersion 2: keep only the known endpoint fields, in a stable order.
+function normalizeEnvironment(environment) {
+  if (!environment || environment.schemaVersion !== 2) return environment;
+  if (!Array.isArray(environment.endpoints)) fail('observations.environment.endpoints must be an array when schemaVersion is 2');
+  const endpoints = environment.endpoints.map((endpoint) => {
+    if (!endpoint || typeof endpoint !== 'object') fail('every observations.environment.endpoints entry must be an object');
+    return {kind: endpoint.kind, host: endpoint.host, port: endpoint.port, containerId: endpoint.containerId,
+      propertyKeys: Array.isArray(endpoint.propertyKeys) ? [...endpoint.propertyKeys].sort() : endpoint.propertyKeys,
+      ...(endpoint.positiveContactProbe !== undefined ? {positiveContactProbe: endpoint.positiveContactProbe} : {})};
+  }).sort((a, b) => String(a.kind).localeCompare(String(b.kind)) || Number(a.port) - Number(b.port));
+  return {...environment, endpoints};
+}
+
+// The isolation record comes from check-isolation.js, never from the harness. Its receipt is copied beside the run
+// result and re-hashed, so a swapped receipt or an edited record is caught by the validator.
+function embedIsolation(file) {
+  const isolation = readJson(file);
+  if (isolation.schema !== 'vulpora.isolation/v1') fail('isolation must come from check-isolation.js');
+  for (const key of ['sharedContacts', 'ownershipViolations', 'prestartRefusals', 'warnings']) {
+    if (isolation[key] !== undefined && !Array.isArray(isolation[key])) fail(`isolation.${key} must be an array`);
+  }
+  if (!Array.isArray(isolation.sharedContacts) || typeof isolation.verified !== 'boolean') fail('isolation needs verified (boolean) and sharedContacts (array)');
+  const base = path.resolve(path.dirname(file));
+  const source = path.resolve(base, isolation.receipt?.path || '');
+  if (!isolation.receipt?.path || !source.startsWith(`${base}${path.sep}`)) fail('isolation receipt must be a file inside the isolation record directory');
+  if (!fs.existsSync(source)) fail('isolation receipt is missing');
+  const receiptText = fs.readFileSync(source);
+  if (crypto.createHash('sha256').update(receiptText).digest('hex') !== isolation.receipt.sha256) fail('isolation receipt does not match its recorded sha256');
+  fs.mkdirSync(path.join(outDir, 'isolation'), {recursive: true});
+  fs.writeFileSync(path.join(outDir, 'isolation', 'isolation-receipt.json'), receiptText);
+  try {
+    const receipt = JSON.parse(receiptText.toString('utf8'));
+    const name = receipt.listenerSnapshot?.path ? path.basename(receipt.listenerSnapshot.path) : null;
+    const snapshot = name ? path.join(path.dirname(source), name) : null;
+    if (snapshot && fs.existsSync(snapshot) && crypto.createHash('sha256').update(fs.readFileSync(snapshot)).digest('hex') === receipt.listenerSnapshot.sha256) {
+      fs.copyFileSync(snapshot, path.join(outDir, 'isolation', name));
+    }
+  } catch { /* an unreadable receipt was already rejected by the hash check above only if altered; the validator re-reads it */ }
+  return maskValue({...isolation, receipt: {path: 'isolation/isolation-receipt.json', sha256: isolation.receipt.sha256}}, maskKeys);
+}
+const isolation = isolationPath ? embedIsolation(isolationPath) : null;
+
 const count = (status) => results.filter((result) => result.status === status).length;
 const checked = results.reduce((total, result) => total + result.assertions.length, 0);
 const notSelected = new Map();
@@ -110,7 +158,7 @@ const run = {
   startedAt: observed.startedAt, finishedAt: observed.finishedAt, generatedAt: observed.finishedAt,
   wallTimeMs: Math.max(0, Date.parse(observed.finishedAt) - Date.parse(observed.startedAt)) || 0,
   git: observed.git ?? null,
-  environment: maskValue({owner: 'repository-harness', ...observed.environment}, maskKeys),
+  environment: maskValue({owner: 'repository-harness', ...normalizeEnvironment(observed.environment)}, maskKeys),
   catalog: {path: plan.catalog.path, sha: plan.catalog.fingerprint, stale: Boolean(observed.catalogStale),
     knownDeviations: plan.knownDeviations},
   scope: plan.scope,
@@ -127,6 +175,7 @@ const run = {
   execution: {supportedStack: true, slowTestExclusions: []},
   testCases,
   lifecycle: orphanAuditPath ? {...observed.lifecycle, orphanAudit: readJson(orphanAuditPath)} : observed.lifecycle,
+  ...(isolation ? {isolation} : {}),
 };
 const base = path.join(outDir, observed.runId);
 fs.writeFileSync(`${base}.json`, `${JSON.stringify(run, null, 2)}\n`);
@@ -136,7 +185,10 @@ fs.writeFileSync(`${base}.md`, [
   line('통과', run.summary.pass),
   line('실패', run.summary.fail + run.summary.failedDependency + run.summary.probeError),
   line('제외', `${run.summary.notSelected} (${run.notSelected.map((item) => `${item.reason} ${item.count}`).join('; ') || '없음'})`),
-  line('확인하지 못한 것', `${run.summary.skipped}건 미실행, 비교 ${checked}개 / 시나리오 ${results.length}개`), '',
+  line('확인하지 못한 것', `${run.summary.skipped}건 미실행, 비교 ${checked}개 / 시나리오 ${results.length}개`),
+  line('격리', !isolation ? '확인 안 됨 (격리 증거 없음)' : isolation.sharedContacts.length > 0
+    ? `위반 (${isolation.sharedContacts.map((contact) => `${contact.remoteAddress}:${contact.remotePort}`).join(', ')})`
+    : isolation.verified ? '확인됨 (관찰 범위 안에서 공유 접촉 없음)' : `확인 안 됨 (${(isolation.unverifiedReasons || [])[0] || '이유 없음'})`), '',
 ].join('\n'));
 fs.writeFileSync(`${base}.done`, ''); // Written last: renderers treat the run as settled only after this.
 process.stdout.write(`${JSON.stringify({run: `${base}.json`, summary: run.summary})}\n`);
