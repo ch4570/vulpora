@@ -171,7 +171,7 @@ function main(argv) {
     samples += 1;
     if (expect && tree.some((entry) => expect.test(entry.command))) expectedSeen = true;
     const byPid = new Map(tree.map((entry) => [entry.pid, entry.command]));
-    const lsof = spawnSync('lsof', ['+c', '0', '-nP', '-a', '-iTCP', '-p', tree.map((entry) => entry.pid).join(','), '-F', 'pcPnT'],
+    const lsof = spawnSync('lsof', ['+c', '0', '-nP', '-a', '-iTCP', '-p', tree.map((entry) => entry.pid).join(','), '-F', 'pcfPnT'],
       {encoding: 'utf8', timeout: 15000, maxBuffer: 32 * 1024 * 1024});
     if (lsof.error || (lsof.status !== 0 && lsof.status !== 1)) { toolErrors += 1; return; }
     const stamp = new Date(at).toISOString();

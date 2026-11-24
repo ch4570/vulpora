@@ -67,6 +67,14 @@ test('lsof field output becomes a listener snapshot with categories and no comma
   assert.deepEqual(listeners.parseSocketName('[::1]:80').local, {host: '::1', port: 80});
 });
 
+test('Linux lsof output has no f (fd) field; sockets are still split by their protocol field', () => {
+  const linux = ['p1', 'cpostgres', 'PTCP', 'n127.0.0.1:7010', 'TST=LISTEN', 'TQR=0', 'TQS=0', 'PTCP', 'n[::1]:7010', 'TST=LISTEN', 'p2', 'cnode', 'PTCP',
+    'n127.0.0.1:50000->127.0.0.1:7010', 'TST=ESTABLISHED', ''].join('\n');
+  const sockets = listeners.parseLsofFields(linux);
+  assert.deepEqual(sockets.map((item) => [item.pid, item.name, item.state]), [[1, '127.0.0.1:7010', 'LISTEN'], [1, '[::1]:7010', 'LISTEN'], [2, '127.0.0.1:50000->127.0.0.1:7010', 'ESTABLISHED']]);
+  assert.deepEqual(listeners.buildSnapshot({lsofText: linux}).listeners.map((item) => [item.port, item.command]), [[7010, 'postgres'], [7010, 'postgres']]);
+});
+
 test('snapshot-listeners.js reads recorded lsof text and a live snapshot sees a real decoy listener', async (t) => {
   const root = workspace(t);
   const recorded = node('snapshot-listeners.js', '--lsof-input', write(root, 'lsof.txt', 'p1\ncpostgres\nf4\nPTCP\nn127.0.0.1:7005\nTST=LISTEN\n'));

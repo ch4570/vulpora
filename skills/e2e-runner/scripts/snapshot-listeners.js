@@ -22,7 +22,8 @@ const {spawnSync} = require('node:child_process');
 
 const SCHEMA = 'vulpora.listener-snapshot/v1';
 
-// `lsof -F` emits one field per line: p<pid> c<command> f<fd> P<proto> n<name> TST=<state>.
+// `lsof -F` emits one field per line: p<pid> c<command> f<fd> P<proto> n<name> TST=<state>. Callers ask for `f` explicitly
+// (`-F pcfPnT`): macOS always prints it, Linux does not, and it delimits one socket from the next.
 function parseLsofFields(text) {
   const sockets = [];
   let process = null;
@@ -35,7 +36,11 @@ function parseLsofFields(text) {
     if (tag === 'p') { flush(); process = {pid: Number(value), command: ''}; }
     else if (tag === 'c' && process) process.command = value;
     else if (tag === 'f') { flush(); socket = {protocol: null, name: null, state: null}; }
-    else if (tag === 'P' && socket) socket.protocol = value;
+    else if (tag === 'P') {
+      // Linux lsof omits the `f` field unless it is requested, so a protocol field also opens a new record.
+      if (!socket || socket.protocol !== null) { flush(); socket = {protocol: null, name: null, state: null}; }
+      socket.protocol = value;
+    }
     else if (tag === 'n' && socket) socket.name = value;
     else if (tag === 'T' && socket && value.startsWith('ST=')) socket.state = value.slice(3);
   }
@@ -123,7 +128,7 @@ function lsofVersion() {
 // Live snapshot. Returns {ok:false, reason} instead of throwing when lsof is unusable; callers must
 // treat that as "no evidence", never as "no listeners".
 function liveSnapshot() {
-  const listed = run('lsof', ['+c', '0', '-nP', '-iTCP', '-sTCP:LISTEN', '-F', 'pcPnT']);
+  const listed = run('lsof', ['+c', '0', '-nP', '-iTCP', '-sTCP:LISTEN', '-F', 'pcfPnT']);
   if (listed.error) return {ok: false, reason: `lsof unavailable: ${listed.error.code || listed.error.message}`};
   // lsof exits 1 when it lists nothing; any output at all or a clean empty run is a valid snapshot.
   if (listed.status !== 0 && listed.status !== 1) return {ok: false, reason: `lsof exited ${listed.status}: ${(listed.stderr || '').trim().slice(0, 200)}`};
