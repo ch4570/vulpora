@@ -384,7 +384,9 @@ test('real connection: the wrapper catches a held connection to the decoy, and t
   assert.equal(node('check-isolation.js', '--receipt', path.join(out, 'isolation-receipt.json'), '--out', iso).status, 0);
   const isolation = JSON.parse(fs.readFileSync(iso, 'utf8'));
   assert.deepEqual(isolation.sharedContacts.map((item) => item.remotePort), [bait.port]);
-  assert.equal(isolation.sharedContacts[0].process.command, 'node');
+  // Linux lsof can report the connecting thread's name (Node 24 names its main thread `MainThread`) instead of the process name.
+  assert.ok(['node', 'MainThread'].includes(isolation.sharedContacts[0].process.command), isolation.sharedContacts[0].process.command);
+  assert.ok(Number.isInteger(isolation.sharedContacts[0].process.pid));
   assert.equal(isolation.verified, false);
 });
 
